@@ -4,9 +4,11 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Settings,
   LogOut,
-  User,
+  UserCheck,
+  CheckCircle,
+  Calendar,
+  FileCheck,
 } from "lucide-react";
 
 export function Layout() {
@@ -20,34 +22,53 @@ export function Layout() {
   console.log("Layout - User role:", user?.role);
   console.log("Layout - Is admin?", user?.role === "admin");
   console.log("Layout - User email:", user?.email);
-  
+
   // Force admin check - if email matches admin list, show admin link
   const userEmail = user?.email?.toLowerCase() || "";
   const isHardcodedAdmin = [
     "nicolastzakis@students.unviersitasmulia.ac.id",
     "nicolastzakis@students.universitasmulia.ac.id",
   ].includes(userEmail);
-  
+
   const effectiveRole = isHardcodedAdmin ? "admin" : user?.role;
   console.log("Layout - Effective role:", effectiveRole);
 
-  const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    ...(effectiveRole === "supervisor"
+  const navItems =
+    effectiveRole === "admin"
+      ? [
+          {
+            path: "/admin/approvals",
+            label: "Student Approvals",
+            icon: CheckCircle,
+          },
+          { path: "/admin/teams", label: "Team Management", icon: Users },
+          {
+            path: "/admin/supervisors",
+            label: "Supervisor Management",
+            icon: UserCheck,
+          },
+          {
+            path: "/admin/attendance",
+            label: "Attendance Reviews",
+            icon: Calendar,
+          },
+          {
+            path: "/admin/reports",
+            label: "Final Reports",
+            icon: FileCheck,
+          },
+        ]
+      : effectiveRole === "supervisor"
       ? [{ path: "/supervisor", label: "Supervisor", icon: FileText }]
-      : []),
-    ...(effectiveRole === "admin"
-      ? [{ path: "/admin", label: "Admin", icon: Settings }]
-      : []),
-  ];
+      : [{ path: "/dashboard", label: "Dashboard", icon: LayoutDashboard }];
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
+            <div className="flex items-center ">
               <h1 className="text-xl font-bold text-gray-900">
                 Field Study System
               </h1>
@@ -73,17 +94,15 @@ export function Layout() {
                       window.location.reload();
                     }}
                     className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded"
-                    title="Refresh (Debug)"
-                  >
+                    title="Refresh (Debug)">
                     🔄
                   </button>
                 )}
               </div>
               <button
                 onClick={logout}
-                className="p-2 text-gray-500 hover:text-gray-700"
-                title="Logout"
-              >
+                className="p-2 text-gray-700 hover:text-gray-200 rounded"
+                title="Logout">
                 <LogOut className="w-5 h-5" />
               </button>
             </div>
@@ -105,8 +124,7 @@ export function Layout() {
                     isActive(item.path)
                       ? "bg-primary-50 text-primary-700 font-medium"
                       : "text-gray-700 hover:bg-gray-50"
-                  }`}
-                >
+                  }`}>
                   <Icon className="w-5 h-5" />
                   <span>{item.label}</span>
                 </Link>
@@ -123,4 +141,3 @@ export function Layout() {
     </div>
   );
 }
-

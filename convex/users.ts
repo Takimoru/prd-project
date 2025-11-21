@@ -1,5 +1,6 @@
 import { v } from "convex/values";
-import { query } from "./_generated/server";
+import { query, mutation } from "./_generated/server";
+import { checkIsAdmin } from "./auth";
 
 // Get all users (for admin team management)
 export const getAllUsers = query({
@@ -32,6 +33,132 @@ export const searchUsers = query({
         user.email.toLowerCase().includes(searchLower) ||
         user.studentId?.toLowerCase().includes(searchLower)
     );
+  },
+});
+
+// Supervisor CRUD operations (Admin only)
+
+// Create supervisor
+export const createSupervisor = mutation({
+  args: {
+    name: v.string(),
+    email: v.string(),
+    nidn: v.string(),
+    adminId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Check if user is admin
+    const admin = await ctx.db.get(args.adminId);
+    if (!checkIsAdmin(admin)) {
+      throw new Error("Only admins can create supervisors");
+    }
+
+    // Check if email already exists
+    const existing = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", args.email))
+      .first();
+
+    if (existing) {
+      throw new Error("Email already exists");
+    }
+
+    // Create supervisor user with mock googleId
+    const supervisorId = await ctx.db.insert("users", {
+      name: args.name,
+      email: args.email,
+      role: "supervisor",
+      nidn: args.nidn,
+      googleId: `mock_${Date.now()}_${args.email}`, // Mock Google ID for testing
+    });
+
+    return supervisorId;
+  },
+});
+
+// Update supervisor
+export const updateSupervisor = mutation({
+  args: {
+    supervisorId: v.id("users"),
+    name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    nidn: v.optional(v.string()),
+    adminId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Check if user is admin
+    const admin = await ctx.db.get(args.adminId);
+    if (!checkIsAdmin(admin)) {
+      throw new Error("Only admins can update supervisors");
+    }
+
+    const supervisor = await ctx.db.get(args.supervisorId);
+    if (!supervisor) {
+      throw new Error("Supervisor not found");
+    }
+
+    if (supervisor.role !== "supervisor") {
+      throw new Error("User is not a supervisor");
+    }
+
+    // Check if email is being changed and if it already exists
+    if (args.email && args.email !== supervisor.email) {
+      const existing = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", args.email!))
+        .first();
+
+      if (existing) {
+        throw new Error("Email already exists");
+      }
+    }
+
+    const updates: any = {};
+    if (args.name !== undefined) updates.name = args.name;
+    if (args.email !== undefined) updates.email = args.email;
+    if (args.nidn !== undefined) updates.nidn = args.nidn;
+
+    await ctx.db.patch(args.supervisorId, updates);
+    return args.supervisorId;
+  },
+});
+
+// Delete supervisor
+export const deleteSupervisor = mutation({
+  args: {
+    supervisorId: v.id("users"),
+    adminId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // Check if user is admin
+    const admin = await ctx.db.get(args.adminId);
+    if (!checkIsAdmin(admin)) {
+      throw new Error("Only admins can delete supervisors");
+    }
+
+    const supervisor = await ctx.db.get(args.supervisorId);
+    if (!supervisor) {
+      throw new Error("Supervisor not found");
+    }
+
+    if (supervisor.role !== "supervisor") {
+      throw new Error("User is not a supervisor");
+    }
+
+    // Check if supervisor is assigned to any teams
+    const teamsWithSupervisor = await ctx.db
+      .query("teams")
+      .withIndex("by_supervisor", (q) => q.eq("supervisorId", args.supervisorId))
+      .collect();
+
+    if (teamsWithSupervisor.length > 0) {
+      throw new Error(
+        `Cannot delete supervisor: assigned to ${teamsWithSupervisor.length} team(s). Please reassign teams first.`
+      );
+    }
+
+    await ctx.db.delete(args.supervisorId);
+    return args.supervisorId;
   },
 });
 

@@ -41,10 +41,16 @@ export const createProgram = mutation({
     createdBy: v.id("users"),
   },
   handler: async (ctx, args) => {
-    // Check if user is admin
     const creator = await ctx.db.get(args.createdBy);
-    if (!checkIsAdmin(creator)) {
-      throw new Error("Only admins can create programs");
+    if (!creator) {
+      throw new Error("User not found");
+    }
+
+    const isAdmin = checkIsAdmin(creator);
+    const isStudent = creator.role === "student";
+
+    if (!isAdmin && !isStudent) {
+      throw new Error("Only students or admins can create programs");
     }
 
     const programId = await ctx.db.insert("programs", {

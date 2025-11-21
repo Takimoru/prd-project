@@ -8,9 +8,11 @@ export default defineSchema({
     role: v.union(
       v.literal("admin"),
       v.literal("supervisor"),
-      v.literal("student")
+      v.literal("student"),
+      v.literal("pending")
     ),
     studentId: v.optional(v.string()),
+    nidn: v.optional(v.string()), // NIDN for supervisors
     googleId: v.string(),
     picture: v.optional(v.string()),
   })
@@ -93,7 +95,13 @@ export default defineSchema({
 
   registrations: defineTable({
     programId: v.id("programs"),
-    userId: v.id("users"),
+    userId: v.optional(v.id("users")),
+    fullName: v.optional(v.string()),
+    studentId: v.optional(v.string()),
+    phone: v.optional(v.string()),
+    email: v.optional(v.string()),
+    paymentProofStorageId: v.optional(v.id("_storage")),
+    paymentProofUrl: v.optional(v.string()),
     status: v.union(
       v.literal("pending"),
       v.literal("approved"),
@@ -102,9 +110,11 @@ export default defineSchema({
     submittedAt: v.string(), // ISO datetime string
     reviewedBy: v.optional(v.id("users")),
     reviewedAt: v.optional(v.string()), // ISO datetime string
+    reviewNotes: v.optional(v.string()),
   })
     .index("by_program", ["programId"])
     .index("by_user", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_email", ["email"]),
 });
 

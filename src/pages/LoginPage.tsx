@@ -1,11 +1,16 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap, X } from "lucide-react";
 
 export function LoginPage() {
-  const { user, login, isLoading } = useAuth();
+  const { user, login, isLoading, mockLogin, mockLoginEnabled } = useAuth();
   const navigate = useNavigate();
+  const [mockEmail, setMockEmail] = useState("");
+  const [mockName, setMockName] = useState("");
+  const [pendingEmail, setPendingEmail] = useState<string | null>(() =>
+    sessionStorage.getItem("pendingApprovalEmail")
+  );
 
   useEffect(() => {
     if (user) {
@@ -36,6 +41,30 @@ export function LoginPage() {
           </p>
         </div>
 
+        {pendingEmail && (
+          <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900 flex items-start justify-between space-x-3">
+            <div>
+              <p className="font-semibold text-yellow-900">
+                Registration under review
+              </p>
+              <p className="mt-1">
+                {pendingEmail} has not been approved yet. Please wait for the admin to verify
+                your submission, then sign in again.
+              </p>
+            </div>
+            <button
+              aria-label="Dismiss"
+              onClick={() => {
+                sessionStorage.removeItem("pendingApprovalEmail");
+                setPendingEmail(null);
+              }}
+              className="text-yellow-700 hover:text-yellow-900"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         <button
           onClick={login}
           className="w-full flex items-center justify-center space-x-3 bg-white border-2 border-gray-300 rounded-lg px-6 py-3 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
@@ -64,6 +93,55 @@ export function LoginPage() {
         <p className="mt-6 text-center text-sm text-gray-500">
           Only university email addresses are allowed
         </p>
+        <p className="mt-2 text-center text-sm text-gray-500">
+          Haven&apos;t submitted your documents yet?{" "}
+          <Link to="/register" className="text-primary-600 hover:underline font-medium">
+            Complete registration first
+          </Link>
+        </p>
+        {mockLoginEnabled && (
+          <div className="mt-8 border-t pt-6">
+            <p className="text-sm font-semibold text-gray-700 mb-3">
+              Dev-only mock login
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Email (must match submitted registration)
+                </label>
+                <input
+                  type="email"
+                  value={mockEmail}
+                  onChange={(e) => setMockEmail(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="student@university.edu"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Display name (optional)
+                </label>
+                <input
+                  type="text"
+                  value={mockName}
+                  onChange={(e) => setMockName(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Mock Student"
+                />
+              </div>
+              <button
+                onClick={() => mockLogin?.(mockEmail, mockName)}
+                className="w-full px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 text-sm"
+              >
+                Sign in with mock account
+              </button>
+              <p className="text-xs text-gray-500">
+                Use this only in local development. The email must have an approved registration
+                before it can access the app.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

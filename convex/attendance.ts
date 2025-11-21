@@ -48,23 +48,70 @@ export const getWeeklyAttendanceSummary = query({
     week: v.string(), // Format: "YYYY-WW"
   },
   handler: async (ctx, args) => {
-    // Calculate date range for the week
-    const [year, weekNum] = args.week.split("-W").map(Number);
-    const startDate = getWeekStartDate(year, weekNum);
-    const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 6);
-
+    const { startDate, endDate, dates } = getWeekDateRange(args.week);
     const startDateStr = startDate.toISOString().split("T")[0];
     const endDateStr = endDate.toISOString().split("T")[0];
 
-    const allAttendance = await ctx.db
+    const rawAttendance = await ctx.db
       .query("attendance")
       .withIndex("by_team_date", (q) => q.eq("teamId", args.teamId))
       .collect();
 
-    return allAttendance.filter(
+    const filtered = rawAttendance.filter(
       (record) => record.date >= startDateStr && record.date <= endDateStr
     );
+
+    const attendanceWithUsers = await Promise.all(
+      filtered.map(async (record) => {
+        const attendee = await ctx.db.get(record.userId);
+        return {
+          ...record,
+          user: attendee,
+        };
+      })
+    );
+
+    const daily = dates.map((date) => ({
+      date,
+      attendees: attendanceWithUsers
+        .filter((record) => record.date === date)
+        .map((record) => ({
+          userId: record.userId,
+          userName: record.user?.name || "Unknown",
+          timestamp: record.timestamp,
+        })),
+    }));
+
+    const totalsMap = new Map<
+      string,
+      { userId: string; userName: string; presentCount: number; lastCheckIn?: string }
+    >();
+
+    attendanceWithUsers.forEach((record) => {
+      const key = record.userId as unknown as string;
+      if (!totalsMap.has(key)) {
+        totalsMap.set(key, {
+          userId: key,
+          userName: record.user?.name || "Unknown",
+          presentCount: 0,
+          lastCheckIn: record.timestamp,
+        });
+      }
+      const summary = totalsMap.get(key)!;
+      summary.presentCount += 1;
+      if (!summary.lastCheckIn || summary.lastCheckIn < record.timestamp) {
+        summary.lastCheckIn = record.timestamp;
+      }
+    });
+
+    return {
+      teamId: args.teamId,
+      week: args.week,
+      startDate: startDateStr,
+      endDate: endDateStr,
+      daily,
+      totals: Array.from(totalsMap.values()),
+    };
   },
 });
 
@@ -116,15 +163,30 @@ export const checkIn = mutation({
 });
 
 // Helper function to get week start date
-function getWeekStartDate(year: number, week: number): Date {
+function getWeekDateRange(weekString: string) {
+  const [yearStr, weekPart] = weekString.split("-W");
+  const year = Number(yearStr);
+  const week = Number(weekPart);
+
   const simple = new Date(year, 0, 1 + (week - 1) * 7);
   const dow = simple.getDay();
-  const ISOweekStart = simple;
+  const startDate = new Date(simple);
   if (dow <= 4) {
-    ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+    startDate.setDate(simple.getDate() - simple.getDay() + 1);
   } else {
-    ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+    startDate.setDate(simple.getDate() + 8 - simple.getDay());
   }
-  return ISOweekStart;
+
+  const dates = [];
+  for (let i = 0; i < 7; i++) {
+    const current = new Date(startDate);
+    current.setDate(startDate.getDate() + i);
+    dates.push(current.toISOString().split("T")[0]);
+  }
+
+  const endDate = new Date(startDate);
+  endDate.setDate(startDate.getDate() + 6);
+
+  return { startDate, endDate, dates };
 }
 

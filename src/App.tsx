@@ -11,8 +11,15 @@ import { LoginPage } from "./pages/LoginPage";
 import { StudentDashboard } from "./pages/StudentDashboard";
 import { TeamWorkspace } from "./pages/TeamWorkspace";
 import { SupervisorDashboard } from "./pages/SupervisorDashboard";
-import { AdminPanel } from "./pages/AdminPanel";
 import { NotFound } from "./pages/NotFound";
+import { RegistrationPage } from "./pages/RegistrationPage";
+// Admin Pages
+import { StudentApprovals } from "./pages/admin/StudentApprovals";
+import { TeamManagement } from "./pages/admin/TeamManagement";
+import { SupervisorManagement } from "./pages/admin/SupervisorManagement";
+import { AttendanceReviews } from "./pages/admin/AttendanceReviews";
+import { FinalReports } from "./pages/admin/FinalReports";
+import { AdminRedirect } from "./components/AdminRedirect";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "";
 
@@ -34,6 +41,7 @@ function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegistrationPage />} />
               <Route
                 path="/"
                 element={
@@ -42,11 +50,15 @@ function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route index element={<AdminRedirect />} />
                 <Route path="dashboard" element={<StudentDashboard />} />
                 <Route path="team/:teamId" element={<TeamWorkspace />} />
                 <Route path="supervisor" element={<SupervisorDashboard />} />
-                <Route path="admin" element={<AdminPanel />} />
+                <Route path="admin/approvals" element={<StudentApprovals />} />
+                <Route path="admin/teams" element={<TeamManagement />} />
+                <Route path="admin/supervisors" element={<SupervisorManagement />} />
+                <Route path="admin/attendance" element={<AttendanceReviews />} />
+                <Route path="admin/reports" element={<FinalReports />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

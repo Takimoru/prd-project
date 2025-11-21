@@ -108,8 +108,21 @@ export const createOrUpdateUser = mutation({
     studentId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const normalizedEmail = args.email.toLowerCase();
     // Check if email is in admin list
     const shouldBeAdmin = isAdminEmail(args.email);
+
+    const matchingRegistration = await ctx.db
+      .query("registrations")
+      .withIndex("by_email", (q) => q.eq("email", normalizedEmail))
+      .first();
+
+    const registrationRole =
+      matchingRegistration?.status === "approved"
+        ? "student"
+        : matchingRegistration?.status === "pending"
+        ? "pending"
+        : undefined;
 
     const existingUser = await ctx.db
       .query("users")
@@ -118,9 +131,16 @@ export const createOrUpdateUser = mutation({
 
     if (existingUser) {
       // Update existing user
-      // If email is in admin list, ensure role is admin
+      // Preserve supervisor and admin roles, handle student/pending based on registration
       const finalRole = shouldBeAdmin
         ? "admin"
+        : existingUser.role === "supervisor"
+        ? "supervisor" // Preserve supervisor role
+        : registrationRole === "student"
+        ? "student"
+        : registrationRole === "pending" &&
+          (existingUser.role === "pending" || !existingUser.role)
+        ? "pending"
         : args.role || existingUser.role;
 
       await ctx.db.patch(existingUser._id, {
@@ -128,13 +148,24 @@ export const createOrUpdateUser = mutation({
         googleId: args.googleId,
         picture: args.picture,
         role: finalRole,
+        studentId: existingUser.studentId || matchingRegistration?.studentId,
       });
+
+      if (matchingRegistration && matchingRegistration.userId !== existingUser._id) {
+        await ctx.db.patch(matchingRegistration._id, {
+          userId: existingUser._id,
+        });
+      }
       return existingUser._id;
     }
 
     // Create new user
     // If email is in admin list, assign admin role, otherwise use provided role or default to student
-    const defaultRole = shouldBeAdmin ? "admin" : args.role || "student";
+    const defaultRole = shouldBeAdmin
+      ? "admin"
+      : registrationRole
+      ? registrationRole
+      : args.role || "pending";
 
     const userId = await ctx.db.insert("users", {
       name: args.name,
@@ -142,8 +173,14 @@ export const createOrUpdateUser = mutation({
       googleId: args.googleId,
       picture: args.picture,
       role: defaultRole,
-      studentId: args.studentId,
+      studentId: args.studentId || matchingRegistration?.studentId,
     });
+
+    if (matchingRegistration) {
+      await ctx.db.patch(matchingRegistration._id, {
+        userId,
+      });
+    }
 
     return userId;
   },

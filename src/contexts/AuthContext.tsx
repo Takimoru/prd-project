@@ -8,7 +8,7 @@ interface User {
   _id: Id<"users">;
   name: string;
   email: string;
-  role: "admin" | "supervisor" | "student";
+  role: "admin" | "supervisor" | "student" | "pending";
   studentId?: string;
   picture?: string;
 }
@@ -19,6 +19,8 @@ interface AuthContextType {
   login: () => void;
   logout: () => void;
   isAllowedDomain: (email: string) => boolean;
+  mockLogin?: (email: string, name?: string) => Promise<void>;
+  mockLoginEnabled: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,12 +42,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const envDomains = import.meta.env.VITE_ALLOWED_EMAIL_DOMAINS;
     return envDomains ? envDomains.split(",").map((d) => d.trim()) : [];
   });
+  const mockLoginEnabled =
+    import.meta.env.VITE_ENABLE_MOCK_LOGIN === "true" ||
+    import.meta.env.VITE_ENABLE_MOCK_LOGIN === "1";
 
   useEffect(() => {
     setIsLoading(false);
     // Debug: Log current user data
     console.log("AuthContext - Current user from query:", currentUser);
     console.log("AuthContext - User email from localStorage:", userEmail);
+  }, [currentUser, userEmail]);
+
+  useEffect(() => {
+    if (currentUser && currentUser.role === "pending" && userEmail) {
+      sessionStorage.setItem("pendingApprovalEmail", currentUser.email);
+      localStorage.removeItem("userEmail");
+      setUserEmail(null);
+    }
   }, [currentUser, userEmail]);
 
   const isAllowedDomain = (email: string): boolean => {
@@ -116,6 +129,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     },
   });
 
+  const mockLogin = async (email: string, name?: string) => {
+    if (!mockLoginEnabled) {
+      alert("Mock login is disabled in this environment.");
+      return;
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      alert("Please provide an email address.");
+      return;
+    }
+
+    try {
+      await createOrUpdateUser({
+        name: name?.trim() || "Mock User",
+        email: normalizedEmail,
+        googleId: `mock-${normalizedEmail}`,
+      });
+
+      localStorage.setItem("userEmail", normalizedEmail);
+      setUserEmail(normalizedEmail);
+    } catch (error) {
+      console.error("Mock login failed:", error);
+      alert("Failed to mock login. Check console for details.");
+    }
+  };
+
   const logout = () => {
     // Clear localStorage and redirect
     localStorage.removeItem("userEmail");
@@ -123,14 +163,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     window.location.href = "/login";
   };
 
+  const effectiveUser =
+    currentUser && currentUser.role === "pending"
+      ? null
+      : (currentUser as User | null | undefined);
+
   return (
     <AuthContext.Provider
       value={{
-        user: currentUser as User | null | undefined,
+        user: effectiveUser,
         isLoading,
         login,
         logout,
         isAllowedDomain,
+        mockLoginEnabled,
+        mockLogin: mockLoginEnabled ? mockLogin : undefined,
       }}>
       {children}
     </AuthContext.Provider>

@@ -87,6 +87,54 @@ export const getTeamsByLeader = query({
   },
 });
 
+export const getTeamsForUser = query({
+  args: {
+    userId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const teamsByLeader = await ctx.db
+      .query("teams")
+      .withIndex("by_leader", (q) => q.eq("leaderId", args.userId))
+      .collect();
+
+    const allTeams = await ctx.db.query("teams").collect();
+    const memberTeams = allTeams.filter((team) =>
+      team.memberIds.includes(args.userId)
+    );
+
+    const combined = new Map<string, typeof allTeams[number]>();
+    teamsByLeader.forEach((team) =>
+      combined.set(team._id as unknown as string, team)
+    );
+    memberTeams.forEach((team) =>
+      combined.set(team._id as unknown as string, team)
+    );
+
+    const teams = Array.from(combined.values());
+
+    return Promise.all(
+      teams.map(async (team) => {
+        const leader = await ctx.db.get(team.leaderId);
+        const members = await Promise.all(
+          team.memberIds.map((id) => ctx.db.get(id))
+        );
+        const supervisor = team.supervisorId
+          ? await ctx.db.get(team.supervisorId)
+          : null;
+        const program = await ctx.db.get(team.programId);
+
+        return {
+          ...team,
+          leader,
+          members,
+          supervisor,
+          program,
+        };
+      })
+    );
+  },
+});
+
 // Create team (Admin only)
 export const createTeam = mutation({
   args: {
