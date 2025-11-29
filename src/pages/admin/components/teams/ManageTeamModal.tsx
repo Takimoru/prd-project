@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import { TeamForm } from "../../types/team";
-import { Id } from "../../../../../convex/_generated/dataModel";
+
 
 interface ManageTeamModalProps {
   formData: TeamForm;
