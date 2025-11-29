@@ -35,6 +35,17 @@ export default defineSchema({
     memberIds: v.array(v.id("users")),
     supervisorId: v.optional(v.id("users")),
     name: v.optional(v.string()),
+    progress: v.optional(v.number()), // 0-100
+    documentation: v.optional(
+      v.array(
+        v.object({
+          name: v.string(),
+          url: v.string(),
+          type: v.string(),
+          uploadedAt: v.string(),
+        })
+      )
+    ),
   })
     .index("by_program", ["programId"])
     .index("by_leader", ["leaderId"])
@@ -45,6 +56,14 @@ export default defineSchema({
     userId: v.id("users"),
     date: v.string(), // ISO date string (YYYY-MM-DD)
     timestamp: v.string(), // ISO datetime string
+    status: v.optional(
+      v.union(
+        v.literal("present"),
+        v.literal("permission"),
+        v.literal("alpha")
+      )
+    ),
+    excuse: v.optional(v.string()),
     gps: v.optional(
       v.object({
         latitude: v.number(),

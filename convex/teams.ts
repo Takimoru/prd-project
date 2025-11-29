@@ -260,3 +260,48 @@ export const deleteTeam = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+// Update team progress
+export const updateProgress = mutation({
+  args: {
+    teamId: v.id("teams"),
+    progress: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const team = await ctx.db.get(args.teamId);
+    if (!team) throw new Error("Team not found");
+
+    if (args.progress < 0 || args.progress > 100) {
+      throw new Error("Progress must be between 0 and 100");
+    }
+
+    await ctx.db.patch(args.teamId, {
+      progress: args.progress,
+    });
+  },
+});
+
+// Add documentation
+export const addDocumentation = mutation({
+  args: {
+    teamId: v.id("teams"),
+    name: v.string(),
+    url: v.string(),
+    type: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const team = await ctx.db.get(args.teamId);
+    if (!team) throw new Error("Team not found");
+
+    const newDoc = {
+      name: args.name,
+      url: args.url,
+      type: args.type,
+      uploadedAt: new Date().toISOString(),
+    };
+
+    await ctx.db.patch(args.teamId, {
+      documentation: [...(team.documentation || []), newDoc],
+    });
+  },
+});

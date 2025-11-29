@@ -4,6 +4,8 @@ export interface AttendanceAttendee {
   userId: Id<"users">;
   userName: string;
   timestamp: string;
+  status?: "present" | "permission" | "alpha";
+  excuse?: string;
 }
 
 export interface DailyAttendance {

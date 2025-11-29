@@ -79,6 +79,8 @@ export const getWeeklyAttendanceSummary = query({
           userId: record.userId,
           userName: record.user?.name || "Unknown",
           timestamp: record.timestamp,
+          status: record.status,
+          excuse: record.excuse,
         })),
     }));
 
@@ -88,6 +90,9 @@ export const getWeeklyAttendanceSummary = query({
     >();
 
     attendanceWithUsers.forEach((record) => {
+      // Count totals only for present
+      if (record.status !== "present" && record.status !== undefined) return;
+      
       const key = record.userId as unknown as string;
       if (!totalsMap.has(key)) {
         totalsMap.set(key, {
@@ -121,6 +126,12 @@ export const checkIn = mutation({
     teamId: v.id("teams"),
     userId: v.id("users"),
     date: v.string(), // YYYY-MM-DD format
+    status: v.union(
+      v.literal("present"),
+      v.literal("permission"),
+      v.literal("alpha")
+    ),
+    excuse: v.optional(v.string()),
     gps: v.optional(
       v.object({
         latitude: v.number(),
@@ -142,6 +153,8 @@ export const checkIn = mutation({
       // Update existing check-in
       await ctx.db.patch(existing._id, {
         timestamp: new Date().toISOString(),
+        status: args.status,
+        excuse: args.excuse,
         gps: args.gps,
         photoUrl: args.photoUrl,
       });
@@ -154,6 +167,8 @@ export const checkIn = mutation({
       userId: args.userId,
       date: args.date,
       timestamp: new Date().toISOString(),
+      status: args.status,
+      excuse: args.excuse,
       gps: args.gps,
       photoUrl: args.photoUrl,
     });

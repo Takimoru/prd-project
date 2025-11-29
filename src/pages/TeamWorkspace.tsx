@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import { AttendanceDialog } from "./student/components/AttendanceDialog";
 
 export function TeamWorkspace() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -54,33 +55,17 @@ export function TeamWorkspace() {
   );
 
   const [newTaskTitle, setNewTaskTitle] = useState("");
-  const [showCheckIn, setShowCheckIn] = useState(false);
+  const [showAttendanceDialog, setShowAttendanceDialog] = useState(false);
 
   const hasCheckedInToday =
     attendance?.some((a) => a.userId === user?._id) || false;
 
-  const handleCheckIn = async () => {
-    if (!teamId) {
-      toast.error("No team selected");
-      return;
-    }
+  const handleCheckInClick = () => {
+    setShowAttendanceDialog(true);
+  };
 
-    if (!user) {
-      toast.error("You must be logged in to check in");
-      return;
-    }
-
-    if (!team) {
-      toast.error("Team not found. Please wait for team data to load.");
-      return;
-    }
-
-    // Check if user is a member of this team
-    const isMember = team.leaderId === user._id || team.memberIds.some(id => id === user._id);
-    if (!isMember) {
-      toast.error("You are not a member of this team");
-      return;
-    }
+  const handleSubmitAttendance = async (status: "present" | "permission", excuse?: string) => {
+    if (!teamId || !user) return;
 
     try {
       const today = new Date().toISOString().split("T")[0];
@@ -88,12 +73,14 @@ export function TeamWorkspace() {
         teamId: teamId as any,
         userId: user._id,
         date: today,
+        status,
+        excuse,
       });
-      setShowCheckIn(false);
-      toast.success("Check-in successful!");
+      toast.success(status === "present" ? "Check-in successful!" : "Permission submitted");
     } catch (error: any) {
       console.error("Check-in failed:", error);
       toast.error(error.message || "Failed to check in. Please try again.");
+      throw error;
     }
   };
 
@@ -209,32 +196,19 @@ export function TeamWorkspace() {
           </div>
         ) : (
           <button
-            onClick={() => setShowCheckIn(!showCheckIn)}
+            onClick={handleCheckInClick}
             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
           >
             Check In
           </button>
         )}
-
-        {showCheckIn && !hasCheckedInToday && (
-          <div className="mt-4 space-y-4">
-            <div className="flex space-x-2">
-              <button
-                onClick={handleCheckIn}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-              >
-                Submit Check-in
-              </button>
-              <button
-                onClick={() => setShowCheckIn(false)}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      <AttendanceDialog
+        isOpen={showAttendanceDialog}
+        onClose={() => setShowAttendanceDialog(false)}
+        onSubmit={handleSubmitAttendance}
+      />
 
       {/* Weekly Tasks */}
       <div className="bg-white rounded-lg shadow">
@@ -469,4 +443,3 @@ function getTeamMembers(team: any) {
   }
   return members;
 }
-

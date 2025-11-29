@@ -33,20 +33,38 @@ export function AttendanceTable({
                 {member.name}
               </td>
               {attendanceSummary.daily.map((day) => {
-                const present = day.attendees.some(
-                  (attendee) =>
-                    attendee.userId === (member._id as unknown as string)
+                const attendee = day.attendees.find(
+                  (a) => a.userId === (member._id as unknown as string)
                 );
+                
+                let content;
+                if (!attendee) {
+                  // No record = Alpha (Absent)
+                  content = <span className="text-red-500 font-bold cursor-help" title="Alpha (Absent)">A</span>;
+                } else if (attendee.status === "present" || attendee.status === undefined) {
+                  content = (
+                    <span title="Present">
+                      <CheckCircle className="w-5 h-5 text-green-600 inline" />
+                    </span>
+                  );
+                } else if (attendee.status === "permission") {
+                  content = (
+                    <div className="group relative inline-block">
+                      <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center text-xs font-bold text-white cursor-help" title={`Permission: ${attendee.excuse || "No excuse provided"}`}>
+                        P
+                      </div>
+                    </div>
+                  );
+                } else if (attendee.status === "alpha") {
+                   content = <span className="text-red-500 font-bold cursor-help" title="Alpha (Absent)">A</span>;
+                }
+
                 return (
                   <td
                     key={`${member._id}-${day.date}`}
                     className="py-2 px-2 text-center"
                   >
-                    {present ? (
-                      <CheckCircle className="w-4 h-4 text-green-600 inline" />
-                    ) : (
-                      <span className="text-gray-300">—</span>
-                    )}
+                    {content}
                   </td>
                 );
               })}

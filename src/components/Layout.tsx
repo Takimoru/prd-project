@@ -2,6 +2,8 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { Doc } from "../../convex/_generated/dataModel";
+import { useMemo, useState } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -12,14 +14,36 @@ import {
   Calendar,
   FileCheck,
   ChevronRight,
+  ChevronDown,
+  LayoutTemplate,
 } from "lucide-react";
+
+import { cn } from "../lib/utils";
+import { Button } from "./ui/button";
+import { ScrollArea } from "./ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Badge } from "./ui/badge";
 
 export function Layout() {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const programs = useQuery(api.programs.getAllPrograms, {
-    includeArchived: false,
-  });
+  const [isProgramsOpen, setIsProgramsOpen] = useState(true);
+  
+  const myTeams = useQuery(
+    api.teams.getTeamsForUser,
+    user ? { userId: user._id } : "skip"
+  );
+
+  const myPrograms = useMemo(() => {
+    if (!myTeams) return [];
+    const uniquePrograms = new Map<string, Doc<"programs">>();
+    myTeams.forEach((team) => {
+      if (team.program) {
+        uniquePrograms.set(team.program._id, team.program);
+      }
+    });
+    return Array.from(uniquePrograms.values());
+  }, [myTeams]);
 
   const isActive = (path: string) => {
     if (path.includes("?")) {
@@ -27,12 +51,6 @@ export function Layout() {
     }
     return location.pathname === path && location.search === "";
   };
-
-  // Debug: Log user role
-  console.log("Layout - Current user:", user);
-  console.log("Layout - User role:", user?.role);
-  console.log("Layout - Is admin?", user?.role === "admin");
-  console.log("Layout - User email:", user?.email);
 
   // Force admin check - if email matches admin list, show admin link
   const userEmail = user?.email?.toLowerCase() || "";
@@ -42,7 +60,6 @@ export function Layout() {
   ].includes(userEmail);
 
   const effectiveRole = isHardcodedAdmin ? "admin" : user?.role;
-  console.log("Layout - Effective role:", effectiveRole);
 
   const navItems =
     effectiveRole === "admin"
@@ -74,48 +91,40 @@ export function Layout() {
       : [{ path: "/dashboard", label: "Dashboard", icon: LayoutDashboard }];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-9xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center ">
-              <h1 className="text-xl font-bold text-gray-900">
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container flex h-14 items-center">
+          <div className="mr-4 hidden md:flex">
+            <Link to="/" className="mr-6 flex items-center space-x-2">
+              <span className="hidden font-bold sm:inline-block">
                 Field Study System
-              </h1>
+              </span>
+            </Link>
+          </div>
+          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
+            <div className="w-full flex-1 md:w-auto md:flex-none">
+              {/* Search or other header items could go here */}
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                {user?.picture && (
-                  <img
-                    src={user.picture}
-                    alt={user.name}
-                    className="w-8 h-8 rounded-full"
-                  />
-                )}
-                <span className="text-sm text-gray-700">{user?.name}</span>
-                <span className="px-2 py-1 text-xs font-medium bg-primary-100 text-primary-800 rounded">
-                  {effectiveRole || "loading..."}
-                </span>
-                {/* Debug info - remove in production */}
-                {process.env.NODE_ENV === "development" && (
-                  <button
-                    onClick={() => {
-                      console.log("Current user:", user);
-                      window.location.reload();
-                    }}
-                    className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded"
-                    title="Refresh (Debug)">
-                    🔄
-                  </button>
-                )}
-              </div>
-              <button
-                onClick={logout}
-                className="p-2 text-gray-700 hover:text-gray-200 rounded"
-                title="Logout">
-                <LogOut className="w-5 h-5" />
-              </button>
+            <div className="flex items-center gap-2">
+              {user && (
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.picture} alt={user.name} />
+                    <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="hidden md:flex flex-col items-end">
+                    <span className="text-sm font-medium leading-none">{user.name}</span>
+                    <Badge variant="secondary" className="mt-1 text-xs">
+                      {effectiveRole || "loading..."}
+                    </Badge>
+                  </div>
+                </div>
+              )}
+              <Button variant="ghost" size="icon" onClick={logout} title="Logout">
+                <LogOut className="h-5 w-5" />
+                <span className="sr-only">Logout</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -123,60 +132,80 @@ export function Layout() {
 
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-white shadow-sm min-h-[calc(100vh-4rem)]">
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                    isActive(item.path)
-                      ? "bg-primary-50 text-primary-700 font-medium"
-                      : "text-gray-700 hover:bg-gray-50"
-                  }`}>
-                  <Icon className="w-5 h-5" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block md:w-64">
+          <ScrollArea className="h-full py-6 pl-4 pr-6">
+            <nav className="flex flex-col space-y-2">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Button
+                    key={item.path}
+                    variant={isActive(item.path) ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full justify-start",
+                      isActive(item.path) && "bg-secondary"
+                    )}
+                    asChild
+                  >
+                    <Link to={item.path}>
+                      <Icon className="mr-2 h-4 w-4" />
+                      {item.label}
+                    </Link>
+                  </Button>
+                );
+              })}
 
-            {/* Student Programs List */}
-            {effectiveRole !== "admin" && effectiveRole !== "supervisor" && (
-              <div className="pt-4">
-                <p className="px-4 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
-                  Active Programs
-                </p>
-                <div className="space-y-1">
-                  {programs?.map((program) => {
-                    const programPath = `/dashboard?program=${program._id}`;
-                    return (
-                      <Link
-                        key={program._id}
-                        to={programPath}
-                        className={`flex items-center justify-between px-4 py-2 rounded-lg transition-colors text-sm group ${
-                          isActive(programPath)
-                            ? "bg-primary-50 text-primary-700 font-medium"
-                            : "text-gray-600 hover:bg-gray-50"
-                        }`}
-                      >
-                        <span className="truncate">{program.title}</span>
-                        {isActive(programPath) && (
-                          <ChevronRight className="w-4 h-4 text-primary-500" />
-                        )}
-                      </Link>
-                    );
-                  })}
-                  {programs?.length === 0 && (
-                    <p className="px-4 text-sm text-gray-400 italic">
-                      No active programs
-                    </p>
+              {/* Work Programs List - Collapsible */}
+              {effectiveRole !== "admin" && effectiveRole !== "supervisor" && (
+                <div className="space-y-1 pt-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-between"
+                    onClick={() => setIsProgramsOpen(!isProgramsOpen)}
+                  >
+                    <div className="flex items-center">
+                      <FileText className="mr-2 h-4 w-4" />
+                      Work Programs
+                    </div>
+                    {isProgramsOpen ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </Button>
+
+                  {isProgramsOpen && (
+                    <div className="space-y-1">
+                      {myPrograms.map((program) => {
+                        const programPath = `/dashboard?program=${program._id}`;
+                        return (
+                          <Button
+                            key={program._id}
+                            variant={isActive(programPath) ? "secondary" : "ghost"}
+                            className={cn(
+                              "w-full justify-start pl-9",
+                              isActive(programPath) && "bg-secondary"
+                            )}
+                            asChild
+                          >
+                            <Link to={programPath}>
+                              <LayoutTemplate className="mr-2 h-4 w-4" />
+                              <span className="truncate">{program.title}</span>
+                            </Link>
+                          </Button>
+                        );
+                      })}
+                      {myPrograms.length === 0 && (
+                        <div className="px-4 py-2 text-sm text-muted-foreground italic pl-9">
+                          No active programs
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
-            )}
-          </nav>
+              )}
+            </nav>
+          </ScrollArea>
         </aside>
 
         {/* Main Content */}

@@ -1,41 +1,27 @@
-import { useQuery } from "convex/react";
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { api } from "../../convex/_generated/api";
-import { useAuth } from "../contexts/AuthContext";
 import { Plus } from "lucide-react";
 import { ProgramDetails } from "../components/ProgramDetails";
-import { PendingRegistrationNotice } from "./student/PendingRegistrationNotice";
-import { CreateProgramModal } from "./student/CreateProgramModal";
-import { DashboardStats } from "./student/DashboardStats";
-import { MyTeams } from "./student/MyTeams";
+import { PendingRegistrationNotice } from "./student/components/PendingRegistrationNotice";
+import { CreateProgramModal } from "./student/components/CreateProgramModal";
+import { DashboardStats } from "./student/components/DashboardStats";
+import { MyTeams } from "./student/components/MyTeams";
+import { useStudentData } from "./student/hooks/useStudentData";
+import { Button } from "../components/ui/button";
 
 export function StudentDashboard() {
-  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const selectedProgramId = searchParams.get("program");
-
-  const programs = useQuery(api.programs.getAllPrograms, {
-    includeArchived: false,
-  });
-  const userRegistrations = user
-    ? useQuery(api.registrations.getUserRegistrations, {
-        userId: user._id,
-      })
-    : null;
-  const myTeams = user
-    ? useQuery(api.teams.getTeamsForUser, { userId: user._id })
-    : null;
-  const today = new Date().toISOString().split("T")[0];
-  const todaysAttendance = user
-    ? useQuery(api.attendance.getAttendanceByUser, {
-        userId: user._id,
-        startDate: today,
-        endDate: today,
-      })
-    : null;
-
   const [showProgramForm, setShowProgramForm] = useState(false);
+
+  const {
+    user,
+    programs,
+    userRegistrations,
+    myTeams,
+    todaysAttendance,
+    isLoading
+  } = useStudentData();
 
   const isPendingStudent = user?.role === "pending";
   const isApprovedStudent = user?.role === "student";
@@ -48,11 +34,20 @@ export function StudentDashboard() {
     return userRegistrations?.find((r) => r.programId === selectedProgramId);
   }, [userRegistrations, selectedProgramId]);
 
+  const selectedTeam = useMemo(() => {
+    return myTeams?.find((t) => t.programId === selectedProgramId);
+  }, [myTeams, selectedProgramId]);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   if (selectedProgramId && selectedProgram) {
     return (
       <ProgramDetails 
         program={selectedProgram} 
         registration={selectedProgramRegistration}
+        team={selectedTeam}
       />
     );
   }
@@ -65,13 +60,13 @@ export function StudentDashboard() {
           <p className="text-gray-600 mt-2">Welcome back, {user?.name}!</p>
         </div>
         {isApprovedStudent && (
-          <button
+          <Button
             onClick={() => setShowProgramForm(true)}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            className="inline-flex items-center space-x-2"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-5 h-5 mr-2" />
             <span>Create Work Program</span>
-          </button>
+          </Button>
         )}
       </div>
 
