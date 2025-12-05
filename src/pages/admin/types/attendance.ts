@@ -18,6 +18,22 @@ export interface AttendanceTotal {
   userName: string;
   presentCount: number;
   lastCheckIn?: string;
+  approvalStatus?: "approved" | "rejected" | "pending";
+}
+
+export interface StudentAttendanceWeek {
+  userId: string;
+  userName: string;
+  email?: string;
+  presentCount: number;
+  lastCheckIn?: string;
+  approvalStatus: "approved" | "rejected" | "pending";
+  dailyRecords: {
+    date: string;
+    status?: "present" | "permission" | "alpha";
+    excuse?: string;
+    timestamp?: string;
+  }[];
 }
 
 export interface AttendanceSummary {
@@ -25,14 +41,7 @@ export interface AttendanceSummary {
   week: string;
   startDate: string;
   endDate: string;
-  daily: DailyAttendance[];
-  totals: AttendanceTotal[];
-  approval?: {
-    status: "approved" | "rejected";
-    supervisorId: Id<"users">;
-    approvedAt: string;
-    notes?: string;
-  };
+  students: StudentAttendanceWeek[];
 }
 
 export interface TeamMember {

@@ -6,7 +6,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { Id } from "../../../convex/_generated/dataModel";
 import { AdminHeader } from "./components/AdminHeader";
-import { AdminPageLayout } from "./components/AdminPageLayout";
+
 import { Button } from "../../components/ui/button";
 
 export function SupervisorManagement() {
@@ -127,7 +127,7 @@ export function SupervisorManagement() {
   };
 
   return (
-    <AdminPageLayout>
+    <div className="space-y-6">
       <AdminHeader
         title="Supervisor Management"
         description="Create and manage supervisors for team assignments"
@@ -284,7 +284,7 @@ export function SupervisorManagement() {
           </div>
         </div>
       </div>
-    </AdminPageLayout>
+    </div>
   );
 }
 

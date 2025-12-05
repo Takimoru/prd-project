@@ -17,19 +17,14 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, Calendar } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, CheckCircle2, XCircle, Calendar, Users, ArrowLeft } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export function WeeklyAttendanceApproval() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedTeamId, setSelectedTeamId] = useState<string>("");
   const [selectedWeek, setSelectedWeek] = useState<string>(() => {
@@ -45,8 +40,9 @@ export function WeeklyAttendanceApproval() {
     const weekNo = Math.ceil(
       ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
     );
-    return `${year}-${String(weekNo).padStart(2, "0")}`;
+    return `${year}-W${String(weekNo).padStart(2, "0")}`;
   });
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
 
   const teams = useQuery(
@@ -75,15 +71,18 @@ export function WeeklyAttendanceApproval() {
       ? { teamId: selectedTeamId as any, week: selectedWeek }
       : "skip"
   );
+  
+  const selectedStudent = weeklyData?.students?.find(s => s.userId === selectedStudentId);
 
   const approveMutation = useMutation(api.attendance.approveWeeklyAttendance);
 
-  const handleApproval = async (status: "approved" | "rejected") => {
+  const handleApproval = async (studentId: string, status: "approved" | "rejected") => {
     if (!selectedTeamId || !user) return;
 
     try {
       await approveMutation({
         teamId: selectedTeamId as any,
+        studentId: studentId as any,
         supervisorId: user._id,
         week: selectedWeek,
         status,
@@ -107,7 +106,10 @@ export function WeeklyAttendanceApproval() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="w-5 h-5" />
+        </Button>
         <div>
           <h1 className="text-2xl font-bold">Attendance Approval</h1>
           <p className="text-muted-foreground">
@@ -116,34 +118,36 @@ export function WeeklyAttendanceApproval() {
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
+      {/* Team & Week Selection */}
+      <Card className="border-l-4 border-l-blue-600">
         <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="w-full md:w-64">
-              <label className="text-sm font-medium mb-1 block">
-                Select Team
-              </label>
-              <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a team" />
-                </SelectTrigger>
-                <SelectContent>
-                  {displayTeams?.map((team) => (
-                    <SelectItem key={team._id} value={team._id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Hide Team Selector if only 1 team (or make read-only) */}
+            {displayTeams && displayTeams.length > 1 && (
+              <div className="w-full md:w-64">
+                <label className="text-sm font-medium mb-1 block">
+                  Select Team
+                </label>
+                <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a team" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {displayTeams?.map((team) => (
+                      <SelectItem key={team._id} value={team._id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
-            {/* Week Selector (Simplified for now, could be better) */}
             <div className="w-full md:w-48">
               <label className="text-sm font-medium mb-1 block">
                 Week (YYYY-WW)
               </label>
-              <div className="flex items-center border rounded-md px-3 py-2">
+              <div className="flex items-center border rounded-md px-3 py-2 bg-background">
                 <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
                 <input
                   type="week"
@@ -157,109 +161,140 @@ export function WeeklyAttendanceApproval() {
         </CardContent>
       </Card>
 
+      {/* Main Content Area */}
       {selectedTeamId && weeklyData ? (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>
-                Week Summary: {weeklyData.startDate} to {weeklyData.endDate}
-              </CardTitle>
-              {weeklyData.approval ? (
-                <Badge
-                  className={
-                    weeklyData.approval.status === "approved"
-                      ? "bg-green-100 text-green-800"
-                      : weeklyData.approval.status === "rejected"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-yellow-100 text-yellow-800"
-                  }>
-                  {weeklyData.approval.status.toUpperCase()}
-                </Badge>
-              ) : (
-                <Badge variant="outline">PENDING REVIEW</Badge>
-              )}
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Student</TableHead>
-                    <TableHead>Present Days</TableHead>
-                    <TableHead>Last Check-in</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {weeklyData.totals.map((student) => (
-                    <TableRow key={student.userId}>
-                      <TableCell className="font-medium">
-                        {student.userName}
-                      </TableCell>
-                      <TableCell>{student.presentCount} / 5</TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {student.lastCheckIn
-                          ? new Date(student.lastCheckIn).toLocaleString()
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {weeklyData.totals.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={3}
-                        className="text-center text-muted-foreground py-8">
-                        No presence recorded this week.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+          {/* Left: Student List */}
+          <div className="md:col-span-4 lg:col-span-3 space-y-4">
+            <h3 className="font-semibold text-lg">Students</h3>
+            <div className="space-y-2">
+              {weeklyData.students?.map((student) => (
+                <button
+                  key={student.userId}
+                  onClick={() => setSelectedStudentId(student.userId)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all flex items-center justify-between group
+                    ${selectedStudentId === student.userId 
+                      ? "bg-blue-50 border-blue-200 ring-1 ring-blue-300 shadow-sm" 
+                      : "bg-card hover:bg-accent border-border"}`}
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{student.userName}</p>
+                    <p className="text-xs text-muted-foreground truncate">{student.presentCount} days present</p>
+                  </div>
+                  {student.approvalStatus === "approved" && <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />}
+                  {student.approvalStatus === "rejected" && <XCircle className="w-4 h-4 text-red-600 shrink-0" />}
+                  {student.approvalStatus === "pending" && <div className="w-2 h-2 rounded-full bg-yellow-400 shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {/* Approval Action Area */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Supervisor Action</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Notes / Feedback (Optional)
-                  </label>
-                  <Textarea
-                    placeholder="Add notes about this week's attendance..."
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                  />
+          {/* Right: Detail View */}
+          <div className="md:col-span-8 lg:col-span-9">
+            {selectedStudent ? (
+              <div className="space-y-6">
+                 {/* Student Header */}
+                <div className="flex items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+                   <div>
+                      <h2 className="text-xl font-bold">{selectedStudent.userName}</h2>
+                      <p className="text-muted-foreground text-sm">{selectedStudent.email}</p>
+                   </div>
+                   <Badge
+                      className={
+                        selectedStudent.approvalStatus === "approved"
+                          ? "bg-green-100 text-green-800 text-sm px-3 py-1"
+                          : selectedStudent.approvalStatus === "rejected"
+                            ? "bg-red-100 text-red-800 text-sm px-3 py-1"
+                            : "bg-yellow-100 text-yellow-800 text-sm px-3 py-1"
+                      }>
+                      {selectedStudent.approvalStatus.toUpperCase()}
+                    </Badge>
                 </div>
 
-                <div className="flex gap-4">
-                  <Button
-                    className="bg-green-600 hover:bg-green-700 flex-1"
-                    onClick={() => handleApproval("approved")}
-                    disabled={weeklyData.approval?.status === "approved"}>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Approve Week
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    className="flex-1"
-                    onClick={() => handleApproval("rejected")}
-                    disabled={weeklyData.approval?.status === "rejected"}>
-                    <XCircle className="w-4 h-4 mr-2" />
-                    Reject Week
-                  </Button>
-                </div>
-                {weeklyData.approval?.approvedAt && (
-                  <p className="text-xs text-center text-muted-foreground mt-2">
-                    Last updated:{" "}
-                    {new Date(weeklyData.approval.approvedAt).toLocaleString()}
-                  </p>
-                )}
+                {/* Attendance Grid */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Weekly Attendance Log</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-7 gap-2">
+                       {selectedStudent.dailyRecords.map((day) => {
+                          const date = new Date(day.date);
+                          const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                          const dayNum = date.getDate();
+                          
+                          let statusColor = "bg-gray-50 border-gray-200 text-gray-400";
+                          let statusIcon = null;
+                          let statusText = "Absent";
+
+                          if (day.status === "present") {
+                             statusColor = "bg-green-50 border-green-200 text-green-700";
+                             statusIcon = <CheckCircle2 className="w-5 h-5 mb-1" />;
+                             statusText = "Present";
+                          } else if (day.status === "permission") {
+                             statusColor = "bg-yellow-50 border-yellow-200 text-yellow-700";
+                             statusText = "Permission";
+                          } else if (day.status === "alpha") {
+                             statusColor = "bg-red-50 border-red-200 text-red-700";
+                             statusText = "Alpha";
+                          }
+
+                          return (
+                            <div key={day.date} className={`flex flex-col items-center justify-center p-3 rounded-lg border ${statusColor} text-center`}>
+                               <span className="text-xs font-semibold mb-1">{dayName} {dayNum}</span>
+                               {statusIcon}
+                               <span className="text-xs font-medium">{statusText}</span>
+                               {day.timestamp && <span className="text-[10px] mt-1 opacity-75">{new Date(day.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>}
+                            </div>
+                          );
+                       })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Actions */}
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                     <div className="space-y-2">
+                        <label className="text-sm font-medium">Notes / Feedback</label>
+                        <Textarea 
+                          placeholder="Add feedback for the student..." 
+                          value={notes} 
+                          onChange={e => setNotes(e.target.value)} 
+                          className="h-24"
+                        />
+                     </div>
+                     <div className="flex gap-4">
+                        <Button 
+                          className="flex-1 bg-green-600 hover:bg-green-700 h-10 text-base"
+                          onClick={() => handleApproval(selectedStudent.userId, "approved")}
+                          disabled={selectedStudent.approvalStatus === "approved"}
+                        >
+                          <CheckCircle2 className="w-5 h-5 mr-2" />
+                          Approve Attendance
+                        </Button>
+                        <Button 
+                          className="flex-1"
+                          variant="destructive"
+                          onClick={() => handleApproval(selectedStudent.userId, "rejected")}
+                          disabled={selectedStudent.approvalStatus === "rejected"}
+                        >
+                           <XCircle className="w-5 h-5 mr-2" />
+                           Reject
+                        </Button>
+                     </div>
+                  </CardContent>
+                </Card>
+
               </div>
-            </CardContent>
-          </Card>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-accent/20">
+                <Users className="w-16 h-16 mb-4 opacity-50" />
+                <h3 className="text-xl font-semibold mb-2">Select a Student</h3>
+                <p className="max-w-xs">Values in the sidebar to view their detailed attendance for this week and take action.</p>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         selectedTeamId && (

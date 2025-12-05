@@ -3,7 +3,7 @@ import { useFinalReports } from "./hooks/useFinalReports";
 import { ReportList } from "./components/reports/ReportList";
 import { ReportDetailModal } from "./components/reports/ReportDetailModal";
 import { AdminHeader } from "./components/AdminHeader";
-import { AdminPageLayout } from "./components/AdminPageLayout";
+
 
 export function FinalReports() {
   const {
@@ -22,7 +22,7 @@ export function FinalReports() {
   } = useFinalReports();
 
   return (
-    <AdminPageLayout>
+    <div className="space-y-6">
       <AdminHeader
         title="Final Reports"
         description="Review weekly reports submitted by students per team"
@@ -114,7 +114,7 @@ export function FinalReports() {
           </div>
         )}
       </div>
-    </AdminPageLayout>
+    </div>
   );
 }
 

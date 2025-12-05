@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../contexts/AuthContext";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   CheckCircle,
   Circle,
@@ -19,8 +19,8 @@ export function TeamWorkspace() {
   const { user } = useAuth();
   const [selectedWeek, setSelectedWeek] = useState(getCurrentWeek());
   const team = useQuery(
-    api.teams.getTeam,
-    teamId ? { id: teamId as any } : "skip"
+    api.teams.getTeamById,
+    teamId ? { teamId: teamId as any } : "skip"
   );
   const tasks = useQuery(
     api.tasks.getByTeam,
@@ -134,35 +134,30 @@ export function TeamWorkspace() {
   };
 
   const handleExportAttendance = () => {
-    if (!weeklySummary) {
+    if (!weeklySummary || !weeklySummary.students || weeklySummary.students.length === 0) {
       toast.error("Summary not available yet.");
       return;
     }
 
     const rows: string[] = [];
+    const dates = weeklySummary.students[0].dailyRecords.map((d: any) => d.date);
     rows.push(
       [
         "Student",
-        ...weeklySummary.daily.map((day) => day.date),
+        ...dates,
         "Total Present",
+        "Status"
       ].join(",")
     );
 
-    const members = getTeamMembers(team);
-
-    members.forEach((member) => {
+    weeklySummary.students.forEach((student: any) => {
       const row = [
-        member.name || "Unknown",
-        ...weeklySummary.daily.map((day) =>
-          day.attendees.some(
-            (a) => a.userId === (member._id as unknown as string)
-          )
-            ? "✔"
-            : ""
+        student.userName || "Unknown",
+        ...student.dailyRecords.map((day: any) =>
+          day.status === "present" ? "✔" : ""
         ),
-        weeklySummary.totals.find(
-          (total) => total.userId === (member._id as unknown as string)
-        )?.presentCount || 0,
+        student.presentCount,
+        student.approvalStatus
       ];
       rows.push(row.join(","));
     });
@@ -184,7 +179,7 @@ export function TeamWorkspace() {
   }
 
   const isLeader = team.leaderId === user?._id;
-  const teamMembers = useMemo(() => getTeamMembers(team), [team]);
+  // const teamMembers = useMemo(() => getTeamMembers(team), [team]);
 
   return (
     <div className="space-y-6">
@@ -333,12 +328,12 @@ export function TeamWorkspace() {
           </div>
         </div>
         <div className="p-6 overflow-x-auto">
-          {weeklySummary ? (
+          {weeklySummary && weeklySummary.students && weeklySummary.students.length > 0 ? (
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-600">
                   <th className="py-2 pr-4 font-medium">Student</th>
-                  {weeklySummary.daily.map((day) => (
+                  {weeklySummary.students[0].dailyRecords.map((day: any) => (
                     <th
                       key={day.date}
                       className="py-2 px-2 font-medium text-center">
@@ -346,24 +341,27 @@ export function TeamWorkspace() {
                     </th>
                   ))}
                   <th className="py-2 px-2 font-medium text-center">Total</th>
+                  <th className="py-2 px-2 font-medium text-center">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {teamMembers.map((member) => (
-                  <tr key={member._id}>
+                {weeklySummary.students.map((student: any) => (
+                  <tr key={student.userId}>
                     <td className="py-2 pr-4 font-medium text-gray-900">
-                      {member.name}
+                      {student.userName}
                     </td>
-                    {weeklySummary.daily.map((day) => {
-                      const present = day.attendees.some(
-                        (attendee) =>
-                          attendee.userId === (member._id as unknown as string)
-                      );
+                    {student.dailyRecords.map((day: any) => {
+                      // Logic: If approved, show status. If pending/rejected, maybe mask?
+                      // For Team Workspace (student view), usually transparency is fine, 
+                      // or we follow the Admin logic. 
+                      // Let's show the status if present, regardless of approval for now, 
+                      // or mirror the supervisor logic. Use 'status' directly.
+                      const isPresent = day.status === "present";
                       return (
                         <td
-                          key={`${member._id}-${day.date}`}
+                          key={`${student.userId}-${day.date}`}
                           className="py-2 px-2 text-center">
-                          {present ? (
+                          {isPresent ? (
                             <CheckCircle className="w-4 h-4 text-green-600 inline" />
                           ) : (
                             <span className="text-gray-300">—</span>
@@ -372,10 +370,16 @@ export function TeamWorkspace() {
                       );
                     })}
                     <td className="py-2 px-2 text-center font-semibold text-gray-700">
-                      {weeklySummary.totals.find(
-                        (total) =>
-                          total.userId === (member._id as unknown as string)
-                      )?.presentCount || 0}
+                      {student.presentCount}
+                    </td>
+                    <td className="py-2 px-2 text-center">
+                      <span className={`px-2 py-1 rounded text-xs capitalize ${
+                        student.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' :
+                        student.approvalStatus === 'rejected' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {student.approvalStatus}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -383,7 +387,7 @@ export function TeamWorkspace() {
             </table>
           ) : (
             <p className="text-gray-500 text-center py-8">
-              Loading attendance summary...
+              {weeklySummary ? "No member data available." : "Loading attendance summary..."}
             </p>
           )}
         </div>
@@ -443,16 +447,4 @@ function formatDate(dateStr: string) {
   });
 }
 
-function getTeamMembers(team: any) {
-  if (!team) return [];
-  const members = [];
-  if (team.leader) members.push(team.leader);
-  if (team.members) {
-    team.members
-      .filter((member: any): member is NonNullable<typeof member> =>
-        Boolean(member)
-      )
-      .forEach((member: any) => members.push(member));
-  }
-  return members;
-}
+

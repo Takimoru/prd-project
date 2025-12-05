@@ -1,7 +1,7 @@
 import { useStudentApprovals } from "./hooks/useStudentApprovals";
 import { RegistrationList } from "./components/student-approvals/RegistrationList";
 import { AdminHeader } from "./components/AdminHeader";
-import { AdminPageLayout } from "./components/AdminPageLayout";
+
 
 export function StudentApprovals() {
   const {
@@ -14,7 +14,7 @@ export function StudentApprovals() {
   } = useStudentApprovals();
 
   return (
-    <AdminPageLayout>
+    <div className="space-y-6">
       <AdminHeader
         title="Student Approvals"
         description="Review and approve student registrations"
@@ -99,6 +99,6 @@ export function StudentApprovals() {
           </div>
         )}
       </div>
-    </AdminPageLayout>
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import { useAttendanceReviews } from "./hooks/useAttendanceReviews";
 import { AttendanceControls } from "./components/attendance/AttendanceControls";
 import { AttendanceTable } from "./components/attendance/AttendanceTable";
 import { AdminHeader } from "./components/AdminHeader";
-import { AdminPageLayout } from "./components/AdminPageLayout";
+
 
 export function AttendanceReviews() {
   const {
@@ -23,7 +23,7 @@ export function AttendanceReviews() {
   } = useAttendanceReviews();
 
   return (
-    <AdminPageLayout>
+    <div className="space-y-6">
       <AdminHeader
         title="Attendance Reviews"
         description="Review student attendance submissions per team"
@@ -84,12 +84,11 @@ export function AttendanceReviews() {
               programName={programs?.find(p => p._id === selectedProgram)?.title || "Unknown Program"}
               onWeekChange={handleWeekChange}
               onExport={handleExportAttendance}
-              approvalStatus={attendanceSummary.approval?.status}
+
             />
+            
             <AttendanceTable
               attendanceSummary={attendanceSummary}
-              members={getTeamMembers(teamsForProgram?.find((t) => t._id === selectedTeam))}
-              formatDate={formatDate}
             />
           </div>
         )}
@@ -112,7 +111,7 @@ export function AttendanceReviews() {
           </div>
         )}
       </div>
-    </AdminPageLayout>
+    </div>
   );
 }
 

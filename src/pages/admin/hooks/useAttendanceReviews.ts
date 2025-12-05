@@ -64,9 +64,9 @@ export function useAttendanceReviews() {
   };
 
   const formatWeekRange = (summary: AttendanceSummary | undefined): string => {
-    if (!summary || !summary.daily || summary.daily.length === 0) return "";
-    const first = summary.daily[0].date;
-    const last = summary.daily[summary.daily.length - 1].date;
+    if (!summary || !summary.students || summary.students.length === 0 || summary.students[0].dailyRecords.length === 0) return "";
+    const first = summary.students[0].dailyRecords[0].date;
+    const last = summary.students[0].dailyRecords[summary.students[0].dailyRecords.length - 1].date;
     return `${format(new Date(first), "MMM dd")} - ${format(new Date(last), "MMM dd, yyyy")}`;
   };
 
@@ -75,7 +75,7 @@ export function useAttendanceReviews() {
   };
 
   const handleExportAttendance = () => {
-    if (!attendanceSummary || !selectedTeam) {
+    if (!attendanceSummary || !selectedTeam || !attendanceSummary.students.length) {
       return;
     }
 
@@ -83,32 +83,37 @@ export function useAttendanceReviews() {
     if (!team) return;
 
     const programTitle = programs?.find(p => p._id === selectedProgram)?.title || "Unknown";
+    const dates = attendanceSummary.students[0].dailyRecords.map(d => d.date);
 
-    const members = getTeamMembers(team);
     let csvContent = `Weekly Attendance Summary - ${formatWeekRange(attendanceSummary)}\n`;
     csvContent += `Team: ${team.name || `Team ${team._id.slice(-6)}`}\n`;
     csvContent += `Program: ${programTitle}\n\n`;
 
     csvContent += "Student,";
-    attendanceSummary.daily.forEach((day) => {
-      csvContent += `${formatDate(day.date)},`;
+    dates.forEach((date) => {
+      csvContent += `${formatDate(date)},`;
     });
-    csvContent += "Total\n";
+    csvContent += "Total,Status\n";
 
-    members.forEach((member) => {
-      csvContent += `${member.name},`;
-      attendanceSummary.daily.forEach((day) => {
-        const present = day.attendees.some(
-          (attendee) =>
-            attendee.userId === (member._id as unknown as string)
-        );
-        csvContent += `${present ? "Present" : "Absent"},`;
+    attendanceSummary.students.forEach((student) => {
+      csvContent += `${student.userName},`;
+      
+      // If approved, show data. If not, show pending/masked
+      const isApproved = student.approvalStatus === "approved";
+
+      student.dailyRecords.forEach((day) => {
+        let statusText = "Absent";
+        if (isApproved) {
+            if (day.status === "present") statusText = "Present";
+            else if (day.status === "permission") statusText = "Permission";
+            else if (day.status === "alpha") statusText = "Alpha";
+        } else {
+            statusText = "Pending Approval";
+        }
+        csvContent += `${statusText},`;
       });
-      const total = attendanceSummary.totals.find(
-        (total) =>
-          total.userId === (member._id as unknown as string)
-      )?.presentCount || 0;
-      csvContent += `${total}\n`;
+      
+      csvContent += `${isApproved ? student.presentCount : "-"},${student.approvalStatus.toUpperCase()}\n`;
     });
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });

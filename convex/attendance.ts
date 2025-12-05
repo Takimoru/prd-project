@@ -52,69 +52,72 @@ export const getWeeklyAttendanceSummary = query({
     const startDateStr = startDate.toISOString().split("T")[0];
     const endDateStr = endDate.toISOString().split("T")[0];
 
-    // Fetch existing approval status for this week
-    const approval = await ctx.db
+    // Verify team exists and get members
+    const team = await ctx.db.get(args.teamId);
+    if (!team) throw new Error("Team not found");
+
+    // Fetch all members (leader + members)
+    const memberIds = [team.leaderId, ...(team.memberIds || [])].filter(Boolean);
+    const members = await Promise.all(memberIds.map(id => ctx.db.get(id)));
+    const validMembers = members.filter(m => m !== null);
+
+    // Fetch existing approvals (Map: studentId -> approval)
+    const approvals = await ctx.db
       .query("weekly_attendance_approvals")
       .withIndex("by_team_week", (q) =>
         q.eq("teamId", args.teamId).eq("weekStartDate", startDateStr)
       )
-      .first();
+      .collect();
+    
+    const approvalMap = new Map();
+    approvals.forEach(app => {
+      approvalMap.set(app.studentId, app);
+    });
 
+    // Fetch attendance for the whole team in this range
     const rawAttendance = await ctx.db
       .query("attendance")
       .withIndex("by_team_date", (q) => q.eq("teamId", args.teamId))
       .collect();
 
-    const filtered = rawAttendance.filter(
+    const rangeAttendance = rawAttendance.filter(
       (record) => record.date >= startDateStr && record.date <= endDateStr
     );
 
-    const attendanceWithUsers = await Promise.all(
-      filtered.map(async (record) => {
-        const attendee = await ctx.db.get(record.userId);
-        return {
-          ...record,
-          user: attendee,
-        };
-      })
-    );
+    // Build per-student data for the requested week
+    const studentData = validMembers.map((member) => {
+       const studentId = member!._id;
+       const approval = approvalMap.get(studentId);
+       
+       // Get student's attendance records for this week
+       const myAttendance = rangeAttendance.filter(r => r.userId === studentId);
+       
+       // Calculate stats
+       const presentCount = myAttendance.filter(r => r.status === "present").length;
+       const latestCheckIn = myAttendance.length > 0 
+          ? myAttendance.reduce((max, r) => (r.timestamp > max ? r.timestamp : max), "") 
+          : undefined;
 
-    const daily = dates.map((date) => ({
-      date,
-      attendees: attendanceWithUsers
-        .filter((record) => record.date === date)
-        .map((record) => ({
-          userId: record.userId,
-          userName: record.user?.name || "Unknown",
-          timestamp: record.timestamp,
-          status: record.status,
-          excuse: record.excuse,
-        })),
-    }));
+       // Map daily status
+       const dailyRecords = dates.map(date => {
+          const record = myAttendance.find(r => r.date === date);
+          return {
+             date,
+             status: record?.status,
+             excuse: record?.excuse,
+             timestamp: record?.timestamp
+          };
+       });
 
-    const totalsMap = new Map<
-      string,
-      { userId: string; userName: string; presentCount: number; lastCheckIn?: string }
-    >();
-
-    attendanceWithUsers.forEach((record) => {
-      // Count totals only for present
-      if (record.status !== "present" && record.status !== undefined) return;
-      
-      const key = record.userId as unknown as string;
-      if (!totalsMap.has(key)) {
-        totalsMap.set(key, {
-          userId: key,
-          userName: record.user?.name || "Unknown",
-          presentCount: 0,
-          lastCheckIn: record.timestamp,
-        });
-      }
-      const summary = totalsMap.get(key)!;
-      summary.presentCount += 1;
-      if (!summary.lastCheckIn || summary.lastCheckIn < record.timestamp) {
-        summary.lastCheckIn = record.timestamp;
-      }
+       return {
+          userId: studentId,
+          userName: member!.name || "Unknown",
+          email: member!.email,
+          presentCount,
+          lastCheckIn: latestCheckIn,
+          approvalStatus: approval?.status || "pending",
+          dailyRecords
+       };
     });
 
     return {
@@ -122,9 +125,7 @@ export const getWeeklyAttendanceSummary = query({
       week: args.week,
       startDate: startDateStr,
       endDate: endDateStr,
-      daily,
-      totals: Array.from(totalsMap.values()),
-      approval: approval || null, // Include approval status
+      students: studentData
     };
   },
 });
@@ -186,11 +187,12 @@ export const checkIn = mutation({
   },
 });
 
-// Approve weekly attendance (Supervisor only)
+// Approve weekly attendance (Supervisor only) - PER STUDENT
 export const approveWeeklyAttendance = mutation({
   args: {
     teamId: v.id("teams"),
     week: v.string(), // Format: "YYYY-WW"
+    studentId: v.id("users"), // Target student
     supervisorId: v.id("users"),
     status: v.union(v.literal("approved"), v.literal("rejected")),
     notes: v.optional(v.string()),
@@ -203,13 +205,13 @@ export const approveWeeklyAttendance = mutation({
     const team = await ctx.db.get(args.teamId);
     if (!team) throw new Error("Team not found");
     
-    // In strict mode we'd check team.supervisorId === args.supervisorId
-    // keeping it flexible for now, but adding basic check
-    
+    // Check for existing approval for this student/week
     const existing = await ctx.db
       .query("weekly_attendance_approvals")
-      .withIndex("by_team_week", (q) => 
-        q.eq("teamId", args.teamId).eq("weekStartDate", startDateStr)
+      .withIndex("by_team_week_student", (q) => 
+        q.eq("teamId", args.teamId)
+         .eq("weekStartDate", startDateStr)
+         .eq("studentId", args.studentId)
       )
       .first();
 
@@ -218,12 +220,13 @@ export const approveWeeklyAttendance = mutation({
         status: args.status,
         approvedAt: new Date().toISOString(),
         notes: args.notes,
-        supervisorId: args.supervisorId, // Update supervisor who acted
+        supervisorId: args.supervisorId,
       });
     } else {
       await ctx.db.insert("weekly_attendance_approvals", {
         teamId: args.teamId,
         weekStartDate: startDateStr,
+        studentId: args.studentId,
         supervisorId: args.supervisorId,
         status: args.status,
         approvedAt: new Date().toISOString(),

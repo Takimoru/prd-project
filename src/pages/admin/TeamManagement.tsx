@@ -5,7 +5,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { format } from "date-fns";
-import { AdminPageLayout } from "./components/AdminPageLayout";
+
 import { AdminHeader } from "./components/AdminHeader";
 import { TeamList } from "./components/teams/TeamList";
 import { ManageTeamModal } from "./components/teams/ManageTeamModal";
@@ -47,7 +47,7 @@ export function TeamManagement() {
   const selectedProgramData = programs?.find((p) => p._id === selectedProgram);
 
   return (
-    <AdminPageLayout>
+    <div className="space-y-6">
       <AdminHeader
         title={
           selectedProgram
@@ -146,6 +146,6 @@ export function TeamManagement() {
           onClose={() => setViewingAttendanceTeam(null)}
         />
       )}
-    </AdminPageLayout>
+    </div>
   );
 }

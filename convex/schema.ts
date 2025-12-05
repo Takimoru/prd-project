@@ -213,6 +213,7 @@ export default defineSchema({
   weekly_attendance_approvals: defineTable({
     teamId: v.id("teams"),
     weekStartDate: v.string(), // ISO date string of Monday
+    studentId: v.id("users"), // Specific student being approved
     supervisorId: v.id("users"),
     status: v.union(
       v.literal("pending"),
@@ -223,6 +224,7 @@ export default defineSchema({
     notes: v.optional(v.string()),
   })
     .index("by_team_week", ["teamId", "weekStartDate"])
+    .index("by_team_week_student", ["teamId", "weekStartDate", "studentId"])
     .index("by_supervisor_status", ["supervisorId", "status"]),
 });
 

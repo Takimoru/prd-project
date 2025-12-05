@@ -5,7 +5,8 @@ import {
   FileText,
   CheckSquare,
   LogOut,
-  Menu
+  Menu,
+  CalendarCheck
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
@@ -22,6 +23,7 @@ export function SupervisorSidebar() {
     { icon: LayoutDashboard, label: "Dashboard", path: "/supervisor" },
     { icon: Users, label: "My Teams", path: "/supervisor/teams" },
     { icon: CheckSquare, label: "Tasks", path: "/supervisor/tasks" },
+    { icon: CalendarCheck, label: "Attendance Approval", path: "/supervisor/attendance-approval" },
     { icon: CheckSquare, label: "Pending Reviews", path: "/supervisor/pending" },
     { icon: FileText, label: "All Reports", path: "/supervisor/reports" },
   ];

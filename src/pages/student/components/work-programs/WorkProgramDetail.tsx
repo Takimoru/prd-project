@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "../../../../../convex/_generated/api";
 import { Id } from "../../../../../convex/_generated/dataModel";
 import { useParams, useNavigate } from "react-router-dom";
-import { AdminPageLayout } from "../../../admin/components/AdminPageLayout";
+
 import { AdminHeader } from "../../../admin/components/AdminHeader";
 import { Button } from "../../../../components/ui/button";
 import { Progress } from "../../../../components/ui/progress";
@@ -66,92 +66,90 @@ export function WorkProgramDetail() {
   
   if (isLoading) {
     return (
-      <AdminPageLayout>
-        <div className="space-y-6">
-          {/* Header Skeleton */}
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-4 w-48" />
-            </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-10 w-24" />
-              <Skeleton className="h-10 w-24" />
-            </div>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-48" />
           </div>
-
-          {/* Overview Card Skeleton */}
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-32" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Skeleton className="h-20 w-full" />
-              <div className="flex gap-6">
-                <Skeleton className="h-4 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-4 w-12" />
-                </div>
-                <Skeleton className="h-3 w-full" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Tasks Card Skeleton */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-6 w-24" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-9 w-28" />
-                  <Skeleton className="h-9 w-28" />
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="flex gap-4 p-4 rounded-lg border">
-                    <Skeleton className="w-8 h-8 rounded-full" />
-                    <div className="flex-1 space-y-3">
-                      <Skeleton className="h-5 w-3/4" />
-                      <Skeleton className="h-4 w-full" />
-                      <div className="flex gap-4">
-                        <Skeleton className="h-4 w-32" />
-                        <Skeleton className="h-4 w-24" />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Member Progress Skeleton */}
-          <Card>
-            <CardHeader>
-              <Skeleton className="h-6 w-40" />
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="flex justify-between">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-4 w-12" />
-                    </div>
-                    <Skeleton className="h-2 w-full" />
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-24" />
+          </div>
         </div>
-      </AdminPageLayout>
+
+        {/* Overview Card Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-32" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-20 w-full" />
+            <div className="flex gap-6">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-12" />
+              </div>
+              <Skeleton className="h-3 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Tasks Card Skeleton */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-24" />
+              <div className="flex gap-2">
+                <Skeleton className="h-9 w-28" />
+                <Skeleton className="h-9 w-28" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex gap-4 p-4 rounded-lg border">
+                  <Skeleton className="w-8 h-8 rounded-full" />
+                  <div className="flex-1 space-y-3">
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-full" />
+                    <div className="flex gap-4">
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Member Progress Skeleton */}
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-40" />
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-12" />
+                  </div>
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -175,7 +173,7 @@ export function WorkProgramDetail() {
   };
 
   return (
-    <AdminPageLayout>
+    <div className="space-y-6">
       <AdminHeader
         title={program.title}
         description="Work Program Details"
@@ -299,7 +297,7 @@ export function WorkProgramDetail() {
           </CardContent>
         </Card>
       </div>
-    </AdminPageLayout>
+    </div>
   );
 }
 
