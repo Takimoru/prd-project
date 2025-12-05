@@ -190,3 +190,60 @@ export const getProgress = query({
     );
   },
 });
+// Get all work programs for a supervisor with progress
+export const getWorkProgramsBySupervisor = query({
+  args: {
+    supervisorId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // 1. Get teams supervised by this user
+    const teams = await ctx.db
+      .query("teams")
+      .withIndex("by_supervisor", (q) => q.eq("supervisorId", args.supervisorId))
+      .collect();
+
+    const teamIds = teams.map(t => t._id);
+
+    // 2. Get work programs for these teams
+    // Since we can't do "in" query easily, we fetch all wps and filter (or loop teams if few)
+    // Better to loop teams since supervisor usually has few teams.
+    const allPrograms = await Promise.all(
+      teamIds.map(async (teamId) => {
+        const programs = await ctx.db
+          .query("work_programs")
+          .withIndex("by_team", (q) => q.eq("teamId", teamId))
+          .collect();
+        return programs;
+      })
+    );
+    const flatPrograms = allPrograms.flat();
+
+    // 3. Calculate progress for each program
+    return Promise.all(
+        flatPrograms.map(async (program) => {
+            const team = teams.find(t => t._id === program.teamId);
+            
+            // Get progress entries for this program
+            const progressEntries = await ctx.db
+                .query("work_program_progress")
+                .withIndex("by_work_program", (q) => q.eq("workProgramId", program._id))
+                .collect();
+            
+            // Calculate average percentage
+            // If no entries, it's 0.
+            // Or should it be based on assigned members? 
+            // Let's stick to simple average of reported progress for now.
+            let totalProgress = 0;
+            if (progressEntries.length > 0) {
+                totalProgress = progressEntries.reduce((sum, p) => sum + p.percentage, 0) / progressEntries.length;
+            }
+
+            return {
+                ...program,
+                teamName: team?.name || "Unknown Team",
+                progress: Math.round(totalProgress)
+            };
+        })
+    );
+  },
+});

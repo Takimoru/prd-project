@@ -236,8 +236,96 @@ export const approveWeeklyAttendance = mutation({
   },
 });
 
+// Get pending attendance for supervisor (Current + Previous Week)
+export const getPendingAttendanceForSupervisor = query({
+  args: {
+    supervisorId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    // 1. Get supervised teams
+    const teams = await ctx.db
+      .query("teams")
+      .withIndex("by_supervisor", (q) => q.eq("supervisorId", args.supervisorId))
+      .collect();
+
+    if (teams.length === 0) return [];
+
+    // 2. Determine weeks to check (Current and Previous)
+    const now = new Date();
+    // Helper to get YYYY-WW
+    const getWeekString = (d: Date) => {
+        const date = new Date(d.getTime());
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+        const week1 = new Date(date.getFullYear(), 0, 4);
+        const isoWeek = 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+        return `${date.getFullYear()}-W${isoWeek.toString().padStart(2, '0')}`;
+    };
+
+    const currentWeek = getWeekString(now);
+    const prevDate = new Date();
+    prevDate.setDate(prevDate.getDate() - 7);
+    const prevWeek = getWeekString(prevDate);
+    
+    const weeksToCheck = [currentWeek, prevWeek];
+    // console.log("Checking weeks:", weeksToCheck);
+
+    const pendingItems: any[] = [];
+
+    // 3. Scan teams and members
+    for (const team of teams) {
+      // Get members
+      const memberIds = team.memberIds || [];
+      const leaderId = team.leaderId;
+      const allMemberIds = [...memberIds, leaderId].filter(Boolean); // Include leader
+      
+      const members = await Promise.all(allMemberIds.map(id => ctx.db.get(id)));
+      const validMembers = members.filter(m => m !== null);
+
+      for (const week of weeksToCheck) {
+        const { startDate } = getWeekDateRange(week);
+        const startDateStr = startDate.toISOString().split("T")[0];
+
+        // Get existing approvals for this team/week
+        const approvals = await ctx.db
+          .query("weekly_attendance_approvals")
+          .withIndex("by_team_week", (q) => 
+             q.eq("teamId", team._id).eq("weekStartDate", startDateStr)
+          )
+          .collect();
+
+        // Check each member
+        for (const member of validMembers) {
+           const approval = approvals.find(a => a.studentId === member!._id);
+           
+           // If no approval record OR status is pending
+           if (!approval || approval.status === "pending") {
+              // OPTIONAL: Check if they actually have attendance? 
+              // Usually we want to approve even if empty (to confirm absence).
+              // But maybe only show if there IS data? 
+              // User said "pending approval names".
+              // Let's assume we show them.
+              
+              pendingItems.push({
+                 type: "attendance",
+                 studentName: member!.name,
+                 studentId: member!._id,
+                 teamName: team.name,
+                 teamId: team._id,
+                 week: week,
+                 submittedAt: approval?.approvedAt, // Use updated time if exists
+              });
+           }
+        }
+      }
+    }
+
+    return pendingItems;
+  },
+});
+
 // Helper function to get week start date
-function getWeekDateRange(weekString: string) {
+export function getWeekDateRange(weekString: string) {
   const [yearStr, weekPart] = weekString.split("-W");
   const year = Number(yearStr);
   const week = Number(weekPart);

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Clock, CheckCircle, AlertCircle, CheckCircle2 } from "lucide-react";
+import { FileText, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RecentActivity } from "../student/components/dashboard/RecentActivity";
 
@@ -31,16 +31,38 @@ export function SupervisorDashboard() {
     user?._id ? { supervisorId: user._id } : "skip"
   );
 
-  // Get all reports for statistics
-  const allReports = useQuery(
-    api.weeklyReports.getAllReportsForSupervisor,
+  // Get active work programs
+  const workPrograms = useQuery(
+    api.workPrograms.getWorkProgramsBySupervisor,
+    user?._id ? { supervisorId: user._id } : "skip"
+  );
+  
+  // Get pending attendance approvals
+  const pendingAttendance = useQuery(
+    api.attendance.getPendingAttendanceForSupervisor,
     user?._id ? { supervisorId: user._id } : "skip"
   );
 
-  const approvedCount =
-    allReports?.filter((r) => r.status === "approved").length || 0;
-  const revisionCount =
-    allReports?.filter((r) => r.status === "revision_requested").length || 0;
+  // Calculate current week
+  const today = new Date();
+  const d = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+  const currentWeek = `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+
+  // Combine pending items
+  const allPendingItems = [
+    ...(pendingReports?.map(r => ({ ...r, type: 'report' as const })) || []),
+    ...(pendingAttendance?.map(a => ({ ...a, type: 'attendance' as const })) || [])
+  ]
+  .filter(item => item.week === currentWeek) // Filter for only current week
+  .sort((a, b) => {
+     // Sort by week descending, then submission date
+     if (a.week !== b.week) return b.week.localeCompare(a.week);
+     return 0;
+  });
 
   return (
     <SupervisorLayout>
@@ -55,134 +77,121 @@ export function SupervisorDashboard() {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-orange-100 bg-gradient-to-br from-orange-50/50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-orange-900/70">
-                Pending Reviews
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-orange-900">
-                  {pendingReports?.length || 0}
-                </div>
-                <Clock className="w-8 h-8 text-orange-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-green-100 bg-gradient-to-br from-green-50/50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-green-900/70">
-                Approved
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-green-900">
-                  {approvedCount}
-                </div>
-                <CheckCircle className="w-8 h-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-red-100 bg-gradient-to-br from-red-50/50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-red-900/70">
-                Needs Revision
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-red-900">
-                  {revisionCount}
-                </div>
-                <AlertCircle className="w-8 h-8 text-red-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card 
-            className="border-purple-100 bg-gradient-to-br from-purple-50/50 to-white cursor-pointer hover:shadow-md transition-all"
-            onClick={() => navigate("/supervisor/attendance-approval")}
-          >
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-purple-900/70">
-                Attendance Actions
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-lg font-bold text-purple-900">
-                  Review & Approve
-                </div>
-                <CheckCircle2 className="w-8 h-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
+        {/* Work Programs Section (Replaces Stats Cards) */}
+        <div>
+           <h2 className="text-xl font-semibold mb-4 text-foreground">Running Work Programs</h2>
+           {workPrograms && workPrograms.length > 0 ? (
+             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {workPrograms.map((wp) => (
+                 <Card key={wp._id} className="hover:shadow-md transition-all border-l-4 border-l-blue-500">
+                    <CardHeader className="pb-2">
+                       <div className="flex justify-between items-start">
+                          <div>
+                             <CardTitle className="text-lg">{wp.title}</CardTitle>
+                             <CardDescription className="mt-1">{wp.teamName}</CardDescription>
+                          </div>
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">{wp.progress}%</Badge>
+                       </div>
+                    </CardHeader>
+                    <CardContent>
+                       <div className="space-y-2">
+                          <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                             <div 
+                                className="h-full bg-blue-600 rounded-full transition-all duration-500" 
+                                style={{ width: `${wp.progress}%` }} 
+                             />
+                          </div>
+                          <div className="flex justify-between text-xs text-muted-foreground">
+                             <span>Start: {new Date(wp.startDate).toLocaleDateString()}</span>
+                             <span>End: {new Date(wp.endDate).toLocaleDateString()}</span>
+                          </div>
+                       </div>
+                    </CardContent>
+                 </Card>
+               ))}
+             </div>
+           ) : (
+             <div className="p-8 text-center border rounded-lg bg-accent/20 text-muted-foreground">
+                <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                <p>No running work programs.</p>
+             </div>
+           )}
         </div>
 
         {/* Pending Reviews Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Pending Weekly Reviews</CardTitle>
-            <CardDescription>Reports waiting for your approval</CardDescription>
+        <Card className="border-orange-200">
+          <CardHeader className="bg-orange-50/30">
+            <CardTitle className="text-orange-900">Pending Approvals</CardTitle>
+            <CardDescription>Weekly reports and attendance waiting for review</CardDescription>
           </CardHeader>
-          <CardContent>
-            {pendingReports && pendingReports.length > 0 ? (
-              <div className="space-y-4">
-                {pendingReports.map((report) => (
+          <CardContent className="pt-6">
+            {allPendingItems.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {allPendingItems.map((item: any, index: number) => (
                   <div
-                    key={report._id}
-                    className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-foreground">
-                        {report.team?.name || "Unnamed Team"}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        Week {report.week} • Leader: {report.leader?.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Submitted:{" "}
-                        {report.submittedAt
-                          ? new Date(report.submittedAt).toLocaleDateString()
-                          : "N/A"}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Badge
-                        variant="outline"
-                        className="bg-orange-50 text-orange-700 border-orange-200">
-                        Pending
-                      </Badge>
-                      <Button
-                        onClick={() =>
-                          navigate(
-                            `/supervisor/review/${report.teamId}/${report.week}`
-                          )
+                    key={`${item.type}-${item._id || item.studentId}-${index}`}
+                    className="flex items-center justify-between p-4 border border-orange-100 bg-white rounded-lg shadow-sm hover:shadow-md transition-all cursor-pointer"
+                    onClick={() => {
+                        if (item.type === 'report') {
+                            navigate(`/supervisor/review/${item.teamId}/${item.week}`);
+                        } else {
+                            // Link to attendance approval with query params
+                            navigate(`/supervisor/attendance-approval?teamId=${item.teamId}&week=${item.week}`);
                         }
-                        className="bg-blue-600 hover:bg-blue-700">
-                        Review
-                      </Button>
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-bold ${
+                            item.type === 'report' ? 'bg-orange-100 text-orange-600' : 'bg-purple-100 text-purple-600'
+                        }`}>
+                            {item.type === 'report' ? <FileText className="w-5 h-5"/> : <CheckCircle2 className="w-5 h-5"/>}
+                        </div>
+                        <div>
+                            <h4 className="font-semibold text-foreground">
+                                {item.type === 'report' ? item.team?.name : item.studentName}
+                            </h4>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <span className="font-medium text-orange-700">
+                                   Week {item.week.split("-W")[1]}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  {item.type === 'report' ? `Leader: ${item.leader?.name}` : `Team: ${item.teamName}`}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {/* Right side Badge removed or minimized if needed. Keeping it for item type clarity but removing the redundant week label from here. */}
+                    <div className="flex flex-col items-end gap-1">
+                         <Badge variant="outline" className={`border ${
+                             item.type === 'report' ? 'text-orange-600 border-orange-200 bg-orange-50' : 'text-purple-600 border-purple-200 bg-purple-50'
+                         }`}>
+                             {item.type === 'report' ? 'Report' : 'Attendance'}
+                         </Badge>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No pending reviews at the moment</p>
+              <div className="text-center py-12 text-muted-foreground flex flex-col items-center">
+                <CheckCircle2 className="w-12 h-12 text-green-500 mb-4 opacity-50" />
+                <h3 className="text-lg font-medium text-foreground">All Caught Up!</h3>
+                <p>No pending items to review.</p>
               </div>
             )}
+            
+            {/* Quick Link to Attendance Approval */}
+            <div className="mt-6 pt-6 border-t flex justify-center">
+                <Button variant="outline" onClick={() => navigate("/supervisor/attendance-approval")}>
+                    Go to Attendance Approvals
+                </Button>
+            </div>
           </CardContent>
         </Card>
 
         {/* Recent Activity Feed */}
         <div className="pb-8">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Work Progress Update</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Activity Log</h2>
             <RecentActivity teamId={teams?.[0]?._id} />
         </div>
       </div>

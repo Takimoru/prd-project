@@ -19,15 +19,23 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2, CheckCircle2, XCircle, Calendar, Users, ArrowLeft } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export function WeeklyAttendanceApproval() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
-  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
+  
+  const [selectedTeamId, setSelectedTeamId] = useState<string>(
+    searchParams.get("teamId") || ""
+  );
+  
   const [selectedWeek, setSelectedWeek] = useState<string>(() => {
+    const paramWeek = searchParams.get("week");
+    if (paramWeek) return paramWeek;
+
     const today = new Date();
     const year = today.getFullYear();
     // Simplified week calculation
