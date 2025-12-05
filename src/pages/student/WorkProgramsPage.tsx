@@ -39,48 +39,6 @@ export function WorkProgramsPage() {
     <div className="min-h-screen bg-background">
       <DashboardSidebar user={user} />
       <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0 px-4 sm:px-6 py-6 sm:py-8">
-        <div className="mb-4 p-4 bg-yellow-100 text-yellow-900 rounded text-xs font-mono overflow-auto max-h-60">
-          <strong>DEBUG INFO:</strong><br/>
-          Current User ID: {user._id}<br/>
-          Current User Name: {user.name}<br/>
-          <br/>
-          <strong>Teams Found ({myTeams.length}):</strong>
-          <ul className="list-disc pl-4 mt-1">
-            {myTeams.map(t => (
-              <li key={t._id}>
-                Team: {t.name || "Unnamed"} ({t._id})<br/>
-                Leader ID: {t.leaderId}<br/>
-                Is Leader: {t.leaderId === user._id ? "YES" : "NO"}
-              </li>
-            ))}
-          </ul>
-          <br/>
-          <strong>Selected Team:</strong><br/>
-          Name: {primaryTeam.name}<br/>
-          Leader ID: {primaryTeam.leaderId}<br/>
-          Is Leader Variable: {isLeader ? "YES" : "NO"}
-        </div>
-        <div className="mb-4 p-4 bg-yellow-100 text-yellow-900 rounded text-xs font-mono overflow-auto max-h-60">
-          <strong>DEBUG INFO:</strong><br/>
-          Current User ID: {user._id}<br/>
-          Current User Name: {user.name}<br/>
-          <br/>
-          <strong>Teams Found ({myTeams.length}):</strong>
-          <ul className="list-disc pl-4 mt-1">
-            {myTeams.map(t => (
-              <li key={t._id}>
-                Team: {t.name || "Unnamed"} ({t._id})<br/>
-                Leader ID: {t.leaderId}<br/>
-                Is Leader: {t.leaderId === user._id ? "YES" : "NO"}
-              </li>
-            ))}
-          </ul>
-          <br/>
-          <strong>Selected Team:</strong><br/>
-          Name: {primaryTeam.name}<br/>
-          Leader ID: {primaryTeam.leaderId}<br/>
-          Is Leader Variable: {isLeader ? "YES" : "NO"}
-        </div>
         <WorkProgramList teamId={primaryTeam._id} isLeader={isLeader} />
       </div>
     </div>

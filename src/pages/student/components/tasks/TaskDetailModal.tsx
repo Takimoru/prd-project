@@ -115,7 +115,10 @@ export function TaskDetailModal({ taskId, onClose }: TaskDetailModalProps) {
 
   const isCompleted = task?.completed || false;
   const canComplete =
-    task && !isCompleted && task.assignedMembers.includes(user?._id as any);
+    task &&
+    !isCompleted &&
+    (task.assignedMembers.includes(user?._id as any) ||
+      task.createdBy === (user?._id as any));
 
   return (
     <Dialog open={!!taskId} onOpenChange={() => onClose()}>

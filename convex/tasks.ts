@@ -28,6 +28,17 @@ export const create = mutation({
       workProgramId: args.workProgramId,
       completed: false,
     });
+
+    // Log activity
+    await ctx.db.insert("activities", {
+      teamId: args.teamId,
+      userId: args.createdBy,
+      action: "created_task",
+      targetId: taskId,
+      targetTitle: args.title,
+      timestamp: new Date().toISOString(),
+    });
+
     return taskId;
   },
 });
@@ -67,12 +78,34 @@ export const update = mutation({
         completedBy: userId,
       });
 
+      // Log completion activity
+      await ctx.db.insert("activities", {
+        teamId: task.teamId,
+        userId: userId,
+        action: "completed_task",
+        targetId: id,
+        targetTitle: task.title,
+        timestamp: new Date().toISOString(),
+      });
+
       // Update work program progress if task is linked to one
       if (task.workProgramId) {
         await updateWorkProgramProgress(ctx, task.workProgramId);
       }
     } else {
       await ctx.db.patch(id, updates);
+      
+      // Log update activity (only if significant changes)
+      // avoiding spam for minor things, but let's log it for now
+      await ctx.db.insert("activities", {
+        teamId: task.teamId,
+        userId: userId,
+        action: "updated_task",
+        targetId: id,
+        targetTitle: task.title,
+        details: updates.description ? "Updated description" : "Updated task details",
+        timestamp: new Date().toISOString(),
+      });
     }
   },
 });
@@ -149,6 +182,19 @@ export const addUpdate = mutation({
       updatedAt: new Date().toISOString(),
     });
 
+    const task = await ctx.db.get(args.taskId);
+    if (task) {
+        await ctx.db.insert("activities", {
+            teamId: task.teamId,
+            userId: args.memberId,
+            action: "updated_task",
+            targetId: args.taskId,
+            targetTitle: task.title,
+            details: args.progress ? `Updated progress to ${args.progress}%` : "Added a note/file",
+            timestamp: new Date().toISOString(),
+        });
+    }
+
     // If progress is provided and task is linked to WP, update WP progress
     if (args.progress !== undefined) {
       const task = await ctx.db.get(args.taskId);
@@ -213,9 +259,24 @@ export const getByUser = query({
     userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    // Get all teams where user is a member or supervisor
+    const teams = await ctx.db.query("teams").collect();
+    const userTeamIds = new Set(
+      teams
+        .filter(
+          (t) =>
+            t.memberIds.includes(args.userId) ||
+            t.leaderId === args.userId ||
+            t.supervisorId === args.userId
+        )
+        .map((t) => t._id)
+    );
+
     const allTasks = await ctx.db.query("tasks").collect();
+    
+    // Return tasks that are directly assigned OR belong to a team the user is part of (including supervisor)
     const assignedTasks = allTasks.filter((task) =>
-      task.assignedMembers.includes(args.userId)
+      task.assignedMembers.includes(args.userId) || userTeamIds.has(task.teamId)
     );
 
     // Enrich with WP info

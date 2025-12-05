@@ -191,5 +191,38 @@ export default defineSchema({
   })
     .index("by_task", ["taskId"])
     .index("by_member", ["memberId"]),
+
+  activities: defineTable({
+    teamId: v.id("teams"),
+    userId: v.id("users"), // Actor
+    action: v.union(
+      v.literal("created_task"),
+      v.literal("updated_task"),
+      v.literal("completed_task"),
+      v.literal("created_program"),
+      v.literal("uploaded_file")
+    ),
+    targetId: v.string(), // ID of the task/program/file
+    targetTitle: v.string(), // Snapshot of title for easier display
+    details: v.optional(v.string()),
+    timestamp: v.string(), // ISO datetime string
+  })
+    .index("by_team", ["teamId"])
+    .index("by_team_timestamp", ["teamId", "timestamp"]),
+
+  weekly_attendance_approvals: defineTable({
+    teamId: v.id("teams"),
+    weekStartDate: v.string(), // ISO date string of Monday
+    supervisorId: v.id("users"),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("approved"),
+      v.literal("rejected")
+    ),
+    approvedAt: v.optional(v.string()), // ISO datetime string
+    notes: v.optional(v.string()),
+  })
+    .index("by_team_week", ["teamId", "weekStartDate"])
+    .index("by_supervisor_status", ["supervisorId", "status"]),
 });
 

@@ -7,11 +7,21 @@ import { Mail, MapPin } from "lucide-react";
 export function TeamPage() {
   const { user, myTeams, isLoading } = useStudentData();
 
+  // Debug logging
+  console.log("TeamPage Debug:", {
+    user,
+    myTeams,
+    teamsCount: myTeams?.length,
+    firstTeam: myTeams?.[0],
+  });
+
   // Collect all unique team members and supervisors
   const allMembers = new Map();
   
   if (myTeams) {
     myTeams.forEach(team => {
+      console.log("Processing team:", team);
+      
       // Add supervisor
       if (team.supervisor) {
         allMembers.set(team.supervisor._id, {
@@ -23,13 +33,24 @@ export function TeamPage() {
         });
       }
 
+      // Add team leader
+      if (team.leader) {
+        allMembers.set(team.leader._id, {
+          ...team.leader,
+          role: team.leader.role || "student",
+          teams: allMembers.has(team.leader._id)
+            ? [...allMembers.get(team.leader._id).teams, team.name || team.program?.title]
+            : [team.name || team.program?.title]
+        });
+      }
+
       // Add team members
       if (team.members) {
         team.members.filter(Boolean).forEach(member => {
           if (member) {
             allMembers.set(member._id, {
               ...member,
-              role: "student",
+              role: member.role || "student",
               teams: allMembers.has(member._id)
                 ? [...allMembers.get(member._id).teams, team.name || team.program?.title]
                 : [team.name || team.program?.title]
@@ -40,7 +61,7 @@ export function TeamPage() {
     });
   }
 
-  // Add current user
+  // Add current user if not already in the list
   if (user && !allMembers.has(user._id)) {
     const userTeams = myTeams?.map(t => t.name || t.program?.title || "Team") || [];
     allMembers.set(user._id, {
@@ -50,9 +71,13 @@ export function TeamPage() {
     });
   }
 
+  console.log("All members collected:", Array.from(allMembers.values()));
+
   const teamMembersArray = Array.from(allMembers.values());
   const supervisors = teamMembersArray.filter(m => m.role === "supervisor");
   const students = teamMembersArray.filter(m => m.role === "student" || m.role === "pending");
+
+  console.log("Filtered:", { supervisors, students });
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, string> = {

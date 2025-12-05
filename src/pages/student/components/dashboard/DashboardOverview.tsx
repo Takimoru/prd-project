@@ -13,14 +13,16 @@ interface DashboardOverviewProps {
   userId: Id<"users">;
   teams: any[];
   todaysAttendance: any[];
+  isReadOnly?: boolean;
 }
 
-export function DashboardOverview({ userId, teams, todaysAttendance }: DashboardOverviewProps) {
+export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly = false }: DashboardOverviewProps) {
   const checkIn = useMutation(api.attendance.checkIn);
   const [selectedTeamId, setSelectedTeamId] = useState<Id<"teams"> | null>(null);
   const today = new Date().toISOString().split("T")[0];
 
   const handleCheckInClick = (teamId: Id<"teams">) => {
+    if (isReadOnly) return;
     setSelectedTeamId(teamId);
   };
 
@@ -91,6 +93,7 @@ export function DashboardOverview({ userId, teams, todaysAttendance }: Dashboard
                     (record) => record.teamId === team._id && record.date === today
                   );
                   
+                  // In Spectator mode, show "Not yet" instead of button if not checked in
                   return (
                     <div key={team._id} className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
@@ -105,14 +108,21 @@ export function DashboardOverview({ userId, teams, todaysAttendance }: Dashboard
                           <span className="text-xs font-medium">Checked in</span>
                         </div>
                       ) : (
-                        <Button
-                          size="sm"
-                          variant="default"
-                          className="bg-orange-500 hover:bg-orange-600"
-                          onClick={() => handleCheckInClick(team._id)}
-                        >
-                          Check In
-                        </Button>
+                        isReadOnly ? (
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
+                             <Clock className="w-4 h-4" />
+                             <span className="text-xs font-medium">Pending</span>
+                          </div>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className="bg-orange-500 hover:bg-orange-600"
+                            onClick={() => handleCheckInClick(team._id)}
+                          >
+                            Check In
+                          </Button>
+                        )
                       )}
                     </div>
                   );
@@ -127,15 +137,17 @@ export function DashboardOverview({ userId, teams, todaysAttendance }: Dashboard
           </Card>
         </div>
 
-        {/* Recent Activity Feed */}
-        <RecentActivity teams={teams} />
+        {/* Recent Activity Feed - showing activity for the first team for now */}
+        <RecentActivity teamId={teams?.[0]?._id} />
       </div>
 
-      <AttendanceDialog 
-        isOpen={!!selectedTeamId}
-        onClose={() => setSelectedTeamId(null)}
-        onSubmit={handleSubmitAttendance}
-      />
+      {!isReadOnly && (
+        <AttendanceDialog 
+          isOpen={!!selectedTeamId}
+          onClose={() => setSelectedTeamId(null)}
+          onSubmit={handleSubmitAttendance}
+        />
+      )}
     </>
   );
 }

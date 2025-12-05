@@ -14,7 +14,13 @@ export function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      navigate("/dashboard");
+      if (user.role === "supervisor") {
+        navigate("/supervisor");
+      } else if (user.role === "admin") {
+        navigate("/admin/approvals");
+      } else {
+        navigate("/dashboard");
+      }
     }
   }, [user, navigate]);
 

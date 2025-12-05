@@ -74,6 +74,41 @@ export const getTeamsBySupervisor = query({
   },
 });
 
+// Get teams by supervisor with populated members
+export const getTeamsWithMembersBySupervisor = query({
+  args: {
+    supervisorId: v.id("users"),
+  },
+  handler: async (ctx, args) => {
+    const teams = await ctx.db
+      .query("teams")
+      .withIndex("by_supervisor", (q) => q.eq("supervisorId", args.supervisorId))
+      .collect();
+
+    return Promise.all(
+      teams.map(async (team) => {
+        const leader = await ctx.db.get(team.leaderId);
+        const members = await Promise.all(
+          team.memberIds.map((id) => ctx.db.get(id))
+        );
+        const supervisor = team.supervisorId
+          ? await ctx.db.get(team.supervisorId)
+          : null;
+        const program = await ctx.db.get(team.programId);
+
+        return {
+          ...team,
+          leader,
+          members,
+          supervisor,
+          program,
+        };
+      })
+    );
+  },
+});
+
+
 // Get teams by leader
 export const getTeamsByLeader = query({
   args: {
@@ -97,6 +132,11 @@ export const getTeamsForUser = query({
       .withIndex("by_leader", (q) => q.eq("leaderId", args.userId))
       .collect();
 
+    const teamsBySupervisor = await ctx.db
+      .query("teams")
+      .withIndex("by_supervisor", (q) => q.eq("supervisorId", args.userId))
+      .collect();
+
     const allTeams = await ctx.db.query("teams").collect();
     const memberTeams = allTeams.filter((team) =>
       team.memberIds.includes(args.userId)
@@ -104,6 +144,9 @@ export const getTeamsForUser = query({
 
     const combined = new Map<string, typeof allTeams[number]>();
     teamsByLeader.forEach((team) =>
+      combined.set(team._id as unknown as string, team)
+    );
+    teamsBySupervisor.forEach((team) =>
       combined.set(team._id as unknown as string, team)
     );
     memberTeams.forEach((team) =>

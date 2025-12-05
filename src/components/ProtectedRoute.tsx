@@ -52,8 +52,13 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/admin/approvals" replace />;
   }
 
-  // Redirect students away from admin routes
-  if (effectiveRole !== "admin" && location.pathname.startsWith("/admin")) {
+  // Redirect supervisors away from student dashboard
+  if (effectiveRole === "supervisor" && location.pathname === "/dashboard") {
+     return <Navigate to="/supervisor" replace />;
+  }
+
+  // Redirect students away from admin/supervisor routes
+  if (effectiveRole === "student" && (location.pathname.startsWith("/admin") || location.pathname.startsWith("/supervisor"))) {
     return <Navigate to="/dashboard" replace />;
   }
 

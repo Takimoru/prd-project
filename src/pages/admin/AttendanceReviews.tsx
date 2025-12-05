@@ -84,6 +84,7 @@ export function AttendanceReviews() {
               programName={programs?.find(p => p._id === selectedProgram)?.title || "Unknown Program"}
               onWeekChange={handleWeekChange}
               onExport={handleExportAttendance}
+              approvalStatus={attendanceSummary.approval?.status}
             />
             <AttendanceTable
               attendanceSummary={attendanceSummary}

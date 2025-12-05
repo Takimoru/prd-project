@@ -8,11 +8,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
-import { Users, FileText, Clock, CheckCircle, AlertCircle } from "lucide-react";
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { FileText, Clock, CheckCircle, AlertCircle, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { RecentActivity } from "../student/components/dashboard/RecentActivity";
 
 export function SupervisorDashboard() {
   const { user } = useAuth();
@@ -56,22 +57,6 @@ export function SupervisorDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="border-blue-100 bg-gradient-to-br from-blue-50/50 to-white">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-blue-900/70">
-                My Teams
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-blue-900">
-                  {teams?.length || 0}
-                </div>
-                <Users className="w-8 h-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
           <Card className="border-orange-100 bg-gradient-to-br from-orange-50/50 to-white">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-orange-900/70">
@@ -116,6 +101,25 @@ export function SupervisorDashboard() {
                   {revisionCount}
                 </div>
                 <AlertCircle className="w-8 h-8 text-red-500" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card 
+            className="border-purple-100 bg-gradient-to-br from-purple-50/50 to-white cursor-pointer hover:shadow-md transition-all"
+            onClick={() => navigate("/supervisor/attendance-approval")}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-purple-900/70">
+                Attendance Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div className="text-lg font-bold text-purple-900">
+                  Review & Approve
+                </div>
+                <CheckCircle2 className="w-8 h-8 text-purple-500" />
               </div>
             </CardContent>
           </Card>
@@ -176,40 +180,11 @@ export function SupervisorDashboard() {
           </CardContent>
         </Card>
 
-        {/* Teams Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>My Teams</CardTitle>
-            <CardDescription>Teams you are supervising</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {teams && teams.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {teams.map((team) => (
-                  <div
-                    key={team._id}
-                    className="p-4 border border-blue-100 rounded-lg hover:shadow-md hover:shadow-blue-100 transition-all bg-gradient-to-br from-blue-50/30 to-white cursor-pointer"
-                    onClick={() => navigate(`/supervisor/teams/${team._id}`)}>
-                    <h4 className="font-semibold text-blue-900 mb-2">
-                      {team.name || "Unnamed Team"}
-                    </h4>
-                    <div className="flex items-center gap-4 text-sm text-blue-900/70">
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        <span>{team.memberIds?.length || 0} members</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-muted-foreground">
-                <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No teams assigned yet</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        {/* Recent Activity Feed */}
+        <div className="pb-8">
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Work Progress Update</h2>
+            <RecentActivity teamId={teams?.[0]?._id} />
+        </div>
       </div>
     </SupervisorLayout>
   );

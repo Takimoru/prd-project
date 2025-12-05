@@ -12,6 +12,7 @@ import { Button } from "../../../components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
 import { Separator } from "../../../components/ui/separator";
 import { useAuth } from "../../../contexts/AuthContext";
+import { ThemeToggle } from "../../../components/ThemeToggle";
 
 export function AdminSidebar() {
   const { user, logout } = useAuth();
@@ -28,14 +29,17 @@ export function AdminSidebar() {
   return (
     <div className="w-64 h-screen bg-[hsl(var(--sidebar-background))] border-r border-border flex flex-col fixed left-0 top-0 z-50">
       {/* Workspace Branding */}
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="text-primary-foreground font-bold">A</span>
+      <div className="p-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold">A</span>
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">Admin Panel</h2>
+            <p className="text-xs text-muted-foreground">Management</p>
+          </div>
         </div>
-        <div>
-          <h2 className="font-semibold text-foreground">Admin Panel</h2>
-          <p className="text-xs text-muted-foreground">Management</p>
-        </div>
+        <ThemeToggle />
       </div>
 
       {/* Navigation */}

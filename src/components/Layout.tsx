@@ -179,13 +179,13 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      {/* Mobile Header - Only visible on mobile */}
+      <header className="lg:hidden sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="flex h-14 items-center px-4 max-w-full">
           {/* Mobile Menu Button */}
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden mr-2">
+              <Button variant="ghost" size="icon" className="mr-2">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
@@ -200,6 +200,36 @@ export function Layout() {
             </SheetContent>
           </Sheet>
 
+          {/* Logo/Title */}
+          <div className="flex-1">
+            <Link to="/" className="flex items-center space-x-2">
+              <span className="font-bold text-sm sm:text-base">
+                Field Study System
+              </span>
+            </Link>
+          </div>
+
+          {/* User Info & Logout */}
+          <div className="flex items-center gap-2 ml-auto">
+            {user && (
+              <div className="flex items-center gap-2">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.picture} alt={user.name} />
+                  <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </div>
+            )}
+            <Button variant="ghost" size="icon" onClick={logout} title="Logout">
+              <LogOut className="h-5 w-5" />
+              <span className="sr-only">Logout</span>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Desktop Header - Only visible on desktop */}
+      <header className="hidden lg:block sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="flex h-14 items-center px-4 max-w-full">
           {/* Logo/Title */}
           <div className="flex-1 md:flex-initial">
             <Link to="/" className="flex items-center space-x-2">
@@ -234,15 +264,15 @@ export function Layout() {
       </header>
 
       <div className="flex">
-        {/* Desktop Sidebar */}
-        <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block md:w-64">
+        {/* Desktop Sidebar - Only visible on desktop */}
+        <aside className="hidden lg:block fixed top-14 z-30 h-[calc(100vh-3.5rem)] w-64 shrink-0 overflow-y-auto border-r">
           <ScrollArea className="h-full py-6 pl-4 pr-6">
             <NavigationContent />
           </ScrollArea>
         </aside>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8">
+        <main className="flex-1 lg:ml-64 pt-14 lg:pt-0 px-4 sm:px-6 md:px-8 py-6 sm:py-8">
           <Outlet />
         </main>
       </div>

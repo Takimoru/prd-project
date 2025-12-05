@@ -6,6 +6,7 @@ interface AttendanceControlsProps {
   programName: string;
   onWeekChange: (direction: "prev" | "next") => void;
   onExport: () => void;
+  approvalStatus?: "approved" | "rejected" | "pending";
 }
 
 export function AttendanceControls({
@@ -14,14 +15,28 @@ export function AttendanceControls({
   programName,
   onWeekChange,
   onExport,
+  approvalStatus
 }: AttendanceControlsProps) {
   return (
-    <div className="p-6 border-b flex justify-between items-center">
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-border space-y-4 sm:space-y-0">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">
-          Weekly Attendance ({weekRange})
-        </h2>
-        <p className="text-sm text-gray-500">{programName}</p>
+        <div className="flex items-center gap-3">
+           <h3 className="text-lg font-semibold text-foreground">
+             Weekly Attendance ({weekRange})
+           </h3>
+           {approvalStatus && (
+             <span className={`px-2 py-1 rounded-full text-xs font-medium border ${
+                approvalStatus === "approved" ? "bg-green-100 text-green-700 border-green-200" :
+                approvalStatus === "rejected" ? "bg-red-100 text-red-700 border-red-200" :
+                "bg-yellow-100 text-yellow-700 border-yellow-200"
+             }`}>
+               Supervisor: {approvalStatus.toUpperCase()}
+             </span>
+           )}
+        </div>
+        <p className="text-sm text-muted-foreground mt-1">
+          {programName}
+        </p>
       </div>
       <div className="flex items-center space-x-2">
         <button

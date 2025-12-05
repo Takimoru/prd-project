@@ -27,6 +27,12 @@ export interface AttendanceSummary {
   endDate: string;
   daily: DailyAttendance[];
   totals: AttendanceTotal[];
+  approval?: {
+    status: "approved" | "rejected";
+    supervisorId: Id<"users">;
+    approvedAt: string;
+    notes?: string;
+  };
 }
 
 export interface TeamMember {

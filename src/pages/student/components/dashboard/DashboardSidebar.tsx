@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetTrigger } from "../../../../components/ui/she
 import { Button } from "../../../../components/ui/button";
 import { useState } from "react";
 import { useAuth } from "../../../../contexts/AuthContext";
+import { ThemeToggle } from "../../../../components/ThemeToggle";
 
 interface DashboardSidebarProps {
   user: {
@@ -41,13 +42,16 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
   const SidebarContent = () => (
     <>
       {/* Workspace Branding */}
-      <div className="p-6 flex items-center gap-3">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-          <span className="text-primary-foreground font-bold">W</span>
+      <div className="p-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+            <span className="text-primary-foreground font-bold">W</span>
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">Simonpro</h2>
+          </div>
         </div>
-        <div>
-          <h2 className="font-semibold text-foreground">Simonpro</h2>
-        </div>
+        <ThemeToggle />
       </div>
 
       {/* Navigation */}

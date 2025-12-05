@@ -31,8 +31,21 @@ import { AdminRedirect } from "./components/AdminRedirect";
 // Supervisor Pages
 import { SupervisorDashboard as NewSupervisorDashboard } from "./pages/supervisor/SupervisorDashboard";
 import { SupervisorTeamList } from "./pages/supervisor/SupervisorTeamList";
-import { SupervisorTeamDetails } from "./pages/supervisor/SupervisorTeamDetails";
+import { SupervisorTasksPage } from "./pages/supervisor/SupervisorTasksPage";
+import { SupervisorPendingReviews } from "./pages/supervisor/SupervisorPendingReviews";
+import { SupervisorAllReports } from "./pages/supervisor/SupervisorAllReports";
 import { WeeklySummaryReview } from "./pages/supervisor/WeeklySummaryReview";
+import { SpectatorDashboard } from "./pages/supervisor/SpectatorDashboard";
+import { WeeklyAttendanceApproval } from "./pages/supervisor/WeeklyAttendanceApproval";
+import { useParams } from "react-router-dom";
+import { Id } from "../convex/_generated/dataModel";
+
+// Wrapper to extract params for SpectatorDashboard
+function SpectatorDashboardWrapper() {
+  const { teamId } = useParams();
+  if (!teamId) return null;
+  return <SpectatorDashboard teamId={teamId as Id<"teams">} />;
+}
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL || "";
 
@@ -46,20 +59,27 @@ const convex = new ConvexReactClient(convexUrl);
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
+import { ThemeProvider } from "./contexts/ThemeContext";
+
 function App() {
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <ConvexProvider client={convex}>
         <AuthProvider>
-          <BrowserRouter>
-            <Routes>
+          <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
+            <BrowserRouter>
+              <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegistrationPage />} />
               
               {/* Supervisor Routes - Separate from Layout */}
               <Route path="/supervisor" element={<ProtectedRoute><NewSupervisorDashboard /></ProtectedRoute>} />
               <Route path="/supervisor/teams" element={<ProtectedRoute><SupervisorTeamList /></ProtectedRoute>} />
-              <Route path="/supervisor/teams/:teamId" element={<ProtectedRoute><SupervisorTeamDetails /></ProtectedRoute>} />
+              <Route path="/supervisor/tasks" element={<ProtectedRoute><SupervisorTasksPage /></ProtectedRoute>} />
+              <Route path="/supervisor/pending" element={<ProtectedRoute><SupervisorPendingReviews /></ProtectedRoute>} />
+              <Route path="/supervisor/reports" element={<ProtectedRoute><SupervisorAllReports /></ProtectedRoute>} />
+              <Route path="/supervisor/spectator/:teamId" element={<ProtectedRoute><SpectatorDashboardWrapper /></ProtectedRoute>} />
+              <Route path="/supervisor/attendance-approval" element={<ProtectedRoute><WeeklyAttendanceApproval /></ProtectedRoute>} />
               <Route path="/supervisor/review/:teamId/:week" element={<ProtectedRoute><WeeklySummaryReview /></ProtectedRoute>} />
               
               {/* Student Dashboard Routes - Separate from Layout (has own sidebar) */}
@@ -96,7 +116,8 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster position="top-right" />
-          </BrowserRouter>
+            </BrowserRouter>
+          </ThemeProvider>
         </AuthProvider>
       </ConvexProvider>
     </GoogleOAuthProvider>

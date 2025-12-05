@@ -37,6 +37,17 @@ export const create = mutation({
       createdBy: args.createdBy,
       createdAt: new Date().toISOString(),
     });
+
+    // Log activity
+    await ctx.db.insert("activities", {
+      teamId: args.teamId,
+      userId: args.createdBy,
+      action: "created_program",
+      targetId: workProgramId,
+      targetTitle: args.title,
+      timestamp: new Date().toISOString(),
+    });
+
     return workProgramId;
   },
 });
