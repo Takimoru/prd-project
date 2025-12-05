@@ -16,11 +16,11 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader } from "../../components/ui/card";
-import { DashboardSidebar } from "./components/DashboardSidebar";
-import { DashboardHeader } from "./components/DashboardHeader";
+import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "./components/dashboard/DashboardHeader";
 import { useStudentData } from "./hooks/useStudentData";
 import { cn } from "../../lib/utils";
-import { CreateTaskModal } from "./components/CreateTaskModal";
+import { CreateTaskModal } from "./components/tasks/CreateTaskModal";
 
 export function CalendarPage() {
   const { user, myTeams, isLoading } = useStudentData();
@@ -73,8 +73,8 @@ export function CalendarPage() {
         user={user} 
       />
 
-      <div className="ml-64 min-h-screen">
-        <div className="p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           <DashboardHeader />
 
           <div className="flex items-center justify-between mb-6">

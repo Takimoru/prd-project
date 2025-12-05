@@ -1,6 +1,6 @@
 import { useStudentData } from "./hooks/useStudentData";
-import { WorkProgramList } from "./components/WorkProgramList";
-import { DashboardSidebar } from "./components/DashboardSidebar";
+import { WorkProgramList } from "./components/work-programs/WorkProgramList";
+import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
 import { Loader2 } from "lucide-react";
 
 export function WorkProgramsPage() {
@@ -21,7 +21,7 @@ export function WorkProgramsPage() {
     return (
       <div className="min-h-screen bg-background">
         <DashboardSidebar user={user} />
-        <div className="ml-64 min-h-screen p-8">
+        <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0 px-4 sm:px-6 py-6 sm:py-8">
           <div className="text-center py-16">
             <h2 className="text-2xl font-bold text-foreground mb-2">No Team Assigned</h2>
             <p className="text-muted-foreground">
@@ -38,7 +38,7 @@ export function WorkProgramsPage() {
   return (
     <div className="min-h-screen bg-background">
       <DashboardSidebar user={user} />
-      <div className="ml-64 min-h-screen p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0 px-4 sm:px-6 py-6 sm:py-8">
         <div className="mb-4 p-4 bg-yellow-100 text-yellow-900 rounded text-xs font-mono overflow-auto max-h-60">
           <strong>DEBUG INFO:</strong><br/>
           Current User ID: {user._id}<br/>

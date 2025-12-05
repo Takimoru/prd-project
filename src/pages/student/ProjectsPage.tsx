@@ -1,7 +1,7 @@
 import { useStudentData } from "./hooks/useStudentData";
-import { DashboardSidebar } from "./components/DashboardSidebar";
-import { DashboardHeader } from "./components/DashboardHeader";
-import { WorkProgramList } from "./components/WorkProgramList";
+import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "./components/dashboard/DashboardHeader";
+import { WorkProgramList } from "./components/work-programs/WorkProgramList";
 
 export function ProjectsPage() {
   const { user, myTeams, isLoading } = useStudentData();
@@ -16,8 +16,8 @@ export function ProjectsPage() {
         user={user} 
       />
 
-      <div className="ml-64 min-h-screen">
-        <div className="p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           <DashboardHeader />
           
           {myTeams?.map(team => (

@@ -3,14 +3,14 @@ import { Link } from "react-router-dom";
 import { CalendarDays, CheckCircle, MoreVertical, Users as UsersIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import toast from "react-hot-toast";
-import { Doc, Id } from "../../../../convex/_generated/dataModel";
-import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
-import { Badge } from "../../../components/ui/badge";
-import { Progress } from "../../../components/ui/progress";
-import { Button } from "../../../components/ui/button";
-import { AttendanceDialog } from "./AttendanceDialog";
+import { Doc, Id } from "../../../../../convex/_generated/dataModel";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
+import { Badge } from "../../../../components/ui/badge";
+import { Progress } from "../../../../components/ui/progress";
+import { Button } from "../../../../components/ui/button";
+import { AttendanceDialog } from "../attendance/AttendanceDialog";
 
 interface ProjectCardProps {
   team: Doc<"teams"> & { 

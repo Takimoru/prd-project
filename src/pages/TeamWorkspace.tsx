@@ -12,7 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import { AttendanceDialog } from "./student/components/AttendanceDialog";
+import { AttendanceDialog } from "./student/components/attendance/AttendanceDialog";
 
 export function TeamWorkspace() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -64,7 +64,10 @@ export function TeamWorkspace() {
     setShowAttendanceDialog(true);
   };
 
-  const handleSubmitAttendance = async (status: "present" | "permission", excuse?: string) => {
+  const handleSubmitAttendance = async (
+    status: "present" | "permission",
+    excuse?: string
+  ) => {
     if (!teamId || !user) return;
 
     try {
@@ -76,7 +79,9 @@ export function TeamWorkspace() {
         status,
         excuse,
       });
-      toast.success(status === "present" ? "Check-in successful!" : "Permission submitted");
+      toast.success(
+        status === "present" ? "Check-in successful!" : "Permission submitted"
+      );
     } catch (error: any) {
       console.error("Check-in failed:", error);
       toast.error(error.message || "Failed to check in. Please try again.");
@@ -149,7 +154,9 @@ export function TeamWorkspace() {
       const row = [
         member.name || "Unknown",
         ...weeklySummary.daily.map((day) =>
-          day.attendees.some((a) => a.userId === (member._id as unknown as string))
+          day.attendees.some(
+            (a) => a.userId === (member._id as unknown as string)
+          )
             ? "✔"
             : ""
         ),
@@ -201,8 +208,7 @@ export function TeamWorkspace() {
         ) : (
           <button
             onClick={handleCheckInClick}
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-          >
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors">
             Check In
           </button>
         )}
@@ -234,8 +240,7 @@ export function TeamWorkspace() {
               />
               <button
                 onClick={handleCreateTask}
-                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center space-x-2"
-              >
+                className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 flex items-center space-x-2">
                 <Plus className="w-4 h-4" />
                 <span>Add Task</span>
               </button>
@@ -248,16 +253,14 @@ export function TeamWorkspace() {
               {tasks.map((task) => (
                 <div
                   key={task._id}
-                  className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50"
-                >
+                  className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
                   <button
                     onClick={() => {
-                      if (!task.completed) {
-                        updateTask({ id: task._id, completed: true });
+                      if (!task.completed && user) {
+                        updateTask({ id: task._id, userId: user._id, completed: true });
                       }
                     }}
-                    className="flex-shrink-0"
-                  >
+                    className="flex-shrink-0">
                     {task.completed ? (
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     ) : (
@@ -270,8 +273,7 @@ export function TeamWorkspace() {
                         task.completed
                           ? "text-gray-500 line-through"
                           : "text-gray-900"
-                      }
-                    >
+                      }>
                       {task.title}
                     </p>
                     {task.description && (
@@ -281,13 +283,17 @@ export function TeamWorkspace() {
                     )}
                   </div>
                   <span className="text-sm text-gray-500">
-                    {task.assignedMembers?.length ? `${task.assignedMembers.length} assigned` : "Unassigned"}
+                    {task.assignedMembers?.length
+                      ? `${task.assignedMembers.length} assigned`
+                      : "Unassigned"}
                   </span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No tasks for this week.</p>
+            <p className="text-gray-500 text-center py-8">
+              No tasks for this week.
+            </p>
           )}
         </div>
       </div>
@@ -300,14 +306,14 @@ export function TeamWorkspace() {
               Weekly Attendance Summary
             </h2>
             <p className="text-sm text-gray-500">
-              Track who checked in each day. Use the controls to browse other weeks.
+              Track who checked in each day. Use the controls to browse other
+              weeks.
             </p>
           </div>
           <div className="flex items-center space-x-2">
             <button
               onClick={() => handleWeekChange("prev")}
-              className="p-2 border rounded-lg hover:bg-gray-50"
-            >
+              className="p-2 border rounded-lg hover:bg-gray-50">
               <ChevronLeft className="w-4 h-4" />
             </button>
             <span className="text-sm font-medium text-gray-700">
@@ -315,14 +321,12 @@ export function TeamWorkspace() {
             </span>
             <button
               onClick={() => handleWeekChange("next")}
-              className="p-2 border rounded-lg hover:bg-gray-50"
-            >
+              className="p-2 border rounded-lg hover:bg-gray-50">
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
               onClick={handleExportAttendance}
-              className="inline-flex items-center space-x-2 px-3 py-2 border rounded-lg text-gray-600 hover:text-gray-800 hover:border-gray-400"
-            >
+              className="inline-flex items-center space-x-2 px-3 py-2 border rounded-lg text-gray-600 hover:text-gray-800 hover:border-gray-400">
               <Download className="w-4 h-4" />
               <span>Export CSV</span>
             </button>
@@ -335,7 +339,9 @@ export function TeamWorkspace() {
                 <tr className="text-left text-gray-600">
                   <th className="py-2 pr-4 font-medium">Student</th>
                   {weeklySummary.daily.map((day) => (
-                    <th key={day.date} className="py-2 px-2 font-medium text-center">
+                    <th
+                      key={day.date}
+                      className="py-2 px-2 font-medium text-center">
                       {formatDate(day.date)}
                     </th>
                   ))}
@@ -356,8 +362,7 @@ export function TeamWorkspace() {
                       return (
                         <td
                           key={`${member._id}-${day.date}`}
-                          className="py-2 px-2 text-center"
-                        >
+                          className="py-2 px-2 text-center">
                           {present ? (
                             <CheckCircle className="w-4 h-4 text-green-600 inline" />
                           ) : (
@@ -416,7 +421,9 @@ function shiftWeek(weekString: string, delta: number): string {
 function weeksInYear(year: number): number {
   const d = new Date(year, 11, 31);
   const week = Math.ceil(
-    ((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000 + d.getDay() + 1) /
+    ((d.getTime() - new Date(year, 0, 1).getTime()) / 86400000 +
+      d.getDay() +
+      1) /
       7
   );
   return week;
@@ -442,7 +449,9 @@ function getTeamMembers(team: any) {
   if (team.leader) members.push(team.leader);
   if (team.members) {
     team.members
-      .filter((member: any): member is NonNullable<typeof member> => Boolean(member))
+      .filter((member: any): member is NonNullable<typeof member> =>
+        Boolean(member)
+      )
       .forEach((member: any) => members.push(member));
   }
   return members;

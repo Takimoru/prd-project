@@ -1,5 +1,5 @@
 import { useStudentData } from "./hooks/useStudentData";
-import { DashboardSidebar } from "./components/DashboardSidebar";
+import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 import { Badge } from "../../components/ui/badge";
 import { Mail, MapPin } from "lucide-react";
@@ -71,8 +71,8 @@ export function TeamPage() {
     <div className="min-h-screen bg-background">
       <DashboardSidebar user={user} />
 
-      <div className="ml-64 min-h-screen">
-        <div className="p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Team</h1>
             <p className="text-muted-foreground mt-1">Connect with your team members and supervisors</p>

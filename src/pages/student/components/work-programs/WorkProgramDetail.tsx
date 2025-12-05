@@ -1,16 +1,16 @@
 import { useQuery, useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { api } from "../../../../../convex/_generated/api";
+import { Id } from "../../../../../convex/_generated/dataModel";
 import { useParams, useNavigate } from "react-router-dom";
-import { AdminPageLayout } from "../../admin/components/AdminPageLayout";
-import { AdminHeader } from "../../admin/components/AdminHeader";
-import { Button } from "../../../components/ui/button";
-import { Progress } from "../../../components/ui/progress";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
-import { Badge } from "../../../components/ui/badge";
+import { AdminPageLayout } from "../../../admin/components/AdminPageLayout";
+import { AdminHeader } from "../../../admin/components/AdminHeader";
+import { Button } from "../../../../components/ui/button";
+import { Progress } from "../../../../components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card";
+import { Badge } from "../../../../components/ui/badge";
 import { ArrowLeft, Edit, Calendar, CheckSquare, FileText, Circle, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
-import { useAuth } from "../../../contexts/AuthContext";
+import { useAuth } from "../../../../contexts/AuthContext";
 
 export function WorkProgramDetail() {
   const { programId } = useParams();

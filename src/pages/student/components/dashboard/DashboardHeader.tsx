@@ -1,17 +1,17 @@
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
 
 export function DashboardHeader() {
   return (
-    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
+    <div className="flex flex-col gap-4 mb-6 sm:mb-8">
       <div>
-        <h1 className="text-3xl font-bold text-foreground tracking-tight">Projects</h1>
-        <p className="text-muted-foreground mt-1">Manage your ongoing projects and tasks</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Projects</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your ongoing projects and tasks</p>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="relative w-full md:w-64">
+      <div className="flex items-center gap-2 sm:gap-3">
+        <div className="relative flex-1 sm:flex-initial sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Search projects..." 

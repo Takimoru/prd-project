@@ -2,11 +2,11 @@ import { Link } from "react-router-dom";
 import { CheckCircle } from "lucide-react";
 import { format } from "date-fns";
 import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import toast from "react-hot-toast";
 import { useMemo, useState } from "react";
-import { Id, Doc } from "../../../../convex/_generated/dataModel";
-import { AttendanceDialog } from "./AttendanceDialog";
+import { Id, Doc } from "../../../../../convex/_generated/dataModel";
+import { AttendanceDialog } from "../attendance/AttendanceDialog";
 
 interface MyTeamsProps {
   myTeams: (Doc<"teams"> & { 

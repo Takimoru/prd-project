@@ -121,8 +121,8 @@ export const createOrUpdateUser = mutation({
       matchingRegistration?.status === "approved"
         ? "student"
         : matchingRegistration?.status === "pending"
-        ? "pending"
-        : undefined;
+          ? "pending"
+          : undefined;
 
     const existingUser = await ctx.db
       .query("users")
@@ -135,13 +135,13 @@ export const createOrUpdateUser = mutation({
       const finalRole = shouldBeAdmin
         ? "admin"
         : existingUser.role === "supervisor"
-        ? "supervisor" // Preserve supervisor role
-        : registrationRole === "student"
-        ? "student"
-        : registrationRole === "pending" &&
-          (existingUser.role === "pending" || !existingUser.role)
-        ? "pending"
-        : args.role || existingUser.role;
+          ? "supervisor" // Preserve supervisor role
+          : registrationRole === "student"
+            ? "student"
+            : registrationRole === "pending" &&
+                (existingUser.role === "pending" || !existingUser.role)
+              ? "pending"
+              : args.role || existingUser.role;
 
       await ctx.db.patch(existingUser._id, {
         name: args.name,
@@ -151,7 +151,10 @@ export const createOrUpdateUser = mutation({
         studentId: existingUser.studentId || matchingRegistration?.studentId,
       });
 
-      if (matchingRegistration && matchingRegistration.userId !== existingUser._id) {
+      if (
+        matchingRegistration &&
+        matchingRegistration.userId !== existingUser._id
+      ) {
         await ctx.db.patch(matchingRegistration._id, {
           userId: existingUser._id,
         });
@@ -164,8 +167,8 @@ export const createOrUpdateUser = mutation({
     const defaultRole = shouldBeAdmin
       ? "admin"
       : registrationRole
-      ? registrationRole
-      : args.role || "pending";
+        ? registrationRole
+        : args.role || "pending";
 
     const userId = await ctx.db.insert("users", {
       name: args.name,

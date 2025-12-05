@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
-import { Id } from "../../../../convex/_generated/dataModel";
+import { Id } from "../../../../../convex/_generated/dataModel";
 
 interface CreateProgramModalProps {
   onClose: () => void;

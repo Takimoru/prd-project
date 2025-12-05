@@ -1,6 +1,6 @@
 import { useStudentData } from "./hooks/useStudentData";
-import { DashboardSidebar } from "./components/DashboardSidebar";
-import { DashboardHeader } from "./components/DashboardHeader";
+import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "./components/dashboard/DashboardHeader";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
@@ -64,8 +64,8 @@ export function FilesPage() {
     <div className="min-h-screen bg-background">
       <DashboardSidebar user={user} />
 
-      <div className="ml-64 min-h-screen">
-        <div className="p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           <DashboardHeader />
           
           <div className="mb-8">

@@ -6,10 +6,13 @@ import {
   Calendar, 
   Files, 
   Users, 
-  MoreHorizontal
+  MoreHorizontal,
+  Menu
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../../../components/ui/avatar";
-import { Separator } from "../../../components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "../../../../components/ui/sheet";
+import { Button } from "../../../../components/ui/button";
+import { useState } from "react";
 
 interface DashboardSidebarProps {
   user: {
@@ -22,6 +25,8 @@ interface DashboardSidebarProps {
 }
 
 export function DashboardSidebar({ user }: DashboardSidebarProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: FolderKanban, label: "Work Programs", path: "/dashboard/projects" },
@@ -31,10 +36,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     { icon: Users, label: "Team", path: "/dashboard/team" },
   ];
 
-
-
-  return (
-    <div className="w-64 h-screen bg-[hsl(var(--sidebar-background))] border-r border-border flex flex-col fixed left-0 top-0 z-50">
+  const SidebarContent = () => (
+    <>
       {/* Workspace Branding */}
       <div className="p-6 flex items-center gap-3">
         <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
@@ -45,14 +48,13 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         </div>
       </div>
 
-
-
       {/* Navigation */}
-      <div className="px-3 space-y-1">
+      <div className="px-3 space-y-1 flex-1">
         {navItems.map((item) => (
           <NavLink
             key={item.label}
             to={item.path}
+            onClick={() => setIsOpen(false)}
             className={({ isActive }) =>
               `w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive
@@ -67,11 +69,8 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
         ))}
       </div>
 
-      <div className="flex flex-col h-screen">
-        <Separator className="bg-border/10" />
-      </div>
       {/* User Card */}
-      <div className="p-4 border-t border-border bg-card/50">
+      <div className="p-4 border-t border-border bg-card/50 mt-auto">
         <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
           <Avatar className="w-8 h-8 border border-border">
             <AvatarImage src={user?.picture} />
@@ -84,6 +83,39 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
           <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
         </div>
       </div>
-    </div>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile Hamburger Menu */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[hsl(var(--sidebar-background))] border-b border-border">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+              <span className="text-primary-foreground font-bold">W</span>
+            </div>
+            <h2 className="font-semibold text-foreground">Simonpro</h2>
+          </div>
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="w-5 h-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-64 p-0 bg-[hsl(var(--sidebar-background))]">
+              <div className="flex flex-col h-full">
+                <SidebarContent />
+              </div>
+            </SheetContent>
+          </Sheet>
+        </div>
+      </div>
+
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex w-64 h-screen bg-[hsl(var(--sidebar-background))] border-r border-border flex-col fixed left-0 top-0 z-50">
+        <SidebarContent />
+      </div>
+    </>
   );
 }

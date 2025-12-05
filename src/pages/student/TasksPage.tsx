@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useStudentData } from "./hooks/useStudentData";
-import { DashboardSidebar } from "./components/DashboardSidebar";
+import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
 import { CheckCircle2, Circle, CheckSquare, Loader2, FileText } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import { CreateTaskModal } from "./components/CreateTaskModal";
-import { TaskDetailModal } from "./components/TaskDetailModal";
+import { CreateTaskModal } from "./components/tasks/CreateTaskModal";
+import { TaskDetailModal } from "./components/tasks/TaskDetailModal";
 import { Id } from "../../../convex/_generated/dataModel";
 
 export function TasksPage() {
@@ -56,7 +56,7 @@ export function TasksPage() {
     return (
       <div className="min-h-screen bg-background">
         <DashboardSidebar user={user} />
-        <div className="ml-64 min-h-screen flex items-center justify-center">
+        <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0 flex items-center justify-center">
           <Loader2 className="animate-spin w-8 h-8" />
         </div>
       </div>
@@ -69,8 +69,8 @@ export function TasksPage() {
         user={user} 
       />
 
-      <div className="ml-64 min-h-screen">
-        <div className="p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex justify-between items-start mb-8">
             <div>
               <h1 className="text-3xl font-bold text-foreground tracking-tight">Tasks</h1>

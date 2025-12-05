@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../../../convex/_generated/api";
-import { Id } from "../../../../convex/_generated/dataModel";
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import { Textarea } from "../../../components/ui/textarea";
-import { useAuth } from "../../../contexts/AuthContext";
+import { api } from "../../../../../convex/_generated/api";
+import { Id } from "../../../../../convex/_generated/dataModel";
+import { Button } from "../../../../components/ui/button";
+import { Input } from "../../../../components/ui/input";
+import { Label } from "../../../../components/ui/label";
+import { Textarea } from "../../../../components/ui/textarea";
+import { useAuth } from "../../../../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { useNavigate, useParams } from "react-router-dom";
-import { AdminPageLayout } from "../../admin/components/AdminPageLayout";
-import { AdminHeader } from "../../admin/components/AdminHeader";
+import { AdminPageLayout } from "../../../admin/components/AdminPageLayout";
+import { AdminHeader } from "../../../admin/components/AdminHeader";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 export function WorkProgramForm() {

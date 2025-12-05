@@ -19,8 +19,8 @@ import { CalendarPage } from "./pages/student/CalendarPage";
 import { FilesPage } from "./pages/student/FilesPage";
 import { TeamPage } from "./pages/student/TeamPage";
 import { WorkProgramsPage } from "./pages/student/WorkProgramsPage";
-import { WorkProgramForm } from "./pages/student/components/WorkProgramForm";
-import { WorkProgramDetail } from "./pages/student/components/WorkProgramDetail";
+import { WorkProgramForm } from "./pages/student/components/work-programs/WorkProgramForm";
+import { WorkProgramDetail } from "./pages/student/components/work-programs/WorkProgramDetail";
 // Admin Pages
 import { StudentApprovals } from "./pages/admin/StudentApprovals";
 import { TeamManagement } from "./pages/admin/TeamManagement";
@@ -62,7 +62,16 @@ function App() {
               <Route path="/supervisor/teams/:teamId" element={<ProtectedRoute><SupervisorTeamDetails /></ProtectedRoute>} />
               <Route path="/supervisor/review/:teamId/:week" element={<ProtectedRoute><WeeklySummaryReview /></ProtectedRoute>} />
               
-              {/* Student and Admin Routes - Use Layout */}
+              {/* Student Dashboard Routes - Separate from Layout (has own sidebar) */}
+              <Route path="/dashboard" element={<ProtectedRoute><StudentDashboard /></ProtectedRoute>} />
+              <Route path="/dashboard/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />
+              <Route path="/dashboard/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+              <Route path="/dashboard/calendar" element={<ProtectedRoute><CalendarPage /></ProtectedRoute>} />
+              <Route path="/dashboard/files" element={<ProtectedRoute><FilesPage /></ProtectedRoute>} />
+              <Route path="/dashboard/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
+              <Route path="/dashboard/work-programs" element={<ProtectedRoute><WorkProgramsPage /></ProtectedRoute>} />
+              
+              {/* Admin Routes - Use Layout */}
               <Route
                 path="/"
                 element={
@@ -72,13 +81,6 @@ function App() {
                 }
               >
                 <Route index element={<AdminRedirect />} />
-                <Route path="dashboard" element={<StudentDashboard />} />
-                <Route path="dashboard/projects" element={<ProjectsPage />} />
-                <Route path="dashboard/tasks" element={<TasksPage />} />
-                <Route path="dashboard/calendar" element={<CalendarPage />} />
-                <Route path="dashboard/files" element={<FilesPage />} />
-                <Route path="dashboard/team" element={<TeamPage />} />
-                <Route path="dashboard/work-programs" element={<WorkProgramsPage />} />
                 <Route path="team/:teamId" element={<TeamWorkspace />} />
                 {/* Work Program Routes */}
                 <Route path="team/:teamId/programs/new" element={<WorkProgramForm />} />

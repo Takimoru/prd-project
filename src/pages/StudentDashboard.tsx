@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ProgramDetails } from "../components/ProgramDetails";
-import { PendingRegistrationNotice } from "./student/components/PendingRegistrationNotice";
-import { CreateProgramModal } from "./student/components/CreateProgramModal";
+import { PendingRegistrationNotice } from "./student/components/shared/PendingRegistrationNotice";
+import { CreateProgramModal } from "./student/components/work-programs/CreateProgramModal";
 import { useStudentData } from "./student/hooks/useStudentData";
-import { DashboardSidebar } from "./student/components/DashboardSidebar";
-import { DashboardHeader } from "./student/components/DashboardHeader";
-import { ProjectGrid } from "./student/components/ProjectGrid";
+import { DashboardSidebar } from "./student/components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "./student/components/dashboard/DashboardHeader";
+import { DashboardOverview } from "./student/components/dashboard/DashboardOverview";
 
 export function StudentDashboard() {
   const [searchParams] = useSearchParams();
@@ -58,17 +58,17 @@ export function StudentDashboard() {
       />
 
       {/* Main Content Area */}
-      <div className="ml-64 min-h-screen">
-        <div className="p-8">
+      <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+        <div className="px-4 sm:px-6 py-6 sm:py-8">
           {isPendingStudent && <PendingRegistrationNotice />}
 
           <DashboardHeader />
 
           {user && (
-            <ProjectGrid 
-              teams={myTeams} 
+            <DashboardOverview 
               userId={user._id}
-              todaysAttendance={todaysAttendance}
+              teams={myTeams || []} 
+              todaysAttendance={todaysAttendance || []}
             />
           )}
         </div>
