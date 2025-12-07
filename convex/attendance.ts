@@ -125,6 +125,7 @@ export const getWeeklyAttendanceSummary = query({
       week: args.week,
       startDate: startDateStr,
       endDate: endDateStr,
+      dates: dates,
       students: studentData
     };
   },

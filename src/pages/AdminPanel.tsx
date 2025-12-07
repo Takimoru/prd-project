@@ -133,32 +133,24 @@ export function AdminPanel() {
       return;
     }
 
-    const team = teamsForProgram?.find((t) => t._id === summaryTeamId);
-    const members = getTeamMembers(team);
 
     const rows: string[] = [];
     rows.push(
       [
         "Student",
-        ...attendanceSummary.daily.map((day: any) => day.date),
+        ...attendanceSummary.dates,
         "Total Present",
       ].join(",")
     );
 
-    members.forEach((member) => {
+    attendanceSummary.students.forEach((student: any) => {
       const row = [
-        member.name || "Unknown",
-        ...attendanceSummary.daily.map((day: any) =>
-          day.attendees.some(
-            (attendee: any) =>
-              attendee.userId === (member._id as unknown as string)
-          )
-            ? "✔"
-            : ""
-        ),
-        attendanceSummary.totals.find(
-          (total: any) => total.userId === (member._id as unknown as string)
-        )?.presentCount || 0,
+        student.userName || "Unknown",
+        ...attendanceSummary.dates.map((date: string) => {
+          const record = student.dailyRecords.find((r: any) => r.date === date);
+          return record?.status === "present" ? "✔" : "";
+        }),
+        student.presentCount || 0,
       ];
       rows.push(row.join(","));
     });
@@ -1149,15 +1141,15 @@ export function AdminPanel() {
 
             <div className="overflow-x-auto">
               {attendanceSummary ? (
-                <table className="min-w-full text-sm">
+                  <table className="min-w-full text-sm">
                   <thead>
                     <tr className="text-left text-gray-600">
                       <th className="py-2 pr-4 font-medium">Student</th>
-                      {attendanceSummary.daily.map((day: any) => (
+                      {attendanceSummary.dates.map((date: string) => (
                         <th
-                          key={day.date}
+                          key={date}
                           className="py-2 px-2 font-medium text-center">
-                          {formatDate(day.date)}
+                          {formatDate(date)}
                         </th>
                       ))}
                       <th className="py-2 px-2 font-medium text-center">
@@ -1166,24 +1158,19 @@ export function AdminPanel() {
                     </tr>
                   </thead>
                   <tbody>
-                    {getTeamMembers(
-                      teamsForProgram?.find(
-                        (team) => team._id === summaryTeamId
-                      )
-                    ).map((member) => (
-                      <tr key={member._id}>
+                    {attendanceSummary.students.map((student: any) => (
+                      <tr key={student.userId}>
                         <td className="py-2 pr-4 font-medium text-gray-900">
-                          {member.name}
+                          {student.userName}
                         </td>
-                        {attendanceSummary.daily.map((day: any) => {
-                          const present = day.attendees.some(
-                            (attendee: any) =>
-                              attendee.userId ===
-                              (member._id as unknown as string)
+                        {attendanceSummary.dates.map((date: string) => {
+                          const record = student.dailyRecords.find(
+                            (r: any) => r.date === date
                           );
+                          const present = record?.status === "present";
                           return (
                             <td
-                              key={`${member._id}-${day.date}`}
+                              key={`${student.userId}-${date}`}
                               className="py-2 px-2 text-center">
                               {present ? (
                                 <CheckCircle className="w-4 h-4 text-green-600 inline" />
@@ -1194,10 +1181,7 @@ export function AdminPanel() {
                           );
                         })}
                         <td className="py-2 px-2 text-center font-semibold text-gray-700">
-                          {attendanceSummary.totals.find(
-                            (total: any) =>
-                              total.userId === (member._id as unknown as string)
-                          )?.presentCount || 0}
+                          {student.presentCount}
                         </td>
                       </tr>
                     ))}
@@ -1267,16 +1251,4 @@ function formatDate(dateStr: string) {
   });
 }
 
-function getTeamMembers(team: any) {
-  if (!team) return [];
-  const members: any[] = [];
-  if (team.leader) members.push(team.leader);
-  if (team.members) {
-    team.members
-      .filter((member: any): member is NonNullable<typeof member> =>
-        Boolean(member)
-      )
-      .forEach((member: any) => members.push(member));
-  }
-  return members;
-}
+

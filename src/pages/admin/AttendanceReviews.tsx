@@ -17,9 +17,9 @@ export function AttendanceReviews() {
     attendanceSummary,
     handleWeekChange,
     handleExportAttendance,
-    getTeamMembers,
+    
     formatWeekRange,
-    formatDate,
+   
   } = useAttendanceReviews();
 
   return (
