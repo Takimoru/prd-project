@@ -1,0 +1,2 @@
+src/main.tsx(6,10): error TS2305: Module '"@apollo/client"' has no exported member 'ApolloProvider'.
+src/pages/AdminPanel.tsx(19,8): error TS2307: Cannot find module 'lucide-react  ' or its corresponding type declarations.

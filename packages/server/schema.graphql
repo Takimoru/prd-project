@@ -1,0 +1,221 @@
+scalar DateTime
+
+type User {
+  id: ID!
+  email: String!
+  name: String
+  role: String # admin, supervisor, student, pending
+  studentId: String
+  nidn: String
+  googleId: String
+  picture: String
+  
+  # Relations
+  teamsLed: [Team!]!
+  teamsSupervised: [Team!]!
+  teams: [Team!]!
+  programsCreated: [Program!]!
+  registrations: [Registration!]!
+  attendance(startDate: String, endDate: String): [Attendance!]!
+}
+
+type Program {
+  id: ID!
+  title: String!
+  description: String!
+  startDate: DateTime!
+  endDate: DateTime!
+  archived: Boolean!
+  
+  createdBy: User!
+  teams: [Team!]!
+  registrations: [Registration!]!
+}
+
+type Team {
+  id: ID!
+  name: String
+  program: Program!
+  leader: User!
+  supervisor: User
+  members: [User!]!
+  progress: Int!
+  
+  tasks: [Task!]!
+  attendance: [Attendance!]!
+  weeklyReports: [WeeklyReport!]!
+  documentation: [Documentation!]
+}
+
+type Documentation {
+  name: String!
+  url: String!
+  type: String!
+  uploadedAt: DateTime!
+}
+
+type TaskUpdate {
+  id: ID!
+  taskId: String!
+  user: User!
+  notes: String
+  progress: Int
+  createdAt: DateTime!
+}
+
+type TaskFile {
+  id: ID!
+  url: String!
+  name: String
+  uploadedAt: DateTime!
+}
+
+type Task {
+  id: ID!
+  title: String!
+  description: String
+  status: String! # todo, in_progress, completed
+  completed: Boolean!
+  
+  team: Team!
+  createdBy: User!
+  assignedMembers: [User!]!
+  
+  startTime: DateTime
+  endTime: DateTime
+  createdAt: DateTime!
+  
+  workProgramId: String
+
+  updates: [TaskUpdate!]!
+  completionFiles: [TaskFile!]!
+  completedBy: User
+  completedAt: DateTime
+}
+
+type Registration {
+  id: ID!
+  status: String! # pending, approved, rejected
+  program: Program!
+  user: User
+  fullName: String
+  studentId: String
+  email: String
+  phone: String
+  paymentProofUrl: String
+  submittedAt: DateTime!
+  reviewNotes: String
+}
+
+type Attendance {
+  id: ID!
+  date: String!
+  status: String! # present, permission, alpha
+  timestamp: DateTime!
+  
+  team: Team!
+  user: User!
+  
+  excuse: String
+  photoUrl: String
+  lat: Float
+  long: Float
+}
+
+type WeeklyReport {
+  id: ID!
+  week: String!
+  status: String!
+  team: Team!
+  description: String
+  progressPercentage: Int!
+  comments: [Comment!]!
+  createdAt: DateTime!
+  submittedAt: DateTime
+}
+
+type Comment {
+  id: ID!
+  content: String!
+  createdAt: DateTime!
+  author: User!
+}
+
+
+type WeeklyAttendanceSummary {
+  week: String!
+  startDate: String!
+  endDate: String!
+  students: [StudentAttendanceSummary!]!
+}
+
+type StudentAttendanceSummary {
+  userId: ID!
+  userName: String!
+  presentCount: Int!
+  approvalStatus: String!
+  dailyRecords: [DailyAttendanceRecord!]!
+}
+
+type DailyAttendanceRecord {
+  date: String!
+  status: String
+}
+
+type Query {
+  # User / Auth
+  me: User
+  users(role: String): [User!]!
+  user(id: ID!): User
+
+  # Programs
+  programs(includeArchived: Boolean): [Program!]!
+  program(id: ID!): Program
+
+  # Teams
+  teams(programId: ID): [Team!]!
+  team(id: ID!): Team
+  myTeams: [Team!]! # Teams I am leading, supervising, or member of
+
+  # Tasks
+  tasks(teamId: ID!): [Task!]!
+  task(id: ID!): Task
+  taskUpdates(taskId: ID!): [TaskUpdate!]!
+  
+  # Reports
+  weeklyReports(teamId: ID!): [WeeklyReport!]!
+  
+  # Registration
+  registrations(programId: ID!, status: String): [Registration!]!
+
+  # Attendance Queries
+  weeklyAttendanceSummary(teamId: ID!, week: String!): WeeklyAttendanceSummary
+  attendanceByTeam(teamId: ID!, date: String!): [Attendance!]!
+}
+
+type Mutation {
+  # Auth (Sync)
+  syncUser(email: String!, name: String!, googleId: String!, picture: String): User!
+
+  # Programs
+  createProgram(title: String!, description: String!, startDate: String!, endDate: String!): Program!
+  archiveProgram(id: ID!): Program!
+
+  # Teams
+  createTeam(programId: ID!, leaderId: ID!, name: String): Team!
+  addMember(teamId: ID!, userId: ID!): Team!
+  updateTeamProgress(teamId: ID!, progress: Int!): Team!
+  addTeamDocumentation(teamId: ID!, name: String!, url: String!, type: String!): Team!
+  
+  # Tasks
+  createTask(teamId: ID!, title: String!, description: String, assignedMemberIds: [ID!], startTime: String, endTime: String): Task!
+  updateTask(taskId: ID!, title: String, description: String, completed: Boolean, assignedMemberIds: [ID!], startTime: String, endTime: String, completionFiles: [String!]): Task!
+  updateTaskStatus(taskId: ID!, completed: Boolean!): Task!
+  addTaskUpdate(taskId: ID!, notes: String, progress: Int): TaskUpdate!
+
+  # Reports
+  submitWeeklyReport(teamId: ID!, week: String!, description: String!, progress: Int!): WeeklyReport!
+
+  # Attendance
+  checkIn(teamId: ID!, status: String!, excuse: String, lat: Float, long: Float): Attendance!
+}

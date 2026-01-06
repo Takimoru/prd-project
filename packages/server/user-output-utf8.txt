@@ -1,0 +1,13 @@
+﻿User found:
+{
+  "id": "d90e9b68-9251-47ea-be31-a75c3450b4ff",
+  "email": "nicolastzakis@students.universitasmulia.ac.id",
+  "name": "2111007 NICOLAS TZAKIS",
+  "role": "pending",
+  "studentId": null,
+  "nidn": null,
+  "googleId": "109302923344293856364",
+  "picture": "https://lh3.googleusercontent.com/a/ACg8ocK_ZD057afHGhq00miTWfOcLwP1dgcB3mwU9WScfEBS2bSbjP74=s96-c",
+  "createdAt": "2025-12-19T05:18:18.000Z",
+  "updatedAt": "2025-12-19T05:18:18.000Z"
+}

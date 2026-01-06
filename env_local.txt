@@ -1,0 +1,7 @@
+﻿# Deployment used by `npx convex dev`
+CONVEX_DEPLOYMENT=dev:diligent-oriole-259 # team: nicolas-e328a, project: prd-test
+
+VITE_ENABLE_MOCK_LOGIN=true
+VITE_CONVEX_URL=https://diligent-oriole-259.convex.cloud
+VITE_GOOGLE_CLIENT_ID=884631211004-ujt9m8uam4hr2ldc15asr06naim05sqr.apps.googleusercontent.com
+VITE_ALLOWED_EMAIL_DOMAINS=students.universitasmulia.ac.id

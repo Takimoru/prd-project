@@ -1,0 +1,301 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  role      String   // admin, supervisor, student, pending
+  studentId String?
+  nidn      String?
+  googleId  String   @unique
+  picture   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  programsCreated Program[] @relation("ProgramCreator")
+  
+  teamsLed        Team[]    @relation("TeamLeader")
+  teamsSupervised Team[]    @relation("TeamSupervisor")
+  
+  // Implicit many-to-many for team members (Prisma handles join table)
+  teams     Team[] @relation("TeamMembers")
+
+  registrations Registration[]
+  registrationsReviewed Registration[] @relation("RegistrationReviewer")
+  attendance    Attendance[]
+  
+  tasksCreated  Task[] @relation("TaskCreator")
+  tasksAssigned Task[] @relation("TaskAssignee")
+  tasksCompleted Task[] @relation("TaskCompleter")
+  taskUpdates   TaskUpdate[]
+  
+  comments      Comment[]
+  
+  workProgramsCreated WorkProgram[] @relation("WorkProgramCreator")
+  workProgramsAssigned WorkProgram[] @relation("WorkProgramAssignee")
+  workProgramProgress WorkProgramProgress[] @relation("WorkProgramProgressMember")
+  
+  activities    Activity[] @relation("ActivityUser")
+  attendanceApprovalsAsStudent WeeklyAttendanceApproval[] @relation("AttendanceApprovalStudent")
+  attendanceApprovalsAsSupervisor WeeklyAttendanceApproval[] @relation("AttendanceApprovalSupervisor")
+}
+
+model Program {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  startDate   DateTime
+  endDate     DateTime
+  archived    Boolean  @default(false)
+  
+  createdBy   String
+  creator     User     @relation("ProgramCreator", fields: [createdBy], references: [id])
+  
+  teams       Team[]
+  registrations Registration[]
+}
+
+model Team {
+  id           String   @id @default(uuid())
+  name         String?
+  programId    String
+  program      Program  @relation(fields: [programId], references: [id])
+  
+  leaderId     String
+  leader       User     @relation("TeamLeader", fields: [leaderId], references: [id])
+  
+  supervisorId String?
+  supervisor   User?    @relation("TeamSupervisor", fields: [supervisorId], references: [id])
+  
+  members      User[]   @relation("TeamMembers")
+  
+  progress     Int      @default(0)
+  
+  tasks        Task[]
+  attendance   Attendance[]
+  weeklyReports WeeklyReport[]
+  workPrograms WorkProgram[]
+  activities   Activity[]
+  attendanceApprovals WeeklyAttendanceApproval[]
+  
+  documentation Json? // Array of { name, url, type, uploadedAt }
+}
+
+model Task {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  status          String   @default("todo") // 'completed' boolean in convex
+  completed       Boolean  @default(false)
+  
+  teamId          String
+  team            Team     @relation(fields: [teamId], references: [id])
+  
+  createdById     String
+  createdBy       User     @relation("TaskCreator", fields: [createdById], references: [id])
+  
+  assignedMembers User[]   @relation("TaskAssignee")
+  
+  createdAt       DateTime @default(now())
+  startTime       DateTime?
+  endTime         DateTime?
+  
+  workProgramId   String? // Link to work program if needed
+  
+  completedAt     DateTime?
+  completedById   String?
+  completedBy     User?    @relation("TaskCompleter", fields: [completedById], references: [id])
+  
+  updates         TaskUpdate[]
+  completionFiles TaskFile[]
+}
+
+model TaskUpdate {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  notes     String?
+  progress  Int?
+  createdAt DateTime @default(now())
+}
+
+model TaskFile {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  url       String
+  name      String?
+  uploadedAt DateTime @default(now())
+}
+
+model Registration {
+  id          String   @id @default(uuid())
+  status      String   // pending, approved, rejected
+  
+  programId   String
+  program     Program  @relation(fields: [programId], references: [id])
+  
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  reviewedById String?
+  reviewedBy   User?    @relation("RegistrationReviewer", fields: [reviewedById], references: [id])
+  
+  fullName    String?
+  studentId   String?
+  email       String?
+  phone       String?
+  
+  paymentProofUrl String?
+  
+  submittedAt DateTime @default(now())
+  reviewedAt  DateTime?
+  reviewNotes String?
+  
+  @@index([programId])
+  @@index([status])
+  @@index([email])
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  date      String   // YYYY-MM-DD
+  status    String   // present, permission, alpha
+  timestamp DateTime @default(now())
+  
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id])
+  
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  excuse    String?
+  photoUrl  String?
+  lat       Float?
+  long      Float?
+  
+  @@index([teamId, date])
+  @@index([userId, date])
+}
+
+model WeeklyReport {
+  id          String   @id @default(uuid())
+  week        String   // YYYY-WW
+  status      String   // draft, submitted, approved, revision_requested
+  
+  teamId      String
+  team        Team     @relation(fields: [teamId], references: [id])
+  
+  description String?
+  progressPercentage Int @default(0)
+  
+  // Match Convex exactly: taskIds array and photos array
+  taskIds     Json?     // Array of task IDs (string[])
+  photos      Json?     // Array of photo URLs (string[])
+  
+  comments    Comment[]
+  
+  createdAt   DateTime @default(now())
+  submittedAt DateTime?
+}
+
+model Comment {
+  id              String   @id @default(uuid())
+  content         String
+  createdAt       DateTime @default(now())
+  
+  authorId        String
+  author          User     @relation(fields: [authorId], references: [id])
+  
+  weeklyReportId  String?
+  weeklyReport    WeeklyReport? @relation(fields: [weeklyReportId], references: [id])
+}
+
+model WorkProgram {
+  id              String   @id @default(uuid())
+  teamId          String
+  team            Team     @relation(fields: [teamId], references: [id])
+  
+  title           String
+  description     String
+  startDate       DateTime
+  endDate         DateTime
+  
+  createdById     String
+  createdBy       User     @relation("WorkProgramCreator", fields: [createdById], references: [id])
+  
+  assignedMembers User[]   @relation("WorkProgramAssignee")
+  
+  createdAt       DateTime @default(now())
+  
+  tasks           Task[]
+  progress        WorkProgramProgress[]
+}
+
+model WorkProgramProgress {
+  id              String   @id @default(uuid())
+  workProgramId   String
+  workProgram     WorkProgram @relation(fields: [workProgramId], references: [id])
+  
+  memberId        String
+  member          User     @relation("WorkProgramProgressMember", fields: [memberId], references: [id])
+  
+  percentage      Int      @default(0)
+  notes           String?
+  
+  updatedAt       DateTime @default(now())
+  
+  @@unique([workProgramId, memberId])
+  @@index([workProgramId])
+  @@index([memberId])
+}
+
+model Activity {
+  id              String   @id @default(uuid())
+  teamId          String
+  team            Team     @relation(fields: [teamId], references: [id])
+  
+  userId          String
+  user            User     @relation("ActivityUser", fields: [userId], references: [id])
+  
+  action          String   // created_task, updated_task, completed_task, created_program, uploaded_file
+  targetId        String
+  targetTitle     String
+  details         String?
+  
+  timestamp       DateTime @default(now())
+  
+  @@index([teamId])
+  @@index([teamId, timestamp])
+}
+
+model WeeklyAttendanceApproval {
+  id              String   @id @default(uuid())
+  teamId          String
+  team            Team     @relation(fields: [teamId], references: [id])
+  
+  weekStartDate   String   // YYYY-MM-DD (Monday)
+  studentId       String
+  student         User     @relation("AttendanceApprovalStudent", fields: [studentId], references: [id])
+  
+  supervisorId    String
+  supervisor      User     @relation("AttendanceApprovalSupervisor", fields: [supervisorId], references: [id])
+  
+  status          String   // pending, approved, rejected
+  approvedAt      DateTime?
+  notes           String?
+  
+  @@unique([teamId, weekStartDate, studentId])
+  @@index([teamId, weekStartDate])
+  @@index([supervisorId, status])
+}
