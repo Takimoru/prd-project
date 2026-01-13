@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useQuery, useMutation } from "@apollo/client";
+import { 
+  GET_SUPERVISED_TEAMS, 
+  GET_WEEKLY_ATTENDANCE_SUMMARY, 
+  APPROVE_WEEKLY_ATTENDANCE 
+} from "@/graphql/supervisor";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   Card,
@@ -53,58 +57,56 @@ export function WeeklyAttendanceApproval() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
 
-  const teams = useQuery(
-    api.teams.getTeamsForUser,
-    user ? { userId: user._id } : "skip"
-  );
+  const { data: teamsData, loading: teamsLoading } = useQuery(GET_SUPERVISED_TEAMS, {
+    skip: !user?.id,
+  });
 
-  // Filter teams where user is strictly a supervisor for this view (optional, but cleaner)
-  const supervisedTeams =
-    teams?.filter((team) => team.supervisorId === user?._id) || [];
-
-  // Actually use all visible teams for now as requirement wasn't strict on "only supervised" vs "assigned"
-  // but let's default to supervisedTeams if available, else all.
-  const displayTeams = supervisedTeams.length > 0 ? supervisedTeams : teams;
+  const displayTeams = teamsData?.myTeams || [];
 
   // Auto-select if only one team
   useMemo(() => {
     if (displayTeams?.length === 1 && !selectedTeamId) {
-      setSelectedTeamId(displayTeams[0]._id);
+      setSelectedTeamId(displayTeams[0].id);
     }
   }, [displayTeams, selectedTeamId]);
 
-  const weeklyData = useQuery(
-    api.attendance.getWeeklyAttendanceSummary,
-    selectedTeamId && selectedWeek
-      ? { teamId: selectedTeamId as any, week: selectedWeek }
-      : "skip"
+  const { data: weeklyDataResponse, loading: dataLoading, refetch } = useQuery(
+    GET_WEEKLY_ATTENDANCE_SUMMARY,
+    {
+      variables: { teamId: selectedTeamId, week: selectedWeek },
+      skip: !selectedTeamId || !selectedWeek,
+    }
   );
   
-  const selectedStudent = weeklyData?.students?.find(s => s.userId === selectedStudentId);
+  const weeklyData = weeklyDataResponse?.weeklyAttendanceSummary;
+  const selectedStudent = weeklyData?.students?.find((s: any) => s.userId === selectedStudentId);
 
-  const approveMutation = useMutation(api.attendance.approveWeeklyAttendance);
+  const [approveAttendance] = useMutation(APPROVE_WEEKLY_ATTENDANCE);
 
   const handleApproval = async (studentId: string, status: "approved" | "rejected") => {
-    if (!selectedTeamId || !user) return;
+    if (!selectedTeamId || !user?.id) return;
 
     try {
-      await approveMutation({
-        teamId: selectedTeamId as any,
-        studentId: studentId as any,
-        supervisorId: user._id,
-        week: selectedWeek,
-        status,
-        notes,
+      await approveAttendance({
+        variables: {
+          teamId: selectedTeamId,
+          studentId: studentId,
+          supervisorId: user.id,
+          week: selectedWeek,
+          status,
+          notes,
+        },
       });
       toast.success(`Attendance ${status} successfully`);
       setNotes(""); // Clear notes on success
+      refetch(); // Refresh data
     } catch (error) {
       console.error(error);
       toast.error("Failed to update status");
     }
   };
 
-  if (!user || !teams) {
+  if (!user || teamsLoading) {
     return (
       <div className="flex justify-center p-8">
         <Loader2 className="animate-spin" />
@@ -141,8 +143,8 @@ export function WeeklyAttendanceApproval() {
                     <SelectValue placeholder="Choose a team" />
                   </SelectTrigger>
                   <SelectContent>
-                    {displayTeams?.map((team) => (
-                      <SelectItem key={team._id} value={team._id}>
+                    {displayTeams?.map((team: any) => (
+                      <SelectItem key={team.id} value={team.id}>
                         {team.name}
                       </SelectItem>
                     ))}
@@ -170,13 +172,13 @@ export function WeeklyAttendanceApproval() {
       </Card>
 
       {/* Main Content Area */}
-      {selectedTeamId && weeklyData ? (
+      {selectedTeamId && !dataLoading && weeklyData ? (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Left: Student List */}
           <div className="md:col-span-4 lg:col-span-3 space-y-4">
             <h3 className="font-semibold text-lg">Students</h3>
             <div className="space-y-2">
-              {weeklyData.students?.map((student) => (
+              {weeklyData.students?.map((student: any) => (
                 <button
                   key={student.userId}
                   onClick={() => setSelectedStudentId(student.userId)}
@@ -210,13 +212,15 @@ export function WeeklyAttendanceApproval() {
                    <Badge
                       className={
                         selectedStudent.approvalStatus === "approved"
-                          ? "bg-green-100 text-green-800 text-sm px-3 py-1"
+                          ? "bg-green-100 text-green-800 text-sm px-3 py-1 hover:bg-green-100"
                           : selectedStudent.approvalStatus === "rejected"
-                            ? "bg-red-100 text-red-800 text-sm px-3 py-1"
-                            : "bg-yellow-100 text-yellow-800 text-sm px-3 py-1"
-                      }>
+                            ? "bg-red-100 text-red-800 text-sm px-3 py-1 hover:bg-red-100"
+                            : "bg-yellow-100 text-yellow-800 text-sm px-3 py-1 hover:bg-yellow-100"
+                      }
+                      variant="outline"
+                   >
                       {selectedStudent.approvalStatus.toUpperCase()}
-                    </Badge>
+                   </Badge>
                 </div>
 
                 {/* Attendance Grid */}
@@ -226,7 +230,7 @@ export function WeeklyAttendanceApproval() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-7 gap-2">
-                       {selectedStudent.dailyRecords.map((day) => {
+                       {selectedStudent.dailyRecords.map((day: any) => {
                           const date = new Date(day.date);
                           const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
                           const dayNum = date.getDate();
@@ -299,7 +303,7 @@ export function WeeklyAttendanceApproval() {
               <div className="h-full flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-accent/20">
                 <Users className="w-16 h-16 mb-4 opacity-50" />
                 <h3 className="text-xl font-semibold mb-2">Select a Student</h3>
-                <p className="max-w-xs">Values in the sidebar to view their detailed attendance for this week and take action.</p>
+                <p className="max-w-xs">Select a student from the sidebar to view their detailed attendance for this week and take action.</p>
               </div>
             )}
           </div>

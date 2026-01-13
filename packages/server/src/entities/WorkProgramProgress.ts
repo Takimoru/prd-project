@@ -18,7 +18,7 @@ export class WorkProgramProgress {
   workProgramId: string;
 
   @Field(() => WorkProgram)
-  @ManyToOne(() => WorkProgram, wp => wp.progress)
+  @ManyToOne(() => WorkProgram, wp => wp.progressRecords)
   workProgram: WorkProgram;
 
   @Field()

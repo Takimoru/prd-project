@@ -33,7 +33,7 @@ export class Task {
   teamId: string;
 
   @Field(() => Team)
-  @ManyToOne(() => Team, team => team.tasks)
+  @ManyToOne(() => Team, team => team.tasks, { onDelete: 'CASCADE' })
   team: Team;
 
   @Field()

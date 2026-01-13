@@ -23,6 +23,7 @@ import { TeamPage } from "./pages/student/TeamPage";
 import { WorkProgramsPage } from "./pages/student/WorkProgramsPage";
 import { WorkProgramForm } from "./pages/student/components/work-programs/WorkProgramForm";
 import { WorkProgramDetail } from "./pages/student/components/work-programs/WorkProgramDetail";
+import { LogsheetPage } from "./pages/student/LogsheetPage";
 // Admin Pages
 import { StudentApprovals } from "./pages/admin/StudentApprovals";
 import { CreateProgram } from "./pages/admin/CreateProgram";
@@ -30,6 +31,7 @@ import { TeamManagement } from "./pages/admin/TeamManagement";
 import { SupervisorManagement } from "./pages/admin/SupervisorManagement";
 import { AttendanceReviews } from "./pages/admin/AttendanceReviews";
 import { FinalReports } from "./pages/admin/FinalReports";
+import { LogsheetReviewPage } from "./pages/admin/LogsheetReviewPage";
 import { AdminRedirect } from "./components/AdminRedirect";
 // Supervisor Pages
 import { SupervisorDashboard as NewSupervisorDashboard } from "./pages/supervisor/SupervisorDashboard";
@@ -80,6 +82,7 @@ function App() {
               <Route path="/dashboard/files" element={<ProtectedRoute><FilesPage /></ProtectedRoute>} />
               <Route path="/dashboard/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
               <Route path="/dashboard/work-programs" element={<ProtectedRoute><WorkProgramsPage /></ProtectedRoute>} />
+              <Route path="/dashboard/logsheet" element={<ProtectedRoute><LogsheetPage /></ProtectedRoute>} />
               
               {/* Admin Routes - Use Layout */}
               <Route
@@ -103,6 +106,7 @@ function App() {
                 <Route path="admin/supervisors" element={<SupervisorManagement />} />
                 <Route path="admin/attendance" element={<AttendanceReviews />} />
                 <Route path="admin/reports" element={<FinalReports />} />
+                <Route path="admin/logsheets" element={<LogsheetReviewPage />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

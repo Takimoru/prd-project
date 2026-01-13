@@ -1,4 +1,4 @@
-import { Id } from "@/convex/_generated/dataModel";
+// import { Id } from "@/convex/_generated/dataModel";
 import { useAttendanceReviews } from "./hooks/useAttendanceReviews";
 import { AttendanceControls } from "./components/attendance/AttendanceControls";
 import { AttendanceTable } from "./components/attendance/AttendanceTable";
@@ -38,13 +38,13 @@ export function AttendanceReviews() {
           <select
             value={selectedProgram || ""}
             onChange={(e) => {
-              setSelectedProgram(e.target.value as Id<"programs"> | null);
+              setSelectedProgram(e.target.value as string | null);
               setSelectedTeam(null);
             }}
             className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           >
             <option value="">Select a program</option>
-            {programs?.map((program) => (
+            {programs?.map((program: { _id: string; title: string }) => (
               <option key={program._id} value={program._id}>
                 {program.title}
               </option>
@@ -61,12 +61,12 @@ export function AttendanceReviews() {
             <select
               value={selectedTeam || ""}
               onChange={(e) => {
-                setSelectedTeam(e.target.value as Id<"teams"> | null);
+                setSelectedTeam(e.target.value as string | null);
               }}
               className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
             >
               <option value="">Select a team</option>
-              {teamsForProgram?.map((team) => (
+              {teamsForProgram?.map((team: { _id: string; name: string; leader?: { name: string } }) => (
                 <option key={team._id} value={team._id}>
                   {team.name || `Team ${team._id.slice(-6)}`} - {team.leader?.name || "Unknown"}
                 </option>
@@ -81,7 +81,7 @@ export function AttendanceReviews() {
             <AttendanceControls
               weekRange={formatWeekRange(attendanceSummary)}
               selectedWeek={selectedWeek}
-              programName={programs?.find(p => p._id === selectedProgram)?.title || "Unknown Program"}
+              programName={programs?.find((p: { _id: string; title: string }) => p._id === selectedProgram)?.title || "Unknown Program"}
               onWeekChange={handleWeekChange}
               onExport={handleExportAttendance}
 

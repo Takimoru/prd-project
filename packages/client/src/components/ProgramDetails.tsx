@@ -1,8 +1,7 @@
 import { format } from "date-fns";
 import { Calendar, Clock, Info, FileText, ExternalLink } from "lucide-react";
-import { useState } from "react";
 import { useMutation } from "@apollo/client";
-import { UPDATE_TEAM_PROGRESS, ADD_TEAM_DOCUMENTATION } from "../graphql/dashboard";
+import { UPDATE_TEAM_PROGRESS } from "../graphql/dashboard";
 
 import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -51,11 +50,11 @@ interface ProgramDetailsProps {
 
 export function ProgramDetails({ program, registration, team }: ProgramDetailsProps) {
   const [updateProgress] = useMutation(UPDATE_TEAM_PROGRESS);
-  const [addDocumentation] = useMutation(ADD_TEAM_DOCUMENTATION);
-
+  /* const [addDocumentation] = useMutation(ADD_TEAM_DOCUMENTATION);
+  
   const [isUploading, setIsUploading] = useState(false);
   const [docName, setDocName] = useState("");
-  const [docUrl, setDocUrl] = useState("");
+  const [docUrl, setDocUrl] = useState(""); */
 
   const handleProgressChange = async (newProgress: number) => {
     if (!team) return;
@@ -70,7 +69,7 @@ export function ProgramDetails({ program, registration, team }: ProgramDetailsPr
     }
   };
 
-  const handleUpload = async (e: React.FormEvent) => {
+/*   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!team || !docName || !docUrl) return;
 
@@ -93,7 +92,7 @@ export function ProgramDetails({ program, registration, team }: ProgramDetailsPr
     } finally {
       setIsUploading(false);
     }
-  };
+  }; */
 
   return (
     <div className="space-y-6">
@@ -219,7 +218,11 @@ export function ProgramDetails({ program, registration, team }: ProgramDetailsPr
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Upload Form */}
-              <form onSubmit={handleUpload} className="space-y-3">
+              {/* Upload Form Disabled due to missing mutation */}
+              <div className="text-sm text-gray-500 italic p-4 bg-gray-50 rounded">
+                Documentation upload temporarily disabled.
+              </div>
+              {/* <form onSubmit={handleUpload} className="space-y-3">
                 <div className="grid gap-2">
                   <Label htmlFor="doc-name">Document Name</Label>
                   <Input
@@ -243,7 +246,7 @@ export function ProgramDetails({ program, registration, team }: ProgramDetailsPr
                 <Button type="submit" disabled={isUploading} className="w-full">
                   {isUploading ? "Adding..." : "Add Documentation"}
                 </Button>
-              </form>
+              </form> */}
 
               <Separator />
 

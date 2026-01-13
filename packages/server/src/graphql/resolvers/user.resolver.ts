@@ -40,24 +40,6 @@ export class UserResolver {
     return await userRepo.findOne({ where: { id } });
   }
 
-  @Query(() => User, { nullable: true })
-  async me(@Ctx() ctx: Context): Promise<User | null> {
-    const authHeader = ctx.req?.headers?.authorization;
-
-    if (!authHeader) {
-      return null;
-    }
-
-    const email = authHeader.replace("Bearer ", "");
-
-    if (!email) {
-      return null;
-    }
-
-    const userRepo = AppDataSource.getRepository(User);
-    return await userRepo.findOne({ where: { email } });
-  }
-
   @FieldResolver(() => [Attendance])
   async attendance(
     @Root() user: User,
@@ -151,6 +133,7 @@ export class UserResolver {
     @Arg("input") input: CreateSupervisorInput,
     @Ctx() ctx: Context
   ): Promise<User> {
+    console.log(`[UserResolver] createSupervisor called by ${ctx.userEmail} (Role: ${ctx.userRole})`);
     requireAdminRole(ctx);
 
     const userRepo = AppDataSource.getRepository(User);
@@ -160,6 +143,7 @@ export class UserResolver {
       where: { email: input.email },
     });
     if (existingUser) {
+      console.log(`[UserResolver] createSupervisor: User ${input.email} already exists`);
       const error = new Error("User with this email already exists");
       (error as any).extensions = { code: "BAD_USER_INPUT" };
       throw error;
@@ -171,6 +155,8 @@ export class UserResolver {
       .toString(36)
       .substring(7)}`;
 
+    console.log(`[UserResolver] createSupervisor: Creating new supervisor ${input.email} with googleId ${googleId}`);
+    
     const supervisor = userRepo.create({
       email: input.email,
       name: input.name,
@@ -179,7 +165,14 @@ export class UserResolver {
       googleId,
     });
 
-    return await userRepo.save(supervisor);
+    try {
+      const saved = await userRepo.save(supervisor);
+      console.log(`[UserResolver] createSupervisor: Success saved ID ${saved.id}`);
+      return saved;
+    } catch (dbError) {
+      console.error('[UserResolver] createSupervisor: DB Error', dbError);
+      throw dbError;
+    }
   }
 
   @Mutation(() => User)

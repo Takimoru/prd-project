@@ -1,32 +1,52 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useQuery } from "@apollo/client";
+import { GET_TEAM_DETAILS, GET_TEAM_REPORTS } from "@/graphql/supervisor";
 import { useParams, useNavigate } from "react-router-dom";
 import { SupervisorLayout } from "./components/SupervisorLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import { ArrowLeft, User, FileText, Calendar } from "lucide-react";
-import { Id } from "@/convex/_generated/dataModel";
+import { ArrowLeft, User, FileText, Calendar, Loader2 } from "lucide-react";
 
 export function SupervisorTeamDetails() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
 
-  const team = useQuery(
-    api.teams.getTeamById,
-    teamId ? { teamId: teamId as Id<"teams"> } : "skip"
-  );
+  const { data: teamData, loading: teamLoading } = useQuery(GET_TEAM_DETAILS, {
+    variables: { id: teamId },
+    skip: !teamId,
+  });
 
-  const weeklyReports = useQuery(
-    api.weeklyReports.getWeeklyReportsByTeam,
-    teamId ? { teamId: teamId as Id<"teams"> } : "skip"
-  );
+  const { data: reportsData, loading: reportsLoading } = useQuery(GET_TEAM_REPORTS, {
+    variables: { teamId },
+    skip: !teamId,
+  });
+
+  const team = teamData?.team;
+  const weeklyReports = reportsData?.weeklyReports || [];
+
+  if (teamLoading) {
+    return (
+      <SupervisorLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </SupervisorLayout>
+    );
+  }
 
   if (!team) {
     return (
       <SupervisorLayout>
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading team details...</p>
+          <p className="text-muted-foreground">Team not found.</p>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/supervisor/teams")}
+            className="mt-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Teams
+          </Button>
         </div>
       </SupervisorLayout>
     );
@@ -86,8 +106,8 @@ export function SupervisorTeamDetails() {
                 <h4 className="text-sm font-medium text-muted-foreground mb-2">Members</h4>
                 <div className="space-y-2">
                   {team.members && team.members.length > 0 ? (
-                    team.members.filter((m): m is NonNullable<typeof m> => m !== null).map((member) => (
-                      <div key={member._id} className="flex items-center gap-2 text-sm">
+                    team.members.map((member: any) => (
+                      <div key={member.id} className="flex items-center gap-2 text-sm">
                         <User className="w-4 h-4 text-muted-foreground" />
                         <span>{member.name}</span>
                       </div>
@@ -110,13 +130,17 @@ export function SupervisorTeamDetails() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {weeklyReports && weeklyReports.length > 0 ? (
+            {reportsLoading ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-primary opacity-50" />
+              </div>
+            ) : weeklyReports.length > 0 ? (
               <div className="space-y-3">
-                {weeklyReports
+                {[...weeklyReports]
                   .sort((a, b) => b.week.localeCompare(a.week))
-                  .map((report) => (
+                  .map((report: any) => (
                     <div
-                      key={report._id}
+                      key={report.id}
                       className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors"
                     >
                       <div className="flex-1">

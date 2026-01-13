@@ -29,7 +29,7 @@ export class Attendance {
   teamId: string;
 
   @Field(() => Team)
-  @ManyToOne(() => Team, team => team.attendance)
+  @ManyToOne(() => Team, team => team.attendance, { onDelete: 'CASCADE' })
   team: Team;
 
   @Field()

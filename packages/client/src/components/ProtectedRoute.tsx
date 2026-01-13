@@ -43,7 +43,6 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   // Redirect admins away from student dashboard
   const userEmail = user?.email?.toLowerCase() || "";
   const isHardcodedAdmin = [
-    "nicolastzakis@students.unviersitasmulia.ac.id",
     "nicolastzakis@students.universitasmulia.ac.id",
   ].includes(userEmail);
   const effectiveRole = isHardcodedAdmin ? "admin" : user?.role;

@@ -5,6 +5,7 @@ import {
   CheckSquare, 
   Calendar, 
   Files, 
+  FileText,
   Users, 
   Menu,
   LogOut
@@ -37,6 +38,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     { icon: CheckSquare, label: "Tasks", path: "/dashboard/tasks" },
     { icon: Calendar, label: "Calendar", path: "/dashboard/calendar" },
     { icon: Files, label: "Files", path: "/dashboard/files" },
+    { icon: FileText, label: "Weekly Logsheet", path: "/dashboard/logsheet" },
     { icon: Users, label: "Team", path: "/dashboard/team" },
   ];
 

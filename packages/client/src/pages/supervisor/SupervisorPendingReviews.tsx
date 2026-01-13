@@ -1,21 +1,32 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useQuery } from "@apollo/client";
+import { GET_PENDING_REVIEWS } from "@/graphql/supervisor";
 import { useAuth } from "@/contexts/AuthContext";
 import { SupervisorLayout } from "./components/SupervisorLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export function SupervisorPendingReviews() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const pendingReports = useQuery(
-    api.weeklyReports.getPendingReportsForSupervisor,
-    user?._id ? { supervisorId: user._id } : "skip"
-  );
+  const { data, loading } = useQuery(GET_PENDING_REVIEWS, {
+    skip: !user?.id,
+  });
+
+  const pendingReports = data?.weeklyReviewQueue || [];
+
+  if (loading) {
+    return (
+      <SupervisorLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </SupervisorLayout>
+    );
+  }
 
   return (
     <SupervisorLayout>
@@ -33,11 +44,11 @@ export function SupervisorPendingReviews() {
             <CardDescription>Review and approve team submissions</CardDescription>
           </CardHeader>
           <CardContent>
-            {pendingReports && pendingReports.length > 0 ? (
+            {pendingReports.length > 0 ? (
               <div className="space-y-4">
-                {pendingReports.map((report) => (
+                {pendingReports.map((report: any) => (
                   <div
-                    key={report._id}
+                    key={report.id}
                     className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex-1">
                       <h4 className="font-semibold text-foreground">

@@ -280,7 +280,7 @@ export const GET_WEEKLY_REPORTS = gql`
       }
       comments {
         id
-        text
+        content
         author {
           id
           name
@@ -307,7 +307,7 @@ export const GET_WEEKLY_REPORT = gql`
       }
       comments {
         id
-        text
+        content
         author {
           id
           name
@@ -554,7 +554,7 @@ export const REJECT_WEEKLY_REPORT = gql`
       status
       comments {
         id
-        text
+        content
         author {
           id
           name
@@ -568,7 +568,7 @@ export const ADD_WEEKLY_REPORT_FEEDBACK = gql`
   mutation AddWeeklyReportFeedback($input: AddFeedbackInput!) {
     addWeeklyReportFeedback(input: $input) {
       id
-      text
+      content
       author {
         id
         name

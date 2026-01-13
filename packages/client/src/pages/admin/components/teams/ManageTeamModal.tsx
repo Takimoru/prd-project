@@ -145,8 +145,8 @@ export function ManageTeamModal({
                 )}
               </div>
             </ScrollArea>
-            <p className="text-xs text-muted-foreground">
-              Selected: {formData.memberIds.length} members
+            <p className={`text-xs mt-1 ${formData.memberIds.length < 7 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+              Selected: {formData.memberIds.length} members {formData.memberIds.length < 7 && "(Minimum 7 required)"}
             </p>
           </div>
 
@@ -154,7 +154,11 @@ export function ManageTeamModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit" 
+              disabled={!isEditing && formData.memberIds.length < 7}
+              title={!isEditing && formData.memberIds.length < 7 ? "At least 7 members are required to create a team" : ""}
+            >
               {isEditing ? "Update Team" : "Create Team"}
             </Button>
           </DialogFooter>

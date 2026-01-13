@@ -10,7 +10,8 @@ import { AppDataSource } from '../../data-source';
 export class AuthResolver {
   @Query(() => User, { nullable: true })
   async me(@Ctx() ctx: Context): Promise<User | null> {
-    console.log('[AuthResolver] me called', { userId: ctx.userId, userEmail: ctx.userEmail });
+    console.log(`[AuthResolver] me query called. Context email: ${ctx.userEmail}, role: ${ctx.userRole}`);
+    
     if (!ctx.userId && !ctx.userEmail) {
       console.log('[AuthResolver] me: no user identifying info in context');
       return null;
@@ -24,7 +25,7 @@ export class AuthResolver {
       user = await userRepo.findOne({
         where: { email: ctx.userEmail },
       });
-      console.log('[AuthResolver] me: found user by email?', !!user);
+      console.log(`[AuthResolver] me: searched by email ${ctx.userEmail}, found? ${!!user}`);
     }
 
     // Fallback to userId
@@ -32,7 +33,7 @@ export class AuthResolver {
       user = await userRepo.findOne({
         where: { id: ctx.userId },
       });
-      console.log('[AuthResolver] me: found user by id?', !!user);
+      console.log(`[AuthResolver] me: searched by id ${ctx.userId}, found? ${!!user}`);
     }
 
     if (!user) {
@@ -47,7 +48,7 @@ export class AuthResolver {
       return { ...user, role: 'admin' } as User;
     }
 
-    console.log('[AuthResolver] me: returning user with role:', user.role);
+    console.log(`[AuthResolver] me: returning user ${user.email} with role ${user.role}`);
     return user;
   }
 

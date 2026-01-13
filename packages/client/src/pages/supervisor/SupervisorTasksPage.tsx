@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useQuery } from "@apollo/client";
+import { GET_SUPERVISOR_TASKS } from "@/graphql/supervisor";
 import { useAuth } from "@/contexts/AuthContext";
 import { SupervisorLayout } from "./components/SupervisorLayout";
 import { Badge } from "@/components/ui/badge";
@@ -9,17 +9,12 @@ import { format } from "date-fns";
 export function SupervisorTasksPage() {
   const { user } = useAuth();
 
-  // Get all teams for this supervisor
-  const teams = useQuery(
-    api.teams.getTeamsWithMembersBySupervisor,
-    user?._id ? { supervisorId: user._id } : "skip"
-  );
+  const { data, loading } = useQuery(GET_SUPERVISOR_TASKS, {
+    skip: !user?.id,
+  });
 
-  // Get all tasks for the supervisor's teams
-  const allTasks = useQuery(
-    api.tasks.getByUser,
-    user?._id ? { userId: user._id } : "skip"
-  );
+  const teams = data?.myTeams;
+  const allTasks = data?.tasksByUser;
 
   const getStatusBadge = (completed: boolean) => {
     if (completed) {
@@ -29,10 +24,20 @@ export function SupervisorTasksPage() {
   };
 
   // Group tasks by team
-  const tasksByTeam = teams?.map(team => ({
+  const tasksByTeam = teams?.map((team: any) => ({
     team,
-    tasks: allTasks?.filter(task => task.teamId === team._id) || []
+    tasks: allTasks?.filter((task: any) => task.teamId === team.id) || []
   })) || [];
+
+  if (loading) {
+    return (
+      <SupervisorLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p className="text-muted-foreground animate-pulse">Loading tasks...</p>
+        </div>
+      </SupervisorLayout>
+    );
+  }
 
   return (
     <SupervisorLayout>
@@ -44,15 +49,15 @@ export function SupervisorTasksPage() {
 
         {tasksByTeam.length > 0 ? (
           <div className="space-y-8">
-            {tasksByTeam.map(({ team, tasks }) => (
-              <div key={team._id}>
+            {tasksByTeam.map(({ team, tasks }: any) => (
+              <div key={team.id}>
                 <h2 className="text-xl font-semibold text-foreground mb-4">{team.name}</h2>
                 
                 {tasks.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {tasks.map((task) => (
+                    {tasks.map((task: any) => (
                       <div
-                        key={task._id}
+                        key={task.id}
                         className="bg-card border border-border rounded-lg p-5 hover:border-primary/50 transition-all"
                       >
                         <div className="space-y-3">

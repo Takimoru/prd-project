@@ -41,21 +41,26 @@ export async function clerkMiddleware(
 
     // Verify token with Clerk
     try {
+      console.log(`[ClerkMiddleware] Processing token: ${token.substring(0, 10)}... (isEmail: ${token.includes('@')})`);
+      
       // Option 1: Using Clerk's built-in verification
       if (process.env.CLERK_SECRET_KEY) {
         try {
           const verifyResult = await clerkClient.verifyToken(token);
+          console.log(`[ClerkMiddleware] Clerk token verified for sub: ${verifyResult.sub}`);
           
           // Get Clerk user to extract email
           const clerkUser = await clerkClient.users.getUser(verifyResult.sub);
           const email = clerkUser.emailAddresses.find(e => e.id === clerkUser.primaryEmailAddressId)?.emailAddress;
           
           if (email) {
+            console.log(`[ClerkMiddleware] Clerk email: ${email}`);
             // Look up user in our database
             const userRepo = AppDataSource.getRepository(User);
             const dbUser = await userRepo.findOne({ where: { email } });
             
             const isAdmin = checkIsAdmin(dbUser, email);
+            console.log(`[ClerkMiddleware] DB User found: ${!!dbUser}, isAdmin: ${isAdmin}`);
             
             req.auth = {
               userId: dbUser?.id,
@@ -66,7 +71,7 @@ export async function clerkMiddleware(
             };
           }
         } catch (clerkError) {
-          console.error('Clerk verification error:', clerkError);
+          console.log(`[ClerkMiddleware] Clerk verification failed: ${clerkError instanceof Error ? clerkError.message : String(clerkError)}`);
           // Fall through to backward compatibility mode
         }
       }
@@ -75,10 +80,13 @@ export async function clerkMiddleware(
       // Support email-based auth from localStorage for gradual migration
       if (!req.auth && token.includes('@')) {
         const email = token.toLowerCase().trim();
+        console.log(`[ClerkMiddleware] Using email-based auth for: ${email}`);
+        
         const userRepo = AppDataSource.getRepository(User);
         const dbUser = await userRepo.findOne({ where: { email } });
         
         const isAdmin = checkIsAdmin(dbUser, email);
+        console.log(`[ClerkMiddleware] Option 2 DB User found: ${!!dbUser}, isAdmin: ${isAdmin}`);
         
         req.auth = {
           userId: dbUser?.id,
@@ -87,8 +95,14 @@ export async function clerkMiddleware(
         };
       }
     } catch (error) {
-      console.error('Auth middleware error:', error);
+      console.error('[ClerkMiddleware] Main error:', error);
       // Continue without auth - let resolvers handle authorization
+    }
+
+    if (req.auth) {
+      console.log(`[ClerkMiddleware] Auth set: ${req.auth.email} (Role: ${req.auth.role})`);
+    } else {
+      console.log('[ClerkMiddleware] No auth identified');
     }
 
     next();

@@ -1,5 +1,10 @@
-import { useQuery, useMutation } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useQuery, useMutation } from "@apollo/client";
+import { 
+  GET_WEEK_REPORT, 
+  APPROVE_WEEKLY_REPORT, 
+  REJECT_WEEKLY_REPORT, 
+  ADD_WEEKLY_REPORT_FEEDBACK 
+} from "@/graphql/supervisor";
 import { useAuth } from "@/contexts/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { SupervisorLayout } from "./components/SupervisorLayout";
@@ -8,10 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CheckCircle, XCircle, MessageSquare, ArrowLeft, User, CheckSquare } from "lucide-react";
+import { CheckCircle, XCircle, MessageSquare, ArrowLeft, User, CheckSquare, Loader2 } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { Id } from "@/convex/_generated/dataModel";
 
 export function WeeklySummaryReview() {
   const { teamId, week } = useParams<{ teamId: string; week: string }>();
@@ -22,15 +26,16 @@ export function WeeklySummaryReview() {
   const [feedbackText, setFeedbackText] = useState("");
   const [actionType, setActionType] = useState<"approve" | "reject" | "feedback">("feedback");
 
-  // Get weekly report
-  const report = useQuery(
-    api.weeklyReports.getWeeklyReportByWeek,
-    teamId && week ? { teamId: teamId as Id<"teams">, week } : "skip"
-  );
+  const { data, loading, refetch } = useQuery(GET_WEEK_REPORT, {
+    variables: { teamId, week },
+    skip: !teamId || !week,
+  });
 
-  const approveReport = useMutation(api.weeklyReports.approveWeeklyReport);
-  const requestRevision = useMutation(api.weeklyReports.requestRevision);
-  const addFeedback = useMutation(api.weeklyReports.addSupervisorFeedback);
+  const report = data?.weeklyReportByWeek;
+
+  const [approveReport] = useMutation(APPROVE_WEEKLY_REPORT);
+  const [rejectReport] = useMutation(REJECT_WEEKLY_REPORT);
+  const [addFeedback] = useMutation(ADD_WEEKLY_REPORT_FEEDBACK);
 
   const handleApprove = () => {
     setActionType("approve");
@@ -53,9 +58,10 @@ export function WeeklySummaryReview() {
     try {
       if (actionType === "approve") {
         await approveReport({
-          reportId: report._id,
-          supervisorId: user._id,
-          comment: feedbackText || undefined,
+          variables: {
+            id: report.id,
+            comment: feedbackText || undefined,
+          }
         });
         toast.success("Report approved successfully!");
         navigate("/supervisor");
@@ -64,10 +70,13 @@ export function WeeklySummaryReview() {
           toast.error("Please provide a reason for rejection");
           return;
         }
-        await requestRevision({
-          reportId: report._id,
-          supervisorId: user._id,
-          comment: feedbackText,
+        await rejectReport({
+          variables: {
+            input: {
+              reportId: report.id,
+              comment: feedbackText,
+            }
+          }
         });
         toast.success("Revision requested");
         navigate("/supervisor");
@@ -77,11 +86,15 @@ export function WeeklySummaryReview() {
           return;
         }
         await addFeedback({
-          reportId: report._id,
-          supervisorId: user._id,
-          comment: feedbackText,
+          variables: {
+            input: {
+              reportId: report.id,
+              comment: feedbackText,
+            }
+          }
         });
         toast.success("Feedback added");
+        refetch();
       }
       setShowFeedbackModal(false);
       setFeedbackText("");
@@ -90,11 +103,29 @@ export function WeeklySummaryReview() {
     }
   };
 
+  if (loading) {
+    return (
+      <SupervisorLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </SupervisorLayout>
+    );
+  }
+
   if (!report) {
     return (
       <SupervisorLayout>
         <div className="text-center py-12">
-          <p className="text-muted-foreground">Loading report...</p>
+          <p className="text-muted-foreground">Report not found.</p>
+          <Button
+            variant="ghost"
+            onClick={() => navigate("/supervisor")}
+            className="mt-4"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
         </div>
       </SupervisorLayout>
     );
@@ -182,27 +213,27 @@ export function WeeklySummaryReview() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {report.members && report.members.length > 0 ? (
+            {report.memberProgress && report.memberProgress.length > 0 ? (
               <div className="space-y-4">
-                {report.members.map((member) => (
+                {report.memberProgress.map((mp: any) => (
                   <div
-                    key={member.user?._id}
+                    key={mp.user?.id}
                     className="flex items-center justify-between p-4 border border-border rounded-lg"
                   >
                     <div className="flex items-center gap-3">
                       <User className="w-5 h-5 text-muted-foreground" />
                       <div>
-                        <p className="font-medium">{member.user?.name}</p>
+                        <p className="font-medium">{mp.user?.name}</p>
                         <p className="text-sm text-muted-foreground">
-                          {member.completedTasks} of {member.totalTasks} tasks completed
+                          {mp.completedTasks} of {mp.totalTasks} tasks completed
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <CheckSquare className="w-4 h-4 text-green-600" />
                       <span className="text-sm font-semibold">
-                        {member.totalTasks > 0
-                          ? Math.round((member.completedTasks / member.totalTasks) * 100)
+                        {mp.totalTasks > 0
+                          ? Math.round((mp.completedTasks / mp.totalTasks) * 100)
                           : 0}%
                       </span>
                     </div>
@@ -228,7 +259,7 @@ export function WeeklySummaryReview() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {report.photos.map((photo, index) => (
+                {report.photos.map((photo: string, index: number) => (
                   <div key={index} className="aspect-square rounded-lg overflow-hidden border border-border">
                     <img
                       src={photo}
@@ -244,18 +275,18 @@ export function WeeklySummaryReview() {
         )}
 
         {/* Supervisor Comments */}
-        {report.supervisorComments && report.supervisorComments.length > 0 && (
+        {report.comments && report.comments.length > 0 && (
           <Card>
             <CardHeader>
               <CardTitle>Supervisor Feedback</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {report.supervisorComments.map((comment, index) => (
-                  <div key={index} className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                    <p className="text-sm text-foreground">{comment.comment}</p>
+                {report.comments.map((comment: any) => (
+                  <div key={comment.id} className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                    <p className="text-sm text-foreground">{comment.content}</p>
                     <p className="text-xs text-muted-foreground mt-2">
-                      {new Date(comment.commentedAt).toLocaleString()}
+                      {comment.author?.name} • {new Date(comment.createdAt).toLocaleString()}
                     </p>
                   </div>
                 ))}

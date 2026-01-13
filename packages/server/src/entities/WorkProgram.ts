@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, ManyToMany, JoinTable, CreateDateColumn } from "typeorm";
-import { ObjectType, Field, ID } from "type-graphql";
+import { ObjectType, Field, ID, Int } from "type-graphql";
 import { Team } from "./Team";
 import { User } from "./User";
 import { Task } from "./Task";
@@ -17,7 +17,7 @@ export class WorkProgram {
   teamId: string;
 
   @Field(() => Team)
-  @ManyToOne(() => Team, team => team.workPrograms)
+  @ManyToOne(() => Team, team => team.workPrograms, { onDelete: 'CASCADE' })
   team: Team;
 
   @Field()
@@ -59,7 +59,11 @@ export class WorkProgram {
   @OneToMany("Task", "workProgram") // Indirect string ref to avoid circ dependency issues if strictly typed
   tasks: any[]; // Using any[] temporarily or use Thunk if needed, but 'Task' type handles it well in Type-GraphQL usually
 
+  @Field(() => Int, { defaultValue: 0 })
+  @Column({ default: 0 })
+  progress: number;
+
   @Field(() => [WorkProgramProgress])
   @OneToMany(() => WorkProgramProgress, progress => progress.workProgram)
-  progress: WorkProgramProgress[];
+  progressRecords: WorkProgramProgress[];
 }

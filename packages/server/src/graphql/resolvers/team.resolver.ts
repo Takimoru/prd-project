@@ -108,7 +108,12 @@ export class TeamResolver {
       : null;
 
     if (!user || !checkIsAdmin(user)) {
-      throw new Error('Only admins can create teams');
+      throw new Error("Only admins can create teams");
+    }
+
+    // Per requirement: A team must have at least 7 members
+    if (!input.memberIds || input.memberIds.length < 7) {
+      throw new Error("A team must have at least 7 members");
     }
 
     // Get members
@@ -361,13 +366,25 @@ export class TeamResolver {
 
     const team = await teamRepo.findOne({
       where: { id },
-      relations: ['leader', 'supervisor', 'members', 'program'],
+      relations: ['leader', 'supervisor', 'members', 'program', 'tasks', 'attendance', 'weeklyReports'],
     });
     if (!team) {
       throw new Error('Team not found');
     }
 
-    await teamRepo.remove(team);
-    return team;
+    try {
+      console.log(`[TeamResolver] Attempting to delete team: ${team.name} (${team.id})`);
+      // Check for related data that might block deletion
+      if (team.tasks?.length > 0 || team.attendance?.length > 0 || team.weeklyReports?.length > 0) {
+        console.log(`[TeamResolver] Team has related data: Tasks: ${team.tasks?.length}, Attendance: ${team.attendance?.length}, Reports: ${team.weeklyReports?.length}`);
+      }
+      
+      await teamRepo.remove(team);
+      console.log(`[TeamResolver] Successfully deleted team: ${team.id}`);
+      return team;
+    } catch (error) {
+      console.error('[TeamResolver] Error deleting team:', error);
+      throw error;
+    }
   }
 }

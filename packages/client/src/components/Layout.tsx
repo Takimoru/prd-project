@@ -92,14 +92,27 @@ export function Layout() {
             label: "Final Reports",
             icon: FileCheck,
           },
+          {
+            path: "/admin/logsheets",
+            label: "Logsheet Reviews",
+            icon: FileText,
+          },
         ]
       : effectiveRole === "supervisor"
-      ? [{ path: "/supervisor", label: "Supervisor", icon: FileText }]
+      ? [
+          { path: "/supervisor", label: "Supervisor", icon: LayoutDashboard },
+          { path: "/admin/logsheets", label: "Logsheet Reviews", icon: FileText },
+        ]
       : [
           { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
           {
             path: "/dashboard/work-programs",
             label: "Work Programs",
+            icon: FileText,
+          },
+          {
+            path: "/dashboard/logsheet",
+            label: "Weekly Logsheet",
             icon: FileText,
           },
         ];

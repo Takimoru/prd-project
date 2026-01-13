@@ -4,10 +4,13 @@ import { Comment } from '../../entities/Comment';
 import { User } from '../../entities/User';
 import { Team } from '../../entities/Team';
 import { Context } from '../context';
-import { requireAuth, requireSupervisorRole, requireLeaderRole } from '../../lib/auth-helpers';
+import { requireAuth, requireSupervisorRole, requireLeaderRole, requireAdminRole } from '../../lib/auth-helpers';
 import { AppDataSource } from '../../data-source';
 import * as PostHog from '../../lib/posthog';
 import { InputType, Field, Int } from 'type-graphql';
+import { In } from 'typeorm';
+import { Task } from '../../entities/Task';
+import { MemberProgress } from '../../entities/WeeklyReport';
 
 /**
  * WeeklyReport Resolver - Supervisor & Leader flows
@@ -145,10 +148,35 @@ export class WeeklyReportResolver {
     requireAuth(ctx);
     
     const reportRepo = AppDataSource.getRepository(WeeklyReport);
-    return await reportRepo.findOne({
+    const report = await reportRepo.findOne({
       where: { id },
-      relations: ['team', 'comments', 'comments.author'],
+      relations: ['team', 'team.members', 'comments', 'comments.author'],
     });
+
+    if (report) {
+       report.memberProgress = await this.calculateMemberProgress(report);
+    }
+    return report;
+  }
+
+  @Query(() => WeeklyReport, { nullable: true })
+  async weeklyReportByWeek(
+    @Arg('teamId', () => ID) teamId: string,
+    @Arg('week') week: string,
+    @Ctx() ctx: Context
+  ): Promise<WeeklyReport | null> {
+    requireAuth(ctx);
+    
+    const reportRepo = AppDataSource.getRepository(WeeklyReport);
+    const report = await reportRepo.findOne({
+      where: { teamId, week },
+      relations: ['team', 'team.members', 'comments', 'comments.author'],
+    });
+
+    if (report) {
+       report.memberProgress = await this.calculateMemberProgress(report);
+    }
+    return report;
   }
 
   @Query(() => [WeeklyReport])
@@ -237,13 +265,15 @@ export class WeeklyReportResolver {
   @Mutation(() => WeeklyReport)
   async approveWeeklyReport(
     @Arg('id', () => ID) id: string,
-    @Ctx() ctx: Context
+    @Ctx() ctx: Context,
+    @Arg('comment', { nullable: true }) comment?: string
   ): Promise<WeeklyReport> {
     requireAuth(ctx);
     requireSupervisorRole(ctx);
     
     const userRepo = AppDataSource.getRepository(User);
     const reportRepo = AppDataSource.getRepository(WeeklyReport);
+    const commentRepo = AppDataSource.getRepository(Comment);
 
     const user = ctx.userEmail
       ? await userRepo.findOne({ where: { email: ctx.userEmail } })
@@ -271,6 +301,16 @@ export class WeeklyReportResolver {
 
     report.status = 'approved';
     await reportRepo.save(report);
+
+    // Add optional comment
+    if (comment) {
+      const newComment = commentRepo.create({
+        weeklyReportId: report.id,
+        authorId: user.id,
+        content: comment,
+      });
+      await commentRepo.save(newComment);
+    }
 
     // Track analytics: report_approved (per PRD Section B.5)
     PostHog.trackReportApproved(user.id, report.id, report.teamId);
@@ -325,7 +365,7 @@ export class WeeklyReportResolver {
     const comment = commentRepo.create({
       weeklyReportId: report.id,
       authorId: user.id,
-      text: input.comment,
+      content: input.comment,
     });
     await commentRepo.save(comment);
 
@@ -377,7 +417,7 @@ export class WeeklyReportResolver {
     const comment = commentRepo.create({
       weeklyReportId: report.id,
       authorId: user.id,
-      text: input.comment,
+      content: input.comment,
     });
     const saved = await commentRepo.save(comment);
 
@@ -389,6 +429,27 @@ export class WeeklyReportResolver {
       relations: ['author'],
     }) as Comment;
   }
+
+  private async calculateMemberProgress(report: WeeklyReport): Promise<MemberProgress[]> {
+    if (!report.taskIds || report.taskIds.length === 0) return [];
+
+    const taskRepo = AppDataSource.getRepository(Task);
+    const tasks = await taskRepo.find({
+      where: { id: In(report.taskIds) },
+      relations: ['assignedMembers'],
+    });
+
+    const team = report.team;
+    if (!team || !team.members) return [];
+
+    return team.members.map(member => {
+      const assignedTasks = tasks.filter(t => t.assignedMembers.some(m => m.id === member.id));
+      const completedTasks = assignedTasks.filter(t => t.completed).length;
+      return {
+        user: member,
+        completedTasks,
+        totalTasks: assignedTasks.length,
+      };
+    });
+  }
 }
-
-

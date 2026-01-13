@@ -30,6 +30,7 @@ import { WorkProgramResolver } from "./graphql/resolvers/workProgram.resolver";
 import { WeeklyReportResolver } from "./graphql/resolvers/weeklyReport.resolver";
 import { AdminResolver } from "./graphql/resolvers/admin.resolver";
 import { ActivityResolver } from "./graphql/resolvers/activity.resolver";
+import { LogsheetResolver } from "./graphql/resolvers/logsheet.resolver";
 import uploadRouter from "./routes/upload";
 
 dotenv.config();
@@ -60,8 +61,10 @@ async function startServer() {
       WeeklyReportResolver,
       AdminResolver,
       ActivityResolver,
+      LogsheetResolver,
     ],
     validate: false, // Set to true to enable class-validator
+    emitSchemaFile: path.resolve(__dirname, "../schema.graphql"),
   });
 
   // Create WebSocket server for subscriptions
@@ -129,13 +132,16 @@ async function startServer() {
 
   await server.start();
 
-  // Enable CORS for all routes
-  app.use(cors());
+  // Enable CORS
+  app.use(cors({
+    origin: true, // Reflect request origin (useful for development)
+    credentials: true,
+  }));
 
-  // Middleware for COOP headers and other security
+  // Basic security middleware - disabled COOP/COEP to avoid issues with popups and cross-origin resources
   app.use((req, res, next) => {
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-    res.setHeader("Cross-Origin-Embedder-Policy", "credentialless");
+    // res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    // res.setHeader("Cross-Origin-Embedder-Policy", "credentialless");
     next();
   });
 
@@ -145,12 +151,18 @@ async function startServer() {
     clerkMiddleware, // Clerk auth middleware
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<Context> => {
+        const auth = (req as any).auth;
+        if (auth) {
+          console.log(`[Context] Creating context for ${auth.email} (Role: ${auth.role}, ID: ${auth.userId})`);
+        } else {
+          console.log('[Context] No auth found in request');
+        }
         return {
           req,
           res,
-          userId: (req as any).auth?.userId,
-          userEmail: (req as any).auth?.email,
-          userRole: (req as any).auth?.role,
+          userId: auth?.userId,
+          userEmail: auth?.email,
+          userRole: auth?.role,
           pubSub,
         };
       },

@@ -43,8 +43,8 @@ export function SupervisorManagement() {
         action={
           <Button
             onClick={() => {
-              setIsCreating(true);
               resetForm();
+              setIsCreating(true);
             }}
             className="bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))/0.9] text-white shadow-lg shadow-orange-900/20">
             <Plus className="w-4 h-4 mr-2" />

@@ -1,4 +1,4 @@
-import { gql } from '../gql';
+import { gql } from '@apollo/client';
 
 export const GET_DASHBOARD_DATA = gql(`
   query GetDashboardData($includeArchived: Boolean!, $startDate: String, $endDate: String) {
@@ -87,6 +87,10 @@ export const GET_MY_TASKS = gql(`
         team {
           id
           name
+          program {
+            id
+            title
+          }
         }
       }
     }
@@ -129,7 +133,7 @@ export const GET_TEAM_ATTENDANCE = gql(`
 `);
 
 export const GET_WEEKLY_ATTENDANCE_SUMMARY = gql(`
-  query GetWeeklyAttendanceSummary($teamId: ID!, $week: String!) {
+  query GetMyTeamWeeklyAttendanceSummary($teamId: ID!, $week: String!) {
     weeklyAttendanceSummary(teamId: $teamId, week: $week) {
       week
       startDate
@@ -166,8 +170,8 @@ export const GET_MY_TEAMS = gql(`
 `);
 
 export const CREATE_TASK_MUTATION = gql(`
-  mutation CreateTask($teamId: ID!, $title: String!, $description: String, $assignedMemberIds: [ID!], $startTime: String, $endTime: String) {
-    createTask(teamId: $teamId, title: $title, description: $description, assignedMemberIds: $assignedMemberIds, startTime: $startTime, endTime: $endTime) {
+  mutation CreateTask($input: CreateTaskInput!) {
+    createTask(input: $input) {
       id
       title
       status
@@ -177,8 +181,8 @@ export const CREATE_TASK_MUTATION = gql(`
 `);
 
 export const UPDATE_TASK_MUTATION = gql(`
-  mutation UpdateTask($taskId: ID!, $title: String, $description: String, $completed: Boolean, $assignedMemberIds: [ID!], $startTime: String, $endTime: String) {
-    updateTask(taskId: $taskId, title: $title, description: $description, completed: $completed, assignedMemberIds: $assignedMemberIds, startTime: $startTime, endTime: $endTime) {
+  mutation UpdateTask($taskId: ID!, $input: UpdateTaskInput!) {
+    updateTask(id: $taskId, input: $input) {
       id
       title
       status
@@ -189,7 +193,7 @@ export const UPDATE_TASK_MUTATION = gql(`
 
 export const UPDATE_TASK_STATUS_MUTATION = gql(`
   mutation UpdateTaskStatus($taskId: ID!, $completed: Boolean!) {
-    updateTaskStatus(taskId: $taskId, completed: $completed) {
+    updateTask(id: $taskId, input: { completed: $completed }) {
       id
       status
       completed
@@ -198,8 +202,8 @@ export const UPDATE_TASK_STATUS_MUTATION = gql(`
 `);
 
 export const CHECK_IN_MUTATION = gql(`
-  mutation CheckIn($teamId: ID!, $status: String!, $excuse: String, $lat: Float, $long: Float) {
-    checkIn(teamId: $teamId, status: $status, excuse: $excuse, lat: $lat, long: $long) {
+  mutation CheckIn($input: CheckInInput!) {
+    checkIn(input: $input) {
       id
       date
       status
@@ -216,6 +220,7 @@ export const UPDATE_TEAM_PROGRESS = gql(`
   }
 `);
 
+/*
 export const ADD_TEAM_DOCUMENTATION = gql(`
   mutation AddTeamDocumentation($teamId: ID!, $name: String!, $url: String!, $type: String!) {
     addTeamDocumentation(teamId: $teamId, name: $name, url: $url, type: $type) {
@@ -227,10 +232,11 @@ export const ADD_TEAM_DOCUMENTATION = gql(`
     }
   }
 `);
+*/
 
 export const CREATE_PROGRAM_MUTATION = gql(`
-  mutation CreateProgram($title: String!, $description: String!, $startDate: String!, $endDate: String!) {
-    createProgram(title: $title, description: $description, startDate: $startDate, endDate: $endDate) {
+  mutation CreateProgramFromDashboard($input: CreateProgramInput!) {
+    createProgram(input: $input) {
       id
       title
     }
@@ -324,7 +330,7 @@ export const ADD_TASK_UPDATE = gql(`
 `);
 
 export const GET_TEAM_DETAILS = gql(`
-  query GetTeamDetails($teamId: ID!) {
+  query GetTeamDetailsDashboard($teamId: ID!) {
     team(id: $teamId) {
       id
       name

@@ -22,7 +22,7 @@ export function useSupervisorManagement() {
   });
 
   // GraphQL Query
-  const { data: usersData, refetch } = useQuery(GET_USERS, {});
+  const { data: usersData } = useQuery(GET_USERS, {});
   const supervisors =
     usersData?.users?.filter((u: any) => u.role === "supervisor") || [];
 
@@ -45,7 +45,14 @@ export function useSupervisorManagement() {
 
   const handleCreateSupervisor = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[useSupervisorManagement] handleCreateSupervisor triggered", { 
+      userId: user?.id, 
+      userEmail: user?.email,
+      role: user?.role
+    });
+
     if (!user?.id) {
+      console.error("[useSupervisorManagement] Creation blocked: No user ID in context");
       toast.error("You must be logged in as admin");
       return;
     }

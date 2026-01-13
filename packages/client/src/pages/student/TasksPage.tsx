@@ -24,10 +24,7 @@ export function TasksPage() {
   const myTasks = tasksData?.myTeams?.flatMap((team: any) => 
       team.tasks.map((task: any) => ({
           ...task,
-          workProgram: team // Mapping team as workProgram for display context? Or does Task have workProgramId? Schema Task has workProgramId but our query fetched 'team'. 
-          // Previous code used `task.workProgram`, so keep strict?
-          // The query GET_MY_TASKS fetches 'team { id name }'.
-          // Let's use that.
+          team: task.team || team
       })) 
   ) || [];
 

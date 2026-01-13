@@ -66,7 +66,43 @@ export class WorkProgramResolver {
     const wpRepo = AppDataSource.getRepository(WorkProgram);
     return await wpRepo.find({
       where: { teamId },
-      relations: ['team', 'createdBy', 'assignedMembers', 'progress', 'progress.member', 'tasks'],
+      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member', 'tasks'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  @Query(() => [WorkProgram])
+  async mySupervisedWorkPrograms(@Ctx() ctx: Context): Promise<WorkProgram[]> {
+    requireAuth(ctx);
+    
+    const userRepo = AppDataSource.getRepository(User);
+    const teamRepo = AppDataSource.getRepository(Team);
+    const wpRepo = AppDataSource.getRepository(WorkProgram);
+
+    const user = ctx.userEmail
+      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
+      : ctx.userId
+      ? await userRepo.findOne({ where: { id: ctx.userId } })
+      : null;
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Get teams where user is supervisor
+    const supervisedTeams = await teamRepo.find({
+      where: { supervisorId: user.id },
+    });
+
+    if (supervisedTeams.length === 0) {
+      return [];
+    }
+
+    const teamIds = supervisedTeams.map(t => t.id);
+
+    return await wpRepo.find({
+      where: { teamId: In(teamIds) },
+      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -192,7 +228,7 @@ export class WorkProgramResolver {
 
     return await wpRepo.findOne({
       where: { id },
-      relations: ['team', 'createdBy', 'assignedMembers', 'progress', 'progress.member'],
+      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member'],
     }) as WorkProgram;
   }
 
@@ -257,9 +293,9 @@ export class WorkProgramResolver {
   async updateWorkProgramProgress(
     @Arg('workProgramId', () => ID) workProgramId: string,
     @Arg('percentage', () => Int) percentage: number,
+    @Ctx() ctx: Context,
     @Arg('notes', { nullable: true }) notes?: string,
     @Arg('attachments', () => [String], { nullable: true }) attachments?: string[],
-    @Ctx() ctx: Context
   ): Promise<WorkProgramProgress> {
     requireAuth(ctx);
 

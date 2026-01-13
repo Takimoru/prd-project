@@ -17,7 +17,7 @@ export class Activity {
   teamId: string;
 
   @Field(() => Team)
-  @ManyToOne(() => Team, team => team.activities)
+  @ManyToOne(() => Team, team => team.activities, { onDelete: 'CASCADE' })
   team: Team;
 
   @Field()

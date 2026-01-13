@@ -36,8 +36,10 @@ export function FilesPage() {
     
     allTasks.forEach((task: any) => {
       if (task.completionFiles && task.completionFiles.length > 0) {
-        const programId = task.workProgramId || 'independent';
-        const programName = task.workProgram?.title || 'Independent Tasks';
+        // Use program from team since task.workProgram might not be populated or relevant here
+        const program = task.team?.program;
+        const programId = program?.id || 'independent';
+        const programName = program?.title || 'Independent Tasks';
         
         if (!files[programId]) {
           files[programId] = {

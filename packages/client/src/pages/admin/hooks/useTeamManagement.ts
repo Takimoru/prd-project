@@ -121,8 +121,8 @@ export function useTeamManagement() {
     }
 
     try {
-      if (formData.memberIds.length < 1) {
-        toast.error("A team must have at least 1 member");
+      if (formData.memberIds.length < 7) {
+        toast.error("A team must have at least 7 members");
         return;
       }
 

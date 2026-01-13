@@ -1,5 +1,5 @@
-import { useQuery } from "convex/react";
-import { api } from "@/convex/_generated/api";
+import { useQuery } from "@apollo/client";
+import { GET_SUPERVISED_TEAMS } from "@/graphql/supervisor";
 import { useAuth } from "@/contexts/AuthContext";
 import { SupervisorLayout } from "./components/SupervisorLayout";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,47 +9,48 @@ import { Mail, MapPin } from "lucide-react";
 export function SupervisorTeamList() {
   const { user } = useAuth();
 
-  const teams = useQuery(
-    api.teams.getTeamsWithMembersBySupervisor,
-    user?._id ? { supervisorId: user._id } : "skip"
-  );
+  const { data, loading } = useQuery(GET_SUPERVISED_TEAMS, {
+    skip: !user?.id,
+  });
+
+  const teams = data?.myTeams;
 
   // Collect all unique team members and supervisors
   const allMembers = new Map();
   
   if (teams) {
-    teams.forEach(team => {
+    teams.forEach((team: any) => {
       // Add supervisor (could be current user or other supervisors)
       if (team.supervisor) {
-        allMembers.set(team.supervisor._id, {
+        allMembers.set(team.supervisor.id, {
           ...team.supervisor,
           role: "supervisor",
-          teams: allMembers.has(team.supervisor._id) 
-            ? [...allMembers.get(team.supervisor._id).teams, team.name]
+          teams: allMembers.has(team.supervisor.id) 
+            ? [...allMembers.get(team.supervisor.id).teams, team.name]
             : [team.name]
         });
       }
 
       // Add team leader
       if (team.leader) {
-        allMembers.set(team.leader._id, {
+        allMembers.set(team.leader.id, {
           ...team.leader,
           role: team.leader.role || "student",
-          teams: allMembers.has(team.leader._id)
-            ? [...allMembers.get(team.leader._id).teams, team.name]
+          teams: allMembers.has(team.leader.id)
+            ? [...allMembers.get(team.leader.id).teams, team.name]
             : [team.name]
         });
       }
 
       // Add team members
       if (team.members) {
-        team.members.filter(Boolean).forEach(member => {
+        team.members.filter(Boolean).forEach((member: any) => {
           if (member) {
-            allMembers.set(member._id, {
+            allMembers.set(member.id, {
               ...member,
               role: member.role || "student",
-              teams: allMembers.has(member._id)
-                ? [...allMembers.get(member._id).teams, team.name]
+              teams: allMembers.has(member.id)
+                ? [...allMembers.get(member.id).teams, team.name]
                 : [team.name]
             });
           }
@@ -71,6 +72,16 @@ export function SupervisorTeamList() {
     return variants[role] || variants.student;
   };
 
+  if (loading) {
+    return (
+      <SupervisorLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <p className="text-muted-foreground animate-pulse">Loading team members...</p>
+        </div>
+      </SupervisorLayout>
+    );
+  }
+
   return (
     <SupervisorLayout>
       <div className="space-y-6">
@@ -86,7 +97,7 @@ export function SupervisorTeamList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {supervisors.map((supervisor) => (
                 <div
-                  key={supervisor._id}
+                  key={supervisor.id}
                   className="bg-card border border-border rounded-lg p-5 hover:border-primary/50 transition-all"
                 >
                   <div className="flex items-start gap-4">
@@ -114,9 +125,9 @@ export function SupervisorTeamList() {
                           <div className="mt-2">
                             <p className="text-xs text-muted-foreground mb-1">Teams:</p>
                             <div className="flex flex-wrap gap-1">
-                              {supervisor.teams.map((team: string, idx: number) => (
+                              {supervisor.teams.map((teamName: string, idx: number) => (
                                 <Badge key={idx} variant="outline" className="text-xs">
-                                  {team}
+                                  {teamName}
                                 </Badge>
                               ))}
                             </div>
@@ -138,7 +149,7 @@ export function SupervisorTeamList() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {students.map((member) => (
                 <div
-                  key={member._id}
+                  key={member.id}
                   className="bg-card border border-border rounded-lg p-5 hover:border-primary/50 transition-all"
                 >
                   <div className="flex items-start gap-4">
@@ -166,9 +177,9 @@ export function SupervisorTeamList() {
                           <div className="mt-2">
                             <p className="text-xs text-muted-foreground mb-1">Teams:</p>
                             <div className="flex flex-wrap gap-1">
-                              {member.teams.map((team: string, idx: number) => (
+                              {member.teams.map((teamName: string, idx: number) => (
                                 <Badge key={idx} variant="outline" className="text-xs">
-                                  {team}
+                                  {teamName}
                                 </Badge>
                               ))}
                             </div>
@@ -183,7 +194,7 @@ export function SupervisorTeamList() {
           </div>
         )}
 
-        {teamMembersArray.length === 0 && (
+        {!loading && teamMembersArray.length === 0 && (
           <div className="text-center py-16">
             <h3 className="text-lg font-semibold text-foreground mb-2">No team members yet</h3>
             <p className="text-muted-foreground">You will see your team members here once teams are assigned</p>

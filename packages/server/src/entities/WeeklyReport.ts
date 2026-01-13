@@ -1,7 +1,20 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, OneToMany } from "typeorm";
 import { ObjectType, Field, ID, Int } from "type-graphql";
 import { Team } from "./Team";
+import { User } from "./User";
 import { Comment } from "./Comment";
+
+@ObjectType()
+export class MemberProgress {
+  @Field(() => User)
+  user: User;
+
+  @Field(() => Int)
+  completedTasks: number;
+
+  @Field(() => Int)
+  totalTasks: number;
+}
 
 @ObjectType()
 @Entity()
@@ -23,7 +36,7 @@ export class WeeklyReport {
   teamId: string;
 
   @Field(() => Team)
-  @ManyToOne(() => Team, team => team.weeklyReports)
+  @ManyToOne(() => Team, team => team.weeklyReports, { onDelete: 'CASCADE' })
   team: Team;
 
   @Field({ nullable: true })
@@ -53,4 +66,7 @@ export class WeeklyReport {
   @Field({ nullable: true })
   @Column({ nullable: true })
   submittedAt?: Date;
+
+  @Field(() => [MemberProgress], { nullable: true })
+  memberProgress?: MemberProgress[];
 }

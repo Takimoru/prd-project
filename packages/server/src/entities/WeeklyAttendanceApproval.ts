@@ -18,7 +18,7 @@ export class WeeklyAttendanceApproval {
   teamId: string;
 
   @Field(() => Team)
-  @ManyToOne(() => Team, team => team.attendanceApprovals)
+  @ManyToOne(() => Team, team => team.attendanceApprovals, { onDelete: 'CASCADE' })
   team: Team;
 
   @Field()

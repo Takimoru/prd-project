@@ -6,7 +6,7 @@ import { WeeklyAttendanceApproval } from '../../entities/WeeklyAttendanceApprova
 import { CheckInInput } from '../inputs/AttendanceInputs';
 import { Context } from '../context';
 import { AppDataSource } from '../../data-source';
-import { Between, In } from 'typeorm';
+import { In } from 'typeorm';
 import { requireAdminRole } from '../../lib/auth-helpers';
 import * as PostHog from '../../lib/posthog';
 
@@ -299,6 +299,83 @@ export class AttendanceResolver {
       .getMany();
 
     return attendance;
+  }
+
+  @Query(() => [WeeklyAttendanceApproval])
+  async pendingAttendanceQueue(@Ctx() ctx: Context): Promise<WeeklyAttendanceApproval[]> {
+    if (!ctx.userId && !ctx.userEmail) {
+      throw new Error('Authentication required');
+    }
+
+    const userRepo = AppDataSource.getRepository(User);
+    const approvalRepo = AppDataSource.getRepository(WeeklyAttendanceApproval);
+
+    const user = ctx.userEmail
+      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
+      : ctx.userId
+      ? await userRepo.findOne({ where: { id: ctx.userId } })
+      : null;
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Get pending approvals where this user is the supervisor
+    return await approvalRepo.find({
+      where: {
+        supervisorId: user.id,
+        status: 'pending',
+      },
+      relations: ['team', 'student'],
+      order: { weekStartDate: 'DESC' },
+    });
+  }
+
+  @Mutation(() => WeeklyAttendanceApproval)
+  async approveWeeklyAttendance(
+    @Arg('teamId', () => ID) teamId: string,
+    @Arg('studentId', () => ID) studentId: string,
+    @Arg('supervisorId', () => ID) supervisorId: string,
+    @Arg('week', () => String) week: string,
+    @Arg('status', () => String) status: string,
+    @Arg('notes', { nullable: true }) notes?: string,
+    @Ctx() ctx?: Context
+  ): Promise<WeeklyAttendanceApproval> {
+    const approvalRepo = AppDataSource.getRepository(WeeklyAttendanceApproval);
+    const { startDate } = this.getWeekDateRange(week);
+    const weekStartDateStr = startDate.toISOString().split('T')[0];
+
+    let approval = await approvalRepo.findOne({
+      where: {
+        teamId,
+        studentId,
+        weekStartDate: weekStartDateStr,
+      },
+    });
+
+    if (approval) {
+      approval.status = status;
+      approval.notes = notes;
+      approval.supervisorId = supervisorId;
+      approval.approvedAt = new Date();
+    } else {
+      approval = approvalRepo.create({
+        teamId,
+        studentId,
+        supervisorId,
+        weekStartDate: weekStartDateStr,
+        status,
+        notes,
+        approvedAt: new Date(),
+      });
+    }
+
+    const savedApproval = await approvalRepo.save(approval);
+    
+    return await approvalRepo.findOne({
+      where: { id: savedApproval.id },
+      relations: ['team', 'student', 'supervisor']
+    }) as WeeklyAttendanceApproval;
   }
 
   // Helper function to get week date range
