@@ -1,49 +1,57 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx, Int } from 'type-graphql';
-import { Team } from '../../entities/Team';
-import { User } from '../../entities/User';
-import { CreateTeamInput, UpdateTeamInput, AddMemberInput } from '../inputs/TeamInputs';
-import { Context } from '../context';
-import { checkIsAdmin, requireAdminRole } from '../../lib/auth-helpers';
-import { AppDataSource } from '../../data-source';
-import { In } from 'typeorm';
-import * as PostHog from '../../lib/posthog';
+import { Resolver, Query, Mutation, Arg, ID, Ctx, Int } from "type-graphql";
+import { GraphQLError } from "graphql";
+import { Team } from "../../entities/Team";
+import { User } from "../../entities/User";
+import {
+  CreateTeamInput,
+  UpdateTeamInput,
+  AddMemberInput,
+} from "../inputs/TeamInputs";
+import { Context } from "../context";
+import { checkIsAdmin, requireAdminRole } from "../../lib/auth-helpers";
+import { AppDataSource } from "../../data-source";
+import { In } from "typeorm";
+import * as PostHog from "../../lib/posthog";
+import { debugLog } from "../../lib/debug-logger";
 
 @Resolver(() => Team)
 export class TeamResolver {
   @Query(() => [Team])
   async teams(
-    @Arg('programId', () => ID, { nullable: true }) programId?: string,
+    @Arg("programId", () => ID, { nullable: true }) programId?: string,
     @Ctx() ctx?: Context
   ): Promise<Team[]> {
     const teamRepo = AppDataSource.getRepository(Team);
-    
+
     if (programId) {
       return await teamRepo.find({
         where: { programId },
-        relations: ['leader', 'supervisor', 'members', 'program'],
+        relations: ["leader", "supervisor", "members", "program"],
       });
     }
-    
+
     return await teamRepo.find({
-      relations: ['leader', 'supervisor', 'members', 'program'],
+      relations: ["leader", "supervisor", "members", "program"],
     });
   }
 
   @Query(() => Team, { nullable: true })
   async team(
-    @Arg('id', () => ID) id: string,
+    @Arg("id", () => ID) id: string,
     @Ctx() ctx?: Context
   ): Promise<Team | null> {
     const teamRepo = AppDataSource.getRepository(Team);
     return await teamRepo.findOne({
       where: { id },
-      relations: ['leader', 'supervisor', 'members', 'program'],
+      relations: ["leader", "supervisor", "members", "program"],
     });
   }
 
   @Query(() => [Team])
   async myTeams(@Ctx() ctx: Context): Promise<Team[]> {
+    debugLog(`[TeamResolver] myTeams called for user ${ctx.userEmail} (ID: ${ctx.userId})`);
     if (!ctx.userId && !ctx.userEmail) {
+      debugLog("[TeamResolver] myTeams: No authentication info in context");
       return [];
     }
 
@@ -56,46 +64,48 @@ export class TeamResolver {
       ? await userRepo.findOne({ where: { id: ctx.userId } })
       : null;
 
-    if (!user) return [];
+    if (!user) {
+      debugLog(`[TeamResolver] myTeams: User not found for email: ${ctx.userEmail}`);
+      return [];
+    }
 
-    // Get teams where user is leader
-    const teamsAsLeader = await teamRepo.find({
-      where: { leaderId: user.id },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    });
+    debugLog(`[TeamResolver] myTeams: Found user ${user.id}`);
 
-    // Get teams where user is supervisor
-    const teamsAsSupervisor = await teamRepo.find({
-      where: { supervisorId: user.id },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    });
+    try {
+      // Get all teams and filter in memory - safer than complex joins while debugging
+      const allTeams = await teamRepo.find({
+        relations: ["leader", "supervisor", "members", "program"],
+      });
+      debugLog(`[TeamResolver] myTeams: Fetched ${allTeams.length} total teams from DB`);
 
-    // Get teams where user is member using query builder
-    const teamsAsMember = await teamRepo
-      .createQueryBuilder('team')
-      .leftJoinAndSelect('team.leader', 'leader')
-      .leftJoinAndSelect('team.supervisor', 'supervisor')
-      .leftJoinAndSelect('team.members', 'members')
-      .leftJoinAndSelect('team.program', 'program')
-      .innerJoin('team.members', 'member', 'member.id = :userId', { userId: user.id })
-      .getMany();
+      const myTeams = allTeams.filter(team => {
+        // Is leader?
+        if (team.leaderId === user.id) return true;
+        
+        // Is supervisor?
+        if (team.supervisorId === user.id) return true;
+        
+        // Is member?
+        if (team.members && team.members.some(m => m && m.id === user.id)) return true;
+        
+        return false;
+      });
 
-    // Combine and deduplicate
-    const allTeams = [...teamsAsLeader, ...teamsAsSupervisor, ...teamsAsMember];
-    const uniqueTeams = Array.from(
-      new Map(allTeams.map((team) => [team.id, team])).values()
-    );
-
-    return uniqueTeams;
+      debugLog(`[TeamResolver] myTeams: Found ${myTeams.length} matches for user ${user.id}`);
+      return myTeams;
+    } catch (error: any) {
+      debugLog(`[TeamResolver] myTeams CRITICAL ERROR: ${error.message}`);
+      throw new Error(`Failed to fetch my teams: ${error.message}`);
+    }
   }
 
   @Mutation(() => Team)
   async createTeam(
-    @Arg('input') input: CreateTeamInput,
+    @Arg("input") input: CreateTeamInput,
     @Ctx() ctx: Context
   ): Promise<Team> {
     if (!ctx.userId && !ctx.userEmail) {
-      throw new Error('Authentication required');
+      throw new Error("Authentication required");
     }
 
     const userRepo = AppDataSource.getRepository(User);
@@ -133,7 +143,7 @@ export class TeamResolver {
     const saved = await teamRepo.save(team);
 
     // Publish subscription event
-    await ctx.pubSub.publish('TEAM_UPDATED', {
+    await ctx.pubSub.publish("TEAM_UPDATED", {
       teamId: saved.id,
       team: saved,
     });
@@ -141,20 +151,20 @@ export class TeamResolver {
     // Track analytics: team_created
     PostHog.trackTeamCreated(user.id, saved.id, input.programId);
 
-    return await teamRepo.findOne({
+    return (await teamRepo.findOne({
       where: { id: saved.id },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    }) as Team;
+      relations: ["leader", "supervisor", "members", "program"],
+    })) as Team;
   }
 
   @Mutation(() => Team)
   async updateTeam(
-    @Arg('id', () => ID) id: string,
-    @Arg('input') input: UpdateTeamInput,
+    @Arg("id", () => ID) id: string,
+    @Arg("input") input: UpdateTeamInput,
     @Ctx() ctx: Context
   ): Promise<Team> {
     if (!ctx.userId && !ctx.userEmail) {
-      throw new Error('Authentication required');
+      throw new Error("Authentication required");
     }
 
     const userRepo = AppDataSource.getRepository(User);
@@ -167,20 +177,21 @@ export class TeamResolver {
       : null;
 
     if (!user || !checkIsAdmin(user)) {
-      throw new Error('Only admins can update teams');
+      throw new Error("Only admins can update teams");
     }
 
     const team = await teamRepo.findOne({
       where: { id },
-      relations: ['members'],
+      relations: ["members"],
     });
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     if (input.name !== undefined) team.name = input.name;
     if (input.leaderId !== undefined) team.leaderId = input.leaderId;
-    if (input.supervisorId !== undefined) team.supervisorId = input.supervisorId;
+    if (input.supervisorId !== undefined)
+      team.supervisorId = input.supervisorId;
     if (input.progress !== undefined) team.progress = input.progress;
     if (input.memberIds !== undefined) {
       team.members = await userRepo.find({
@@ -190,26 +201,26 @@ export class TeamResolver {
 
     await teamRepo.save(team);
 
-    const updated = await teamRepo.findOne({
+    const updated = (await teamRepo.findOne({
       where: { id },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    }) as Team;
+      relations: ["leader", "supervisor", "members", "program"],
+    })) as Team;
 
     // Publish subscription event
-    await ctx.pubSub.publish('TEAM_UPDATED', {
+    await ctx.pubSub.publish("TEAM_UPDATED", {
       teamId: updated.id,
       team: updated,
     });
 
     // Track analytics: team_updated
-    PostHog.trackTeamUpdated(user.id, updated.id, 'Team details updated');
+    PostHog.trackTeamUpdated(user.id, updated.id, "Team details updated");
 
     return updated;
   }
 
   @Mutation(() => Team)
   async addMember(
-    @Arg('input') input: AddMemberInput,
+    @Arg("input") input: AddMemberInput,
     @Ctx() ctx: Context
   ): Promise<Team> {
     const teamRepo = AppDataSource.getRepository(Team);
@@ -217,19 +228,19 @@ export class TeamResolver {
 
     const team = await teamRepo.findOne({
       where: { id: input.teamId },
-      relations: ['members'],
+      relations: ["members"],
     });
 
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     // Check if member already exists
     if (team.members.some((m) => m.id === input.userId)) {
-      return await teamRepo.findOne({
+      return (await teamRepo.findOne({
         where: { id: input.teamId },
-        relations: ['leader', 'supervisor', 'members', 'program'],
-      }) as Team;
+        relations: ["leader", "supervisor", "members", "program"],
+      })) as Team;
     }
 
     const newMember = await userRepo.findOne({ where: { id: input.userId } });
@@ -238,68 +249,68 @@ export class TeamResolver {
       await teamRepo.save(team);
     }
 
-    return await teamRepo.findOne({
+    return (await teamRepo.findOne({
       where: { id: input.teamId },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    }) as Team;
+      relations: ["leader", "supervisor", "members", "program"],
+    })) as Team;
   }
 
   @Mutation(() => Team)
   async removeMember(
-    @Arg('teamId', () => ID) teamId: string,
-    @Arg('userId', () => ID) userId: string,
+    @Arg("teamId", () => ID) teamId: string,
+    @Arg("userId", () => ID) userId: string,
     @Ctx() ctx: Context
   ): Promise<Team> {
     const teamRepo = AppDataSource.getRepository(Team);
 
     const team = await teamRepo.findOne({
       where: { id: teamId },
-      relations: ['members'],
+      relations: ["members"],
     });
 
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     team.members = team.members.filter((m) => m.id !== userId);
     await teamRepo.save(team);
 
-    return await teamRepo.findOne({
+    return (await teamRepo.findOne({
       where: { id: teamId },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    }) as Team;
+      relations: ["leader", "supervisor", "members", "program"],
+    })) as Team;
   }
 
   @Mutation(() => Team)
   async updateTeamProgress(
-    @Arg('teamId', () => ID) teamId: string,
-    @Arg('progress', () => Int) progress: number,
+    @Arg("teamId", () => ID) teamId: string,
+    @Arg("progress", () => Int) progress: number,
     @Ctx() ctx: Context
   ): Promise<Team> {
     if (progress < 0 || progress > 100) {
-      throw new Error('Progress must be between 0 and 100');
+      throw new Error("Progress must be between 0 and 100");
     }
 
     const teamRepo = AppDataSource.getRepository(Team);
 
     const team = await teamRepo.findOne({ where: { id: teamId } });
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     team.progress = progress;
     await teamRepo.save(team);
 
-    return await teamRepo.findOne({
+    return (await teamRepo.findOne({
       where: { id: teamId },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    }) as Team;
+      relations: ["leader", "supervisor", "members", "program"],
+    })) as Team;
   }
 
   @Mutation(() => Team)
   async assignSupervisor(
-    @Arg('teamId', () => ID) teamId: string,
-    @Arg('supervisorId', () => ID) supervisorId: string,
+    @Arg("teamId", () => ID) teamId: string,
+    @Arg("supervisorId", () => ID) supervisorId: string,
     @Ctx() ctx: Context
   ): Promise<Team> {
     requireAdminRole(ctx);
@@ -314,39 +325,43 @@ export class TeamResolver {
       : null;
 
     if (!admin || !checkIsAdmin(admin)) {
-      throw new Error('Only admins can assign supervisors');
+      throw new Error("Only admins can assign supervisors");
     }
 
     // Verify supervisor exists and has supervisor role
     const supervisor = await userRepo.findOne({ where: { id: supervisorId } });
     if (!supervisor) {
-      throw new Error('Supervisor not found');
+      throw new Error("Supervisor not found");
     }
 
-    if (supervisor.role !== 'supervisor' && supervisor.role !== 'admin') {
-      throw new Error('User must be a supervisor to be assigned');
+    if (supervisor.role !== "supervisor" && supervisor.role !== "admin") {
+      throw new Error("User must be a supervisor to be assigned");
     }
 
     const team = await teamRepo.findOne({ where: { id: teamId } });
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     team.supervisorId = supervisorId;
     await teamRepo.save(team);
 
     // Track analytics: admin_assign_supervisor
-    PostHog.trackTeamUpdated(admin.id, teamId, `Supervisor assigned: ${supervisor.name}`);
+    PostHog.trackTeamUpdated(
+      admin.id,
+      teamId,
+      `Supervisor assigned: ${supervisor.name}`
+    );
 
-    return await teamRepo.findOne({
+    return (await teamRepo.findOne({
       where: { id: teamId },
-      relations: ['leader', 'supervisor', 'members', 'program'],
-    }) as Team;
+      relations: ["leader", "supervisor", "members", "program"],
+    })) as Team;
   }
 
   @Mutation(() => Team)
   async deleteTeam(
-    @Arg('id', () => ID) id: string,
+    @Arg("id", () => ID) id: string,
     @Ctx() ctx: Context
   ): Promise<Team> {
     requireAdminRole(ctx);
@@ -361,30 +376,73 @@ export class TeamResolver {
       : null;
 
     if (!user || !checkIsAdmin(user)) {
-      throw new Error('Only admins can delete teams');
+      throw new Error("Only admins can delete teams");
     }
 
     const team = await teamRepo.findOne({
       where: { id },
-      relations: ['leader', 'supervisor', 'members', 'program', 'tasks', 'attendance', 'weeklyReports'],
+      relations: [
+        "leader",
+        "supervisor",
+        "members",
+        "program",
+        "tasks",
+        "attendance",
+        "weeklyReports",
+      ],
     });
     if (!team) {
-      throw new Error('Team not found');
+      throw new Error("Team not found");
     }
 
     try {
-      console.log(`[TeamResolver] Attempting to delete team: ${team.name} (${team.id})`);
+      console.log(
+        `[TeamResolver] Attempting to delete team: ${team.name} (${team.id})`
+      );
       // Check for related data that might block deletion
-      if (team.tasks?.length > 0 || team.attendance?.length > 0 || team.weeklyReports?.length > 0) {
-        console.log(`[TeamResolver] Team has related data: Tasks: ${team.tasks?.length}, Attendance: ${team.attendance?.length}, Reports: ${team.weeklyReports?.length}`);
+      if (
+        team.tasks?.length > 0 ||
+        team.attendance?.length > 0 ||
+        team.weeklyReports?.length > 0
+      ) {
+        console.log(
+          `[TeamResolver] Team has related data: Tasks: ${team.tasks?.length}, Attendance: ${team.attendance?.length}, Reports: ${team.weeklyReports?.length}`
+        );
       }
-      
+
+      // Store team data before deletion for return value
+      const teamToReturn = {
+        id: team.id,
+        name: team.name,
+        programId: team.programId,
+        leaderId: team.leaderId,
+        supervisorId: team.supervisorId,
+        progress: team.progress,
+        leader: team.leader,
+        supervisor: team.supervisor,
+        members: team.members,
+        program: team.program,
+      };
+
       await teamRepo.remove(team);
-      console.log(`[TeamResolver] Successfully deleted team: ${team.id}`);
-      return team;
+      console.log(
+        `[TeamResolver] Successfully deleted team: ${teamToReturn.id}`
+      );
+
+      // Return the team data before deletion (as a plain object to avoid GraphQL serialization issues)
+      return teamToReturn as Team;
     } catch (error) {
-      console.error('[TeamResolver] Error deleting team:', error);
-      throw error;
+      const msg = error instanceof Error ? error.message : String(error);
+      console.error("[TeamResolver] Error deleting team:", error);
+      throw new GraphQLError(
+        `Failed to delete team: ${msg}`,
+        undefined, // nodes
+        undefined, // source
+        undefined, // positions
+        undefined, // path
+        undefined, // originalError
+        { code: "INTERNAL_SERVER_ERROR" } // extensions
+      );
     }
   }
 }

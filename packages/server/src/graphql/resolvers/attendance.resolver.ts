@@ -109,7 +109,10 @@ export class AttendanceResolver {
       throw new Error('Team not found');
     }
 
-    const memberIds = [team.leaderId, ...team.members.map((m) => m.id)];
+    const memberIds = [
+      team.leaderId, 
+      ...(team.members || []).map((m) => m.id)
+    ].filter(Boolean);
 
     // Get attendance approvals
     const approvals = await approvalRepo.find({

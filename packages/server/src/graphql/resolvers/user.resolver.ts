@@ -1,10 +1,12 @@
 import { Resolver, Query, Arg, ID, Ctx, Mutation, FieldResolver, Root } from "type-graphql";
 import { User } from "../../entities/User";
 import { Attendance } from "../../entities/Attendance";
+import { Registration } from "../../entities/Registration";
 import { Context } from "../context";
 import { AppDataSource } from "../../data-source";
 import { Like } from "typeorm";
 import { requireAdminRole } from "../../lib/auth-helpers";
+import { debugLog } from "../../lib/debug-logger";
 import {
   CreateSupervisorInput,
   UpdateSupervisorInput,
@@ -46,20 +48,52 @@ export class UserResolver {
     @Arg('startDate', { nullable: true }) startDate?: string,
     @Arg('endDate', { nullable: true }) endDate?: string,
   ): Promise<Attendance[]> {
-    const attendanceRepo = AppDataSource.getRepository(Attendance);
-    
-    // Match Convex behavior: query by userId, optionally filter by date range
-    let query = attendanceRepo
-      .createQueryBuilder('attendance')
-      .where('attendance.userId = :userId', { userId: user.id })
-      .orderBy('attendance.date', 'DESC');
+    debugLog(`[UserResolver] attendance called for user ${user.id} (${startDate} to ${endDate})`);
+    try {
+      const attendanceRepo = AppDataSource.getRepository(Attendance);
+      
+      let query = attendanceRepo
+        .createQueryBuilder('attendance')
+        .leftJoinAndSelect('attendance.team', 'team')
+        .leftJoinAndSelect('attendance.user', 'attendanceUser')
+        .where('attendance.userId = :userId', { userId: user.id })
+        .orderBy('attendance.date', 'DESC');
 
-    if (startDate && endDate) {
-      query = query.andWhere('attendance.date >= :startDate', { startDate })
-                  .andWhere('attendance.date <= :endDate', { endDate });
+      if (startDate && endDate) {
+        query = query
+          .andWhere('attendance.date >= :startDate', { startDate })
+          .andWhere('attendance.date <= :endDate', { endDate });
+      }
+
+      const records = await query.getMany();
+      debugLog(`[UserResolver] attendance: Found ${records.length} records`);
+      return records.filter(r => r && r.team); // Filter out records with broken team relation
+    } catch (error: any) {
+      debugLog(`[UserResolver] attendance ERROR: ${error.message}`);
+      console.error('[UserResolver] attendance error:', error);
+      throw error;
     }
+  }
 
-    return await query.getMany();
+  @FieldResolver(() => [Registration])
+  async registrations(
+    @Root() user: User
+  ): Promise<Registration[]> {
+    debugLog(`[UserResolver] registrations called for user ${user.id}`);
+    try {
+      const registrationRepo = AppDataSource.getRepository(Registration);
+      const records = await registrationRepo.find({
+        where: { userId: user.id },
+        relations: ['program'],
+        order: { submittedAt: 'DESC' }
+      });
+      debugLog(`[UserResolver] registrations: Found ${records.length} records`);
+      return records;
+    } catch (error: any) {
+      debugLog(`[UserResolver] registrations ERROR: ${error.message}`);
+      console.error('[UserResolver] registrations error:', error);
+      throw error;
+    }
   }
 
   @Query(() => [User])

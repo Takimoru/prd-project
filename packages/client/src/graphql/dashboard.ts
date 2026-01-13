@@ -20,34 +20,52 @@ export const GET_DASHBOARD_DATA = gql(`
         }
         # Add other fields needed
       }
+      attendance(startDate: $startDate, endDate: $endDate) {
+        id
+        date
+        status
+        team {
+          id
+        }
+      }
     }
     myTeams {
       id
       name
       program {
         id
+        title
       }
       leader {
         id
         name
+        email
+        role
+        picture
+        studentId
       }
-      # Need progress, etc?
+      supervisor {
+        id
+        name
+        email
+        role
+        picture
+        nidn
+      }
+      members {
+        id
+        name
+        email
+        role
+        picture
+        studentId
+      }
       progress
       documentation {
         name
         url
         type
         uploadedAt
-      }
-    }
-    me {
-      attendance(startDate: $startDate, endDate: $endDate) {
-        id
-        date
-        status
-        team {
-            id
-        }
       }
     }
   }

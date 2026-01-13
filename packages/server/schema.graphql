@@ -321,6 +321,7 @@ type Task {
   teamId: String!
   title: String!
   updates: [TaskUpdate!]!
+  workProgram: WorkProgram
   workProgramId: String
 }
 

@@ -54,10 +54,9 @@ export class WorkProgram {
   createdAt: Date;
 
   // No direct relation to Task in previous schema, but implied 'workProgramId' on Task
-  // Let's assume Task has workProgramId
   @Field(() => [Task])
-  @OneToMany("Task", "workProgram") // Indirect string ref to avoid circ dependency issues if strictly typed
-  tasks: any[]; // Using any[] temporarily or use Thunk if needed, but 'Task' type handles it well in Type-GraphQL usually
+  @OneToMany(() => Task, task => task.workProgram)
+  tasks: Task[];
 
   @Field(() => Int, { defaultValue: 0 })
   @Column({ default: 0 })

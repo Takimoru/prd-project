@@ -14,6 +14,7 @@ import { clerkMiddleware } from "./middleware/clerk";
 import { initPostHog } from "./lib/posthog";
 import { AppDataSource } from "./data-source";
 import { Context, pubSub } from "./graphql/context";
+import { debugLog } from "./lib/debug-logger";
 import dotenv from "dotenv";
 
 // Import resolvers
@@ -76,27 +77,14 @@ async function startServer() {
   const server = new ApolloServer<Context>({
     schema,
     introspection: process.env.NODE_ENV !== "production",
-    formatError: (error) => {
-      // Ensure error is properly formatted for Apollo Server
-      const message = error.message || "An unknown error occurred";
-      const code = error.extensions?.code || "INTERNAL_SERVER_ERROR";
-
-      // Log error for debugging
-      console.error("GraphQL Error:", {
-        message,
-        code,
-        path: error.path,
-        extensions: error.extensions,
-      });
-
+    formatError: (formattedError, error) => {
+      debugLog(`[ApolloServer] Error: ${formattedError.message} at ${formattedError.path}`);
+      // Log the string representation of the original error
+      debugLog(`[ApolloServer] Original Error: ${String(error)}`);
+      
       return {
-        message,
-        code,
-        path: error.path,
-        extensions: {
-          ...error.extensions,
-          code,
-        },
+        ...formattedError,
+        message: formattedError.message || "Internal Server Error",
       };
     },
     plugins: [
@@ -151,20 +139,23 @@ async function startServer() {
     clerkMiddleware, // Clerk auth middleware
     expressMiddleware(server, {
       context: async ({ req, res }): Promise<Context> => {
-        const auth = (req as any).auth;
-        if (auth) {
-          console.log(`[Context] Creating context for ${auth.email} (Role: ${auth.role}, ID: ${auth.userId})`);
-        } else {
-          console.log('[Context] No auth found in request');
+        try {
+          const auth = (req as any).auth;
+          if (auth) {
+            debugLog(`[Context] Creating context for ${auth.email}`);
+          }
+          return {
+            req,
+            res,
+            userId: auth?.userId,
+            userEmail: auth?.email,
+            userRole: auth?.role,
+            pubSub,
+          };
+        } catch (err: any) {
+          debugLog(`[Context] Error: ${err.message}`);
+          throw err;
         }
-        return {
-          req,
-          res,
-          userId: auth?.userId,
-          userEmail: auth?.email,
-          userRole: auth?.role,
-          pubSub,
-        };
       },
     })
   );

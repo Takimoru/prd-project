@@ -11,8 +11,8 @@ export function TeamPage() {
   console.log("TeamPage Debug:", {
     user,
     myTeams,
+    isLoading,
     teamsCount: myTeams?.length,
-    firstTeam: myTeams?.[0],
   });
 
   // Collect all unique team members and supervisors
@@ -24,60 +24,85 @@ export function TeamPage() {
       
       // Add supervisor
       if (team.supervisor) {
-        allMembers.set(team.supervisor._id, {
-          ...team.supervisor,
-          role: "supervisor",
-          teams: allMembers.has(team.supervisor._id) 
-            ? [...allMembers.get(team.supervisor._id).teams, team.name || team.program?.title]
-            : [team.name || team.program?.title]
-        });
+        const supervisorId = team.supervisor.id || team.supervisor._id;
+        if (supervisorId) {
+          allMembers.set(supervisorId, {
+            ...team.supervisor,
+            id: supervisorId,
+            role: "supervisor",
+            teams: allMembers.has(supervisorId)
+              ? [...allMembers.get(supervisorId).teams, team.name || team.program?.title]
+              : [team.name || team.program?.title]
+          });
+        }
       }
 
       // Add team leader
       if (team.leader) {
-        allMembers.set(team.leader._id, {
-          ...team.leader,
-          role: team.leader.role || "student",
-          teams: allMembers.has(team.leader._id)
-            ? [...allMembers.get(team.leader._id).teams, team.name || team.program?.title]
-            : [team.name || team.program?.title]
-        });
+        const leaderId = team.leader.id || team.leader._id;
+        if (leaderId) {
+          allMembers.set(leaderId, {
+            ...team.leader,
+            id: leaderId,
+            role: team.leader.role || "student",
+            teams: allMembers.has(leaderId)
+              ? [...allMembers.get(leaderId).teams, team.name || team.program?.title]
+              : [team.name || team.program?.title]
+          });
+        }
       }
 
       // Add team members
       if (team.members) {
-        team.members.filter(Boolean).forEach(member => {
+        team.members.filter(Boolean).forEach((member: any) => {
           if (member) {
-            allMembers.set(member._id, {
-              ...member,
-              role: member.role || "student",
-              teams: allMembers.has(member._id)
-                ? [...allMembers.get(member._id).teams, team.name || team.program?.title]
-                : [team.name || team.program?.title]
-            });
+            const memberId = member.id || member._id;
+            if (memberId) {
+              const existing = allMembers.get(memberId);
+              allMembers.set(memberId, {
+                ...member,
+                id: memberId,
+                role: member.role || "student",
+                teams: existing
+                  ? [...existing.teams, team.name || team.program?.title]
+                  : [team.name || team.program?.title]
+              });
+            }
           }
         });
       }
     });
   }
 
-  // Add current user if not already in the list
-  if (user && !allMembers.has(user._id)) {
-    const userTeams = myTeams?.map(t => t.name || t.program?.title || "Team") || [];
-    allMembers.set(user._id, {
-      ...user,
-      role: user.role,
-      teams: userTeams
-    });
+  // Ensure user is in the list
+  if (user) {
+    const userId = user.id || user._id;
+    if (userId && !allMembers.has(userId)) {
+      allMembers.set(userId, {
+        ...user,
+        id: userId,
+        role: user.role || "student",
+        teams: []
+      });
+    }
   }
 
   console.log("All members collected:", Array.from(allMembers.values()));
 
   const teamMembersArray = Array.from(allMembers.values());
-  const supervisors = teamMembersArray.filter(m => m.role === "supervisor");
-  const students = teamMembersArray.filter(m => m.role === "student" || m.role === "pending");
+  const supervisors = teamMembersArray.filter(m => 
+    m.role?.toLowerCase() === "supervisor"
+  );
+  const students = teamMembersArray.filter(m => 
+    m.role?.toLowerCase() !== "supervisor"
+  );
 
-  console.log("Filtered:", { supervisors, students });
+  console.log("Filtered members:", { 
+    total: teamMembersArray.length,
+    supervisors: supervisors.length, 
+    students: students.length,
+    allRoles: teamMembersArray.map(m => m.role)
+  });
 
   const getRoleBadge = (role: string) => {
     const variants: Record<string, string> = {
@@ -101,6 +126,16 @@ export function TeamPage() {
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground tracking-tight">Team</h1>
             <p className="text-muted-foreground mt-1">Connect with your team members and supervisors</p>
+            {myTeams && myTeams.length > 0 && (
+              <p className="text-xs text-blue-500 mt-2">
+                Found {myTeams.length} team(s) with {teamMembersArray.length} total members.
+              </p>
+            )}
+            {(!myTeams || myTeams.length === 0) && !isLoading && (
+              <p className="text-xs text-orange-500 mt-2">
+                No teams found for your account.
+              </p>
+            )}
           </div>
 
           {/* Supervisors Section */}
@@ -109,8 +144,8 @@ export function TeamPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {supervisors.map((supervisor) => (
                 <div
-                  key={supervisor._id}
-                  className="bg-card border border-border rounded-lg p-5 hover:border-primary/50 transition-all"
+                  key={supervisor.id}
+                  className="p-4 rounded-xl border border-blue-100 bg-white shadow-sm hover:shadow-md transition-all group"
                 >
                   <div className="flex items-start gap-4">
                     <Avatar className="w-12 h-12 border border-border">
@@ -159,8 +194,8 @@ export function TeamPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {students.map((member) => (
                 <div
-                  key={member._id}
-                  className="bg-card border border-border rounded-lg p-5 hover:border-primary/50 transition-all"
+                  key={member.id}
+                  className="p-4 rounded-xl border border-sky-100 bg-white shadow-sm hover:shadow-md transition-all group"
                 >
                   <div className="flex items-start gap-4">
                     <Avatar className="w-12 h-12 border border-border">

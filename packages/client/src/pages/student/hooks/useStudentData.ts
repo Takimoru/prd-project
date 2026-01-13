@@ -7,7 +7,19 @@ const mapId = (item: any): any => {
   if (!item) return item;
   if (Array.isArray(item)) return item.map(mapId);
   if (typeof item === 'object') {
-     return { ...item, _id: item.id };
+    const mapped: any = { ...item };
+    if (item.id) mapped._id = item.id;
+    // Also handle Case where ._id exists but .id doesn't (backward compatibility)
+    if (item._id && !item.id) mapped.id = item._id;
+    
+    // Recursively map all properties
+    Object.keys(mapped).forEach(key => {
+      // Avoid recursion on circular refs if any, though unlikely here
+      if (key !== '__typename') {
+        mapped[key] = mapId(mapped[key]);
+      }
+    });
+    return mapped;
   }
   return item;
 };
@@ -35,6 +47,15 @@ export function useStudentData() {
   const myTeams = mapId(data?.myTeams);
   const todaysAttendance = mapId(data?.me?.attendance);
 
+  // Debug logging
+  console.log('[useStudentData] Raw data from query:', {
+    myTeamsRaw: data?.myTeams,
+    myTeamsMapped: myTeams,
+    teamsCount: myTeams?.length,
+    firstTeamMembers: myTeams?.[0]?.members,
+    firstTeamSupervisor: myTeams?.[0]?.supervisor,
+  });
+
   const mappedTeams = myTeams?.map((t: any) => ({
     ...t,
     programId: t.program?.id,
@@ -48,7 +69,7 @@ export function useStudentData() {
 
   const mappedAttendance = todaysAttendance?.map((a: any) => ({
     ...a,
-    teamId: a.team?.id
+    teamId: a.team?.id || a.team?._id
   }));
 
   return {

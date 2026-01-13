@@ -31,6 +31,6 @@ export class Comment {
   weeklyReportId?: string;
 
   @Field(() => WeeklyReport, { nullable: true })
-  @ManyToOne(() => WeeklyReport, report => report.comments, { nullable: true })
+  @ManyToOne(() => WeeklyReport, report => report.comments, { nullable: true, onDelete: 'CASCADE' })
   weeklyReport?: WeeklyReport;
 }

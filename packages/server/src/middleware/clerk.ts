@@ -3,6 +3,7 @@ import { clerkClient } from '@clerk/clerk-sdk-node';
 import { AppDataSource } from '../data-source';
 import { User } from '../entities/User';
 import { checkIsAdmin } from '../lib/auth-helpers';
+import { debugLog } from '../lib/debug-logger';
 
 export interface ClerkAuth {
   userId?: string;
@@ -30,6 +31,7 @@ export async function clerkMiddleware(
   res: Response,
   next: NextFunction
 ) {
+  debugLog(`[ClerkMiddleware] Request method: ${req.method}, URL: ${req.url}`);
   try {
     const authHeader = req.headers.authorization;
     
@@ -105,8 +107,10 @@ export async function clerkMiddleware(
       console.log('[ClerkMiddleware] No auth identified');
     }
 
+    debugLog(`[ClerkMiddleware] Finished. Auth: ${req.auth?.email || 'none'}`);
     next();
-  } catch (error) {
+  } catch (error: any) {
+    debugLog(`[ClerkMiddleware] CRITICAL ERROR: ${error.message}`);
     console.error('Clerk middleware error:', error);
     next(error);
   }

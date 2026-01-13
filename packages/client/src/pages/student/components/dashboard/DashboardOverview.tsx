@@ -90,14 +90,15 @@ export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly 
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {teams?.map(team => {
+                {teams?.map((team: any) => {
+                  const teamId = team.id || team._id;
                   const hasCheckedIn = todaysAttendance?.some(
-                    (record) => record.teamId === team._id && record.date === today
+                    (record: any) => record.teamId === teamId && record.date === today
                   );
                   
                   // In Spectator mode, show "Not yet" instead of button if not checked in
                   return (
-                    <div key={team._id} className="flex items-center justify-between p-3 rounded-lg border">
+                    <div key={teamId} className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
                         <p className="font-medium text-sm">{team.name}</p>
                         <p className="text-xs text-muted-foreground">
@@ -116,14 +117,12 @@ export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly 
                              <span className="text-xs font-medium">Pending</span>
                           </div>
                         ) : (
-                          <Button
-                            size="sm"
-                            variant="default"
-                            className="bg-orange-500 hover:bg-orange-600"
-                            onClick={() => handleCheckInClick(team._id)}
+                          <button
+                            onClick={() => handleCheckInClick(teamId)}
+                            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                           >
                             Check In
-                          </Button>
+                          </button>
                         )
                       )}
                     </div>
@@ -140,7 +139,7 @@ export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly 
         </div>
 
         {/* Recent Activity Feed - showing activity for the first team for now */}
-        <RecentActivity teamId={teams?.[0]?._id} />
+        <RecentActivity teamId={teams?.[0]?.id || teams?.[0]?._id} />
       </div>
 
       {!isReadOnly && (

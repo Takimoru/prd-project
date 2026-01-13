@@ -15,7 +15,7 @@ export class TaskUpdate {
   taskId: string;
 
   @Field(() => Task)
-  @ManyToOne(() => Task, task => task.updates)
+  @ManyToOne(() => Task, task => task.updates, { onDelete: 'CASCADE' })
   task: Task;
 
   @Field()

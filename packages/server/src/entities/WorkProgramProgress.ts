@@ -18,7 +18,7 @@ export class WorkProgramProgress {
   workProgramId: string;
 
   @Field(() => WorkProgram)
-  @ManyToOne(() => WorkProgram, wp => wp.progressRecords)
+  @ManyToOne(() => WorkProgram, wp => wp.progressRecords, { onDelete: 'CASCADE' })
   workProgram: WorkProgram;
 
   @Field()

@@ -14,7 +14,7 @@ export class TaskFile {
   taskId: string;
 
   @Field(() => Task)
-  @ManyToOne(() => Task, task => task.completionFiles)
+  @ManyToOne(() => Task, task => task.completionFiles, { onDelete: 'CASCADE' })
   task: Task;
 
   @Field()

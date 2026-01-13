@@ -17,7 +17,7 @@
     "export:convex:sample": "ts-node src/scripts/export-convex-data.ts --sample"
   },
   "dependencies": {
-    "@apollo/server": "^4.10.0",
+    "@apollo/server": "4.9.3",
     "@clerk/clerk-sdk-node": "^4.2.9",
     "body-parser": "^1.20.2",
     "class-transformer": "^0.5.1",

@@ -4,6 +4,7 @@ import { Team } from "./Team";
 import { User } from "./User";
 import { TaskUpdate } from "./TaskUpdate";
 import { TaskFile } from "./TaskFile";
+import { WorkProgram } from "./WorkProgram";
 
 @ObjectType()
 @Entity()
@@ -64,6 +65,10 @@ export class Task {
   @Field({ nullable: true })
   @Column({ nullable: true })
   workProgramId?: string;
+
+  @Field(() => WorkProgram, { nullable: true })
+  @ManyToOne(() => WorkProgram, wp => wp.tasks, { nullable: true })
+  workProgram?: WorkProgram;
 
   @Field({ nullable: true })
   @Column({ nullable: true })
