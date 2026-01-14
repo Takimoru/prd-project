@@ -3,6 +3,7 @@ import { WorkProgram } from '../../entities/WorkProgram';
 import { WorkProgramProgress } from '../../entities/WorkProgramProgress';
 import { Team } from '../../entities/Team';
 import { User } from '../../entities/User';
+import { Task } from '../../entities/Task';
 import { Context } from '../context';
 import { requireAuth, requireSupervisorRole, requireLeaderRole, requireAdminRole } from '../../lib/auth-helpers';
 import { AppDataSource } from '../../data-source';
@@ -63,6 +64,38 @@ export class WorkProgramResolver {
     return await teamRepo.findOneOrFail({ where: { id: wp.teamId } });
   }
 
+  @FieldResolver(() => User)
+  async createdBy(@Root() wp: WorkProgram): Promise<User> {
+    const userRepo = AppDataSource.getRepository(User);
+    if (wp.createdBy) return wp.createdBy;
+    return await userRepo.findOneOrFail({ where: { id: wp.createdById } });
+  }
+
+  @FieldResolver(() => [User])
+  async assignedMembers(@Root() wp: WorkProgram): Promise<User[]> {
+    const wpRepo = AppDataSource.getRepository(WorkProgram);
+    if (wp.assignedMembers) return wp.assignedMembers;
+    const wpWithMembers = await wpRepo.findOneOrFail({
+      where: { id: wp.id },
+      relations: ['assignedMembers'],
+    });
+    return wpWithMembers.assignedMembers || [];
+  }
+
+  @FieldResolver(() => [Task])
+  async tasks(@Root() wp: WorkProgram): Promise<Task[]> {
+    const taskRepo = AppDataSource.getRepository(Task);
+    if (wp.tasks) return wp.tasks;
+    return await taskRepo.find({ where: { workProgramId: wp.id }, order: { createdAt: 'DESC' } });
+  }
+
+  @FieldResolver(() => [WorkProgramProgress])
+  async progressRecords(@Root() wp: WorkProgram): Promise<WorkProgramProgress[]> {
+    const progressRepo = AppDataSource.getRepository(WorkProgramProgress);
+    if (wp.progressRecords) return wp.progressRecords;
+    return await progressRepo.find({ where: { workProgramId: wp.id } });
+  }
+
   @Query(() => [WorkProgram])
   async workPrograms(
     @Arg('teamId', () => ID) teamId: string,
@@ -73,7 +106,7 @@ export class WorkProgramResolver {
     const wpRepo = AppDataSource.getRepository(WorkProgram);
     return await wpRepo.find({
       where: { teamId },
-      relations: ['team'],
+      // Relations removed to prevent circularity
       order: { createdAt: 'DESC' },
     });
   }
@@ -101,11 +134,8 @@ export class WorkProgramResolver {
     debugLog(`[WorkProgramResolver] Found user ${user.id} (${user.role})`);
 
     // Use standard find with relations and filter in memory - safer than complex joins
-    // Simplification: Join only team (not members) to avoid circularity
+    // Relations removed to prevent circularity
     const allWps = await wpRepo.find({
-      relations: [
-        'team',
-      ],
       order: { createdAt: 'DESC' }
     });
 
@@ -139,7 +169,7 @@ export class WorkProgramResolver {
     const wpRepo = AppDataSource.getRepository(WorkProgram);
     return await wpRepo.findOne({
       where: { id },
-      relations: ['team', 'createdBy', 'assignedMembers', 'progress', 'progress.member', 'tasks'],
+      // Relations removed to prevent circularity, handled by FieldResolvers
     });
   }
 

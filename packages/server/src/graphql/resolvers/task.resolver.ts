@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx, Int } from 'type-graphql';
+import { Resolver, Query, Mutation, Arg, ID, Ctx, Int, FieldResolver, Root } from 'type-graphql';
 import { Task } from '../../entities/Task';
 import { TaskUpdate } from '../../entities/TaskUpdate';
 import { TaskFile } from '../../entities/TaskFile';
@@ -15,6 +15,60 @@ import * as PostHog from '../../lib/posthog';
 
 @Resolver(() => Task)
 export class TaskResolver {
+  @FieldResolver(() => User)
+  async createdBy(@Root() task: Task): Promise<User> {
+    const userRepo = AppDataSource.getRepository(User);
+    if (task.createdBy) return task.createdBy;
+    return await userRepo.findOneOrFail({ where: { id: task.createdById } });
+  }
+
+  @FieldResolver(() => [User])
+  async assignedMembers(@Root() task: Task): Promise<User[]> {
+    const taskRepo = AppDataSource.getRepository(Task);
+    if (task.assignedMembers) return task.assignedMembers;
+    const taskWithMembers = await taskRepo.findOneOrFail({
+      where: { id: task.id },
+      relations: ['assignedMembers'],
+    });
+    return taskWithMembers.assignedMembers || [];
+  }
+
+  @FieldResolver(() => User, { nullable: true })
+  async completedBy(@Root() task: Task): Promise<User | null> {
+    if (!task.completedById) return null;
+    const userRepo = AppDataSource.getRepository(User);
+    if (task.completedBy) return task.completedBy;
+    return await userRepo.findOne({ where: { id: task.completedById } });
+  }
+
+  @FieldResolver(() => Team)
+  async team(@Root() task: Task): Promise<Team> {
+    const teamRepo = AppDataSource.getRepository(Team);
+    if (task.team) return task.team;
+    return await teamRepo.findOneOrFail({ where: { id: task.teamId } });
+  }
+
+  @FieldResolver(() => WorkProgram, { nullable: true })
+  async workProgram(@Root() task: Task): Promise<WorkProgram | null> {
+    if (!task.workProgramId) return null;
+    const wpRepo = AppDataSource.getRepository(WorkProgram);
+    if (task.workProgram) return task.workProgram;
+    return await wpRepo.findOne({ where: { id: task.workProgramId } });
+  }
+
+  @FieldResolver(() => [TaskUpdate])
+  async updates(@Root() task: Task): Promise<TaskUpdate[]> {
+    const updateRepo = AppDataSource.getRepository(TaskUpdate);
+    if (task.updates) return task.updates;
+    return await updateRepo.find({ where: { taskId: task.id }, order: { createdAt: 'DESC' } });
+  }
+
+  @FieldResolver(() => [TaskFile])
+  async completionFiles(@Root() task: Task): Promise<TaskFile[]> {
+    const fileRepo = AppDataSource.getRepository(TaskFile);
+    if (task.completionFiles) return task.completionFiles;
+    return await fileRepo.find({ where: { taskId: task.id } });
+  }
   @Query(() => [Task])
   async tasks(
     @Arg('teamId', () => ID) teamId: string,
@@ -23,7 +77,7 @@ export class TaskResolver {
     const taskRepo = AppDataSource.getRepository(Task);
     return await taskRepo.find({
       where: { teamId },
-      relations: ['createdBy', 'assignedMembers', 'completedBy', 'team', 'updates', 'updates.user', 'completionFiles'],
+      // Relations removed to prevent circularity
       order: { createdAt: 'DESC' },
     });
   }
@@ -36,7 +90,7 @@ export class TaskResolver {
     const taskRepo = AppDataSource.getRepository(Task);
     return await taskRepo.findOne({
       where: { id },
-      relations: ['createdBy', 'assignedMembers', 'completedBy', 'team', 'updates', 'updates.user', 'completionFiles'],
+      // Relations removed to prevent circularity
     });
   }
 
@@ -93,7 +147,7 @@ export class TaskResolver {
 
     return await taskRepo.find({
       where: { teamId: In(teamIds) },
-      relations: ['createdBy', 'assignedMembers', 'completedBy', 'team', 'updates', 'updates.user', 'completionFiles'],
+      // Relations removed to prevent circularity
     });
   }
 
@@ -161,7 +215,7 @@ export class TaskResolver {
 
     return await taskRepo.findOne({
       where: { id: saved.id },
-      relations: ['createdBy', 'assignedMembers', 'team'],
+      // Relations removed to prevent circularity
     }) as Task;
   }
 

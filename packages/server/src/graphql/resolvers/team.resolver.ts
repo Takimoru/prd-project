@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx, Int } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, ID, Ctx, Int, FieldResolver, Root } from "type-graphql";
 import { GraphQLError } from "graphql";
 import { Team } from "../../entities/Team";
 import { User } from "../../entities/User";
@@ -13,9 +13,66 @@ import { AppDataSource } from "../../data-source";
 import { In } from "typeorm";
 import * as PostHog from "../../lib/posthog";
 import { debugLog } from "../../lib/debug-logger";
+import { Program } from "../../entities/Program";
+import { Task } from "../../entities/Task";
+import { WorkProgram } from "../../entities/WorkProgram";
+import { WeeklyReport } from "../../entities/WeeklyReport";
 
 @Resolver(() => Team)
 export class TeamResolver {
+  @FieldResolver(() => User)
+  async leader(@Root() team: Team): Promise<User> {
+    const userRepo = AppDataSource.getRepository(User);
+    if (team.leader) return team.leader;
+    return (await userRepo.findOneOrFail({ where: { id: team.leaderId } }));
+  }
+
+  @FieldResolver(() => User, { nullable: true })
+  async supervisor(@Root() team: Team): Promise<User | null> {
+    if (!team.supervisorId) return null;
+    const userRepo = AppDataSource.getRepository(User);
+    if (team.supervisor) return team.supervisor;
+    return await userRepo.findOne({ where: { id: team.supervisorId } });
+  }
+
+  @FieldResolver(() => [User])
+  async members(@Root() team: Team): Promise<User[]> {
+    const teamRepo = AppDataSource.getRepository(Team);
+    if (team.members) return team.members;
+    const teamWithMembers = await teamRepo.findOneOrFail({
+      where: { id: team.id },
+      relations: ["members"],
+    });
+    return teamWithMembers.members || [];
+  }
+
+  @FieldResolver(() => Program)
+  async program(@Root() team: Team): Promise<Program> {
+    const programRepo = AppDataSource.getRepository(Program);
+    if (team.program) return team.program;
+    return await programRepo.findOneOrFail({ where: { id: team.programId } });
+  }
+
+  @FieldResolver(() => [Task])
+  async tasks(@Root() team: Team): Promise<Task[]> {
+    const taskRepo = AppDataSource.getRepository(Task);
+    if (team.tasks) return team.tasks;
+    return await taskRepo.find({ where: { teamId: team.id } });
+  }
+
+  @FieldResolver(() => [WorkProgram])
+  async workPrograms(@Root() team: Team): Promise<WorkProgram[]> {
+    const wpRepo = AppDataSource.getRepository(WorkProgram);
+    if (team.workPrograms) return team.workPrograms;
+    return await wpRepo.find({ where: { teamId: team.id } });
+  }
+
+  @FieldResolver(() => [WeeklyReport])
+  async weeklyReports(@Root() team: Team): Promise<WeeklyReport[]> {
+    const reportRepo = AppDataSource.getRepository(WeeklyReport);
+    if (team.weeklyReports) return team.weeklyReports;
+    return await reportRepo.find({ where: { teamId: team.id } });
+  }
   @Query(() => [Team])
   async teams(
     @Arg("programId", () => ID, { nullable: true }) programId?: string,
@@ -26,13 +83,11 @@ export class TeamResolver {
     if (programId) {
       return await teamRepo.find({
         where: { programId },
-        relations: ["leader", "supervisor", "members", "program"],
+        // Relations removed to prevent circularity, handled by FieldResolvers
       });
     }
 
-    return await teamRepo.find({
-      relations: ["leader", "supervisor", "members", "program"],
-    });
+    return await teamRepo.find();
   }
 
   @Query(() => Team, { nullable: true })
@@ -43,7 +98,6 @@ export class TeamResolver {
     const teamRepo = AppDataSource.getRepository(Team);
     return await teamRepo.findOne({
       where: { id },
-      relations: ["leader", "supervisor", "members", "program"],
     });
   }
 
@@ -73,17 +127,9 @@ export class TeamResolver {
 
     try {
       // Get all teams and filter in memory - safer than complex joins while debugging
+      // Relations removed to prevent circularity
       const allTeams = await teamRepo.find({
-        relations: [
-          "leader", 
-          "supervisor", 
-          "members", 
-          "program",
-          "tasks",
-          "tasks.assignedMembers",
-          "tasks.completedBy",
-          "workPrograms",
-        ],
+        relations: ["members"], // Keep members for filtering logic
       });
       debugLog(`[TeamResolver] myTeams: Fetched ${allTeams.length} total teams from DB`);
 
