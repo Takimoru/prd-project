@@ -1,2 +1,9 @@
 packages:
-  - 'packages/*'
+  - packages/*
+
+onlyBuiltDependencies:
+  - "@apollo/protobufjs"
+  - better-sqlite3
+  - esbuild
+  - sqlite3
+  - type-graphql

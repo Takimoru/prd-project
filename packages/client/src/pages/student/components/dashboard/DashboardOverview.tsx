@@ -32,10 +32,12 @@ export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly 
     try {
       await checkIn({
         variables: {
+          input: {
             teamId: selectedTeamId,
+            date: today,
             status,
-            excuse
-            // lat, long not passed yet in this component?
+            excuse,
+          },
         },
         refetchQueries: ['GetDashboardData'] // Refetch dashboard to update attendance status
       });

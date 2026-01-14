@@ -1,7 +1,0 @@
-src/components/ui/select.tsx(3,10): error TS6133: 'Check' is declared but its value is never read.
-src/pages/admin/hooks/useTeamManagement.ts(15,54): error TS2345: Argument of type '{ name: string; leaderId: string; memberIds: never[]; }' is not assignable to parameter of type 'TeamForm | (() => TeamForm)'.
-  Property 'supervisorId' is missing in type '{ name: string; leaderId: string; memberIds: never[]; }' but required in type 'TeamForm'.
-src/pages/admin/hooks/useTeamManagement.ts(57,17): error TS2345: Argument of type '{ name: string; leaderId: string; memberIds: never[]; }' is not assignable to parameter of type 'SetStateAction<TeamForm>'.
-  Property 'supervisorId' is missing in type '{ name: string; leaderId: string; memberIds: never[]; }' but required in type 'TeamForm'.
-src/pages/admin/hooks/useTeamManagement.ts(140,17): error TS2345: Argument of type '{ name: string; leaderId: Id<"users">; memberIds: Id<"users">[]; }' is not assignable to parameter of type 'SetStateAction<TeamForm>'.
-  Property 'supervisorId' is missing in type '{ name: string; leaderId: Id<"users">; memberIds: Id<"users">[]; }' but required in type 'TeamForm'.

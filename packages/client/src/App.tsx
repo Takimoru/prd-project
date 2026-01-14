@@ -53,7 +53,26 @@ function SpectatorDashboardWrapper() {
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
+// Debug: Log the client ID to verify it's loaded
+if (typeof window !== 'undefined' && !googleClientId) {
+  console.error("❌ VITE_GOOGLE_CLIENT_ID is not set!");
+  console.log("Current env value:", import.meta.env.VITE_GOOGLE_CLIENT_ID);
+  console.log("Please ensure packages/client/.env.local exists with VITE_GOOGLE_CLIENT_ID");
+}
+
 function App() {
+  // Only render GoogleOAuthProvider if client ID is available
+  if (!googleClientId) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <h1>Configuration Error</h1>
+        <p>VITE_GOOGLE_CLIENT_ID is not configured.</p>
+        <p>Please create <code>packages/client/.env.local</code> with your Google Client ID.</p>
+        <p>Then restart the dev server.</p>
+      </div>
+    );
+  }
+
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
       <ApolloProvider client={apolloClient}>
