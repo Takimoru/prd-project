@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
+import { AdminHeader } from "./components/AdminHeader";
+
 export function LogsheetReviewPage() {
   const [selectedProgram, setSelectedProgram] = useState<string>("");
   const [selectedTeam, setSelectedTeam] = useState<string>("");
@@ -48,15 +50,11 @@ export function LogsheetReviewPage() {
   );
 
   return (
-    <div className="container py-8 space-y-8 max-w-6xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Logsheet Reviews</h1>
-          <p className="text-muted-foreground mt-1 text-lg">
-            Monitor and review weekly progress recaps submitted by teams.
-          </p>
-        </div>
-      </div>
+    <div className="space-y-8">
+      <AdminHeader
+        title="Logsheet Reviews"
+        description="Monitor and review weekly progress recaps submitted by teams."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Program Selection */}
