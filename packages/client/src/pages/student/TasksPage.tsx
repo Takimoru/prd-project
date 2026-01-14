@@ -14,15 +14,23 @@ export function TasksPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
 
-  const { data: tasksData, loading: tasksLoading } = useQuery(GET_MY_TASKS, {
-    skip: !user
+  const { data: tasksData, loading: tasksLoading, error: tasksError } = useQuery(GET_MY_TASKS, {
+    skip: !user,
+    fetchPolicy: 'cache-and-network',
   });
 
-  // Flatten tasks from teams
+  // Debug logging
+  if (tasksError) {
+    console.error('[TasksPage] Error fetching tasks:', tasksError);
+  }
+  if (tasksData) {
+    console.log('[TasksPage] Tasks data:', tasksData);
+  }
+
+  // Flatten tasks from teams with null safety
   // Type: myTeams: { tasks: Task[] }[]
-  // Need to map.
   const myTasks = tasksData?.myTeams?.flatMap((team: any) => 
-      team.tasks.map((task: any) => ({
+      (team.tasks || []).map((task: any) => ({
           ...task,
           team: task.team || team
       })) 

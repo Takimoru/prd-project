@@ -74,7 +74,18 @@ export class TeamResolver {
     try {
       // Get all teams and filter in memory - safer than complex joins while debugging
       const allTeams = await teamRepo.find({
-        relations: ["leader", "supervisor", "members", "program"],
+        relations: [
+          "leader", 
+          "supervisor", 
+          "members", 
+          "program",
+          "tasks",
+          "tasks.assignedMembers",
+          "tasks.completedBy",
+          "tasks.team",
+          "tasks.team.program",
+          "tasks.completionFiles",
+        ],
       });
       debugLog(`[TeamResolver] myTeams: Fetched ${allTeams.length} total teams from DB`);
 
