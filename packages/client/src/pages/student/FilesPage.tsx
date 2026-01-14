@@ -6,7 +6,7 @@ import { useQuery } from "@apollo/client";
 import { GET_MY_TASKS } from "../../graphql/dashboard";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
-import { FileText, Download, Folder } from "lucide-react";
+import { FileText, Download, Folder, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 
 export function FilesPage() {
@@ -14,7 +14,7 @@ export function FilesPage() {
 
   // Fetch all tasks from user's teams
   const { data: tasksData, loading: tasksLoading } = useQuery(GET_MY_TASKS, {
-    skip: isLoading || !user,
+    skip: !user,
   });
 
   // Collect all tasks with completion files from user's teams
@@ -67,8 +67,12 @@ export function FilesPage() {
 
   const hasFiles = Object.keys(filesByProgram).length > 0;
 
-  if (isLoading || tasksLoading || !user) {
-    return <div>Loading...</div>;
+  if (!user && (isLoading || tasksLoading)) {
+     return (
+       <div className="min-h-screen bg-background flex items-center justify-center">
+         <Loader2 className="animate-spin w-8 h-8 text-primary" />
+       </div>
+     );
   }
 
   return (
@@ -77,11 +81,13 @@ export function FilesPage() {
 
       <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="px-4 sm:px-6 py-6 sm:py-8">
-          <DashboardHeader />
+          <DashboardHeader 
+            title="Files" 
+            description="Manage your task completion files" 
+          />
           
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Files</h1>
-            <p className="text-muted-foreground mt-1">Task completion files organized by work program</p>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Library</h1>
           </div>
 
           {!hasFiles ? (
@@ -118,7 +124,7 @@ export function FilesPage() {
                   </CardHeader>
                   <CardContent className="pt-6">
                     <div className="space-y-3">
-                      {data.files.map((item, idx) => (
+                      {data.files.map((item: any, idx) => (
                         <div
                           key={idx}
                           className="flex items-center gap-4 p-4 rounded-lg border hover:bg-accent/50 transition-colors group"

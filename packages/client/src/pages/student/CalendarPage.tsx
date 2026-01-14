@@ -11,9 +11,10 @@ import {
   addMonths, 
   subMonths,
   isWithinInterval,
-  parseISO
+  parseISO,
+  isValid
 } from "date-fns";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { DashboardSidebar } from "./components/dashboard/DashboardSidebar";
@@ -44,17 +45,19 @@ export function CalendarPage() {
     // Add Work Programs (Projects)
     if (myTeams) {
       myTeams.forEach(team => {
-        if (team.program) {
+        if (team.program?.startDate && team.program?.endDate) {
           const start = parseISO(team.program.startDate);
           const end = parseISO(team.program.endDate);
           
-          if (isWithinInterval(day, { start, end })) {
-            events.push({
-              id: team._id,
-              title: team.program.title,
-              type: 'program',
-              color: 'bg-blue-500/10 text-blue-600 border-blue-200'
-            });
+          if (isValid(start) && isValid(end) && start <= end) {
+            if (isWithinInterval(day, { start, end })) {
+              events.push({
+                id: team.id || team._id,
+                title: team.program.title,
+                type: 'program',
+                color: 'bg-blue-500/10 text-blue-600 border-blue-200'
+              });
+            }
           }
         }
       });
@@ -63,8 +66,12 @@ export function CalendarPage() {
     return events;
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (!user && isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
@@ -75,10 +82,13 @@ export function CalendarPage() {
 
       <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="px-4 sm:px-6 py-6 sm:py-8">
-          <DashboardHeader />
+          <DashboardHeader 
+            title="Calendar" 
+            description="View your schedule and deadlines" 
+          />
 
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-foreground">Calendar</h1>
+            <h1 className="text-3xl font-bold text-foreground">Schedules</h1>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="h-4 w-4" />
@@ -106,52 +116,58 @@ export function CalendarPage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="grid grid-cols-7 auto-rows-fr">
-                {calendarDays.map((day) => {
-                  const events = getEventsForDay(day);
-                  const isToday = isSameDay(day, new Date());
-                  const isCurrentMonth = isSameMonth(day, currentDate);
+              {isLoading ? (
+                <div className="flex items-center justify-center p-20">
+                  <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="grid grid-cols-7 auto-rows-fr">
+                  {calendarDays.map((day) => {
+                    const events = getEventsForDay(day);
+                    const isToday = isSameDay(day, new Date());
+                    const isCurrentMonth = isSameMonth(day, currentDate);
 
-                  return (
-                    <div
-                      key={day.toString()}
-                      className={cn(
-                        "min-h-[120px] p-2 border-b border-r transition-colors hover:bg-accent/5",
-                        !isCurrentMonth && "bg-muted/20 text-muted-foreground",
-                        isToday && "bg-accent/10"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <span
-                          className={cn(
-                            "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
-                            isToday
-                              ? "bg-primary text-primary-foreground"
-                              : "text-foreground"
-                          )}
-                        >
-                          {format(day, "d")}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-1">
-                        {events.map((event, idx) => (
-                          <div
-                            key={`${event.id}-${idx}`}
+                    return (
+                      <div
+                        key={day.toString()}
+                        className={cn(
+                          "min-h-[120px] p-2 border-b border-r transition-colors hover:bg-accent/5",
+                          !isCurrentMonth && "bg-muted/20 text-muted-foreground",
+                          isToday && "bg-accent/10"
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span
                             className={cn(
-                              "text-xs px-2 py-1 rounded-md border truncate",
-                              event.color
+                              "text-sm font-medium w-7 h-7 flex items-center justify-center rounded-full",
+                              isToday
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground"
                             )}
-                            title={event.title}
                           >
-                            {event.title}
-                          </div>
-                        ))}
+                            {format(day, "d")}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-1">
+                          {events.map((event, idx) => (
+                            <div
+                              key={`${event.id}-${idx}`}
+                              className={cn(
+                                "text-xs px-2 py-1 rounded-md border truncate",
+                                event.color
+                              )}
+                              title={event.title}
+                            >
+                              {event.title}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

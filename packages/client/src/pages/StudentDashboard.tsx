@@ -7,6 +7,7 @@ import { useStudentData } from "./student/hooks/useStudentData";
 import { DashboardSidebar } from "./student/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "./student/components/dashboard/DashboardHeader";
 import { DashboardOverview } from "./student/components/dashboard/DashboardOverview";
+import { Loader2 } from "lucide-react";
 
 export function StudentDashboard() {
   const [searchParams] = useSearchParams();
@@ -36,8 +37,23 @@ export function StudentDashboard() {
     return myTeams?.find((t: any) => t.programId === selectedProgramId);
   }, [myTeams, selectedProgramId]);
 
+  if (!user && isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen bg-background">
+        <DashboardSidebar user={user} />
+        <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
   }
 
   if (selectedProgramId && selectedProgram) {

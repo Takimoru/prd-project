@@ -2,19 +2,27 @@ import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+  title?: string;
+  description?: string;
+}
+
+export function DashboardHeader({ 
+  title = "Projects", 
+  description = "Manage your ongoing projects and tasks" 
+}: DashboardHeaderProps) {
   return (
     <div className="flex flex-col gap-4 mb-6 sm:mb-8">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Projects</h1>
-        <p className="text-muted-foreground mt-1 text-sm sm:text-base">Manage your ongoing projects and tasks</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{title}</h1>
+        <p className="text-muted-foreground mt-1 text-sm sm:text-base">{description}</p>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
         <div className="relative flex-1 sm:flex-initial sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
-            placeholder="Search projects..." 
+            placeholder={`Search ${title.toLowerCase()}...`} 
             className="pl-9 bg-card border-border focus:ring-primary"
           />
         </div>
