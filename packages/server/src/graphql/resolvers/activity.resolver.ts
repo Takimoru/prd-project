@@ -1,37 +1,59 @@
 import { Resolver, Query, Arg, ID, Ctx } from 'type-graphql';
 import { Activity } from '../../entities/Activity';
 import { User } from '../../entities/User';
+import { Team } from '../../entities/Team';
 import { Context } from '../context';
 import { AppDataSource } from '../../data-source';
 import { requireAuth } from '../../lib/auth-helpers';
+import { In } from 'typeorm';
 
-/**
- * Activity Resolver - Timeline/Recent Activity
- * Matches Convex behavior: api.activities.get
- */
 @Resolver(() => Activity)
 export class ActivityResolver {
   @Query(() => [Activity])
   async activities(
-    @Arg('teamId', () => ID) teamId: string,
+    @Arg('teamId', () => ID, { nullable: true }) teamId: string | null,
     @Ctx() ctx: Context
   ): Promise<Activity[]> {
     requireAuth(ctx);
 
     const activityRepo = AppDataSource.getRepository(Activity);
+    const teamRepo = AppDataSource.getRepository(Team);
     
-    // Match Convex behavior: query by team, order DESC, take 10
+    let filterTeamIds: string[] = [];
+
+    if (teamId) {
+      filterTeamIds = [teamId];
+    } else {
+      // Fetch all teams connected to the user
+      const userTeams = await teamRepo
+        .createQueryBuilder('team')
+        .where('team.leaderId = :userId', { userId: ctx.userId })
+        .orWhere('team.supervisorId = :userId', { userId: ctx.userId })
+        .orWhere((qb) => {
+          const subQuery = qb
+            .subQuery()
+            .select('t.id')
+            .from(Team, 't')
+            .innerJoin('t.members', 'm', 'm.id = :userId', { userId: ctx.userId })
+            .getQuery();
+          return `team.id IN ${subQuery}`;
+        })
+        .getMany();
+
+      filterTeamIds = userTeams.map(t => t.id);
+    }
+
+    if (filterTeamIds.length === 0) {
+      return [];
+    }
+
     const activities = await activityRepo.find({
-      where: { teamId },
+      where: { teamId: In(filterTeamIds) },
       relations: ['user', 'team'],
       order: { timestamp: 'DESC' },
       take: 10,
     });
 
-    // Convex enriches with userName and userPicture
-    // Our entity already has user relation, so GraphQL will resolve it
-    // But we can add field resolvers if needed for exact match
-    
     return activities;
   }
 }

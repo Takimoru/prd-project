@@ -1,10 +1,10 @@
 import { useQuery } from "@apollo/client";
 import { GET_TEAM_LOGSHEETS } from "../../graphql/logsheet";
 import { GET_PROGRAMS, GET_TEAMS_BY_PROGRAM } from "../../graphql/admin";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, Download, FileText, Search, LayoutGrid, Users } from "lucide-react";
+import { Loader2, Download, Search, LayoutGrid, Users } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -57,7 +57,7 @@ export function LogsheetReviewPage() {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Program Selection */}
+        {/* Program Selection Card */}
         <Card className="border-primary/20 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -67,13 +67,13 @@ export function LogsheetReviewPage() {
           </CardHeader>
           <CardContent>
             <Select 
-              value={selectedProgram} 
+              value={selectedProgram || ""} 
               onValueChange={(val) => {
                 setSelectedProgram(val);
                 setSelectedTeam("");
               }}
             >
-              <SelectTrigger className="w-full bg-background">
+              <SelectTrigger className="w-full bg-background transition-all">
                 <SelectValue placeholder={loadingPrograms ? "Loading programs..." : "Choose a program"} />
               </SelectTrigger>
               <SelectContent>
@@ -85,7 +85,7 @@ export function LogsheetReviewPage() {
           </CardContent>
         </Card>
 
-        {/* Team Selection */}
+        {/* Team Selection Card */}
         <Card className={cn(
           "border-primary/20 shadow-sm transition-all",
           !selectedProgram && "opacity-50 grayscale pointer-events-none"
@@ -98,17 +98,17 @@ export function LogsheetReviewPage() {
           </CardHeader>
           <CardContent>
             <Select 
-              value={selectedTeam} 
+              value={selectedTeam || ""} 
               onValueChange={setSelectedTeam}
               disabled={!selectedProgram}
             >
-              <SelectTrigger className="w-full bg-background">
-                <SelectValue placeholder={loadingTeams ? "Loading teams..." : "Choose a team"} />
+              <SelectTrigger className="w-full bg-background transition-all">
+                <SelectValue placeholder={!selectedProgram ? "Select program first" : loadingTeams ? "Loading teams..." : "Choose a team"} />
               </SelectTrigger>
               <SelectContent>
                 {teams.map((t: any) => (
                   <SelectItem key={t.id} value={t.id}>
-                    {t.name} - {t.leader?.name || "No Leader"}
+                    {t.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -117,105 +117,101 @@ export function LogsheetReviewPage() {
         </Card>
       </div>
 
-      {/* Logsheets Table */}
+      {/* Logsheets Table Section */}
       <Card className="overflow-hidden border-none shadow-xl bg-card/50 backdrop-blur-sm">
-        <CardHeader className="border-b bg-muted/30">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Team Logsheets</CardTitle>
-              <CardDescription>
-                Review all submissions for the selected team.
-              </CardDescription>
+        {!selectedTeam ? (
+          <div className="text-center py-24 bg-muted/5 rounded-xl border border-dashed border-muted-foreground/20 m-6">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Download className="w-8 h-8 text-primary/60" />
             </div>
-            {selectedTeam && (
-              <div className="relative w-full md:w-72">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search week or user..."
-                    className="pl-9 bg-background/50"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-              </div>
-            )}
+            <h3 className="text-lg font-semibold text-foreground">No Team Selected</h3>
+            <p className="text-muted-foreground max-w-xs mx-auto mt-2">
+              Please select a program and then a team to review their weekly logsheet submissions.
+            </p>
           </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {!selectedTeam ? (
-            <div className="text-center py-24 bg-muted/5">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="w-8 h-8 text-primary/60" />
+        ) : loadingLogsheets ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4">
+            <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground font-medium animate-pulse">
+              Fetching logsheets...
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="p-6 border-b bg-muted/30 flex justify-between items-center">
+              <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
+                Logsheet Submissions
+                <span className="text-xs font-normal text-muted-foreground bg-background px-2 py-0.5 rounded-full border">
+                  {filteredLogs.length} found
+                </span>
+              </h2>
+              <div className="relative w-64 text-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search by week or name..." 
+                  className="pl-9 h-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">No Team Selected</h3>
-              <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-                Please select a program and then a team to view their logsheet submissions.
-              </p>
             </div>
-          ) : loadingLogsheets ? (
-            <div className="flex items-center justify-center py-24">
-              <Loader2 className="w-10 h-10 animate-spin text-primary" />
-            </div>
-          ) : filteredLogs.length > 0 ? (
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead className="w-32">Week</TableHead>
-                  <TableHead>Uploaded At</TableHead>
-                  <TableHead>Created By</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLogs.map((log: any) => (
-                  <TableRow key={log.id} className="hover:bg-muted/50 transition-colors group">
-                    <TableCell>
-                        <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
-                            {log.weekNumber}
-                        </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {new Date(log.createdAt).toLocaleDateString('en-US', { 
-                        year: 'numeric', 
-                        month: 'short', 
-                        day: 'numeric' 
-                      })}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-xs font-medium">
-                          {log.createdBy?.name?.charAt(0)}
-                        </div>
-                        <span className="font-medium">{log.createdBy?.name || "Unknown"}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="outline" size="sm" className="gap-2 shadow-sm group-hover:bg-primary group-hover:text-primary-foreground transition-all" asChild>
-                        <a href={log.fileUrl} target="_blank" rel="noopener noreferrer">
-                          <Download className="w-4 h-4" />
-                          Download
-                        </a>
-                      </Button>
-                    </TableCell>
+            
+            <div className="p-0">
+              <Table>
+                <TableHeader className="bg-muted/50">
+                  <TableRow>
+                    <TableHead className="w-[120px]">Week</TableHead>
+                    <TableHead>Submission Date</TableHead>
+                    <TableHead>Submitted By</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-20 bg-muted/10">
-              <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-muted-foreground">No logsheets submitted by this team yet.</p>
-              {searchTerm && (
-                 <Button 
-                   variant="link" 
-                   onClick={() => setSearchTerm("")}
-                   className="mt-2 text-primary"
-                 >
-                    Clear search filters
-                 </Button>
-              )}
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                        No submissions found matching your search.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredLogs.map((log: any) => (
+                      <TableRow key={log.id} className="group hover:bg-primary/5 transition-colors">
+                        <TableCell className="font-bold text-primary">
+                          Week {log.weekNumber}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          {new Date(log.uploadedAt || log.createdAt).toLocaleDateString("en-GB", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric"
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{log.createdBy?.name || "Anonymous"}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="group-hover:bg-primary group-hover:text-white transition-all shadow-sm"
+                            asChild
+                          >
+                            <a href={log.fileUrl} target="_blank" rel="noreferrer">
+                              <Download className="w-4 h-4 mr-2" />
+                              Download
+                            </a>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
             </div>
-          )}
-        </CardContent>
+          </>
+        )}
       </Card>
     </div>
   );

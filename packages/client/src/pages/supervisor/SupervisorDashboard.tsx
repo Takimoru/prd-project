@@ -23,24 +23,10 @@ export function SupervisorDashboard() {
     skip: !user?.id,
   });
 
-  const teams = data?.myTeams;
   const pendingReports = data?.weeklyReviewQueue;
   const workPrograms = data?.mySupervisedWorkPrograms;
   const pendingAttendance = data?.pendingAttendanceQueue;
 
-  // Calculate current week
-  const today = new Date();
-  const d = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-  const currentWeek = `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
-
-  // Helper to format weekStartDate (YYYY-MM-DD) to YYYY-WW format for comparison if possible
-  // Or just use the items as they come if they are "Pending" regardless of week
-  // The original code filtered by currentWeek. Let's maintain that but handle the different formats.
-  
   // Combine pending items
   const allPendingItems = [
     ...(pendingReports?.map((r: any) => ({ 
@@ -51,7 +37,6 @@ export function SupervisorDashboard() {
       weekValue: r.week
     })) || []),
     ...(pendingAttendance?.map((a: any) => {
-        // Simple conversion for display/comparison: approximate week from date
         const date = new Date(a.weekStartDate);
         const startOfYear = new Date(date.getFullYear(), 0, 1);
         const pastDaysOfYear = (date.getTime() - startOfYear.getTime()) / 86400000;
@@ -68,7 +53,6 @@ export function SupervisorDashboard() {
         };
     }) || [])
   ]
-  .filter(item => item.weekValue === currentWeek)
   .sort((a, b) => b.weekValue.localeCompare(a.weekValue));
 
   if (loading) {
@@ -94,7 +78,7 @@ export function SupervisorDashboard() {
           </p>
         </div>
 
-        {/* Work Programs Section (Replaces Stats Cards) */}
+        {/* Work Programs Section */}
         <div>
            <h2 className="text-xl font-semibold mb-4 text-foreground">Running Work Programs</h2>
            {workPrograms && workPrograms.length > 0 ? (
@@ -135,7 +119,13 @@ export function SupervisorDashboard() {
            )}
         </div>
 
-        {/* Pending Reviews Section */}
+        {/* Recent Activity Feed - MOVED TO MIDDLE */}
+        <div>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Recent Activity</h2>
+            <RecentActivity />
+        </div>
+
+        {/* Pending Reviews Section - MOVED TO BOTTOM */}
         <Card className="border-orange-200">
           <CardHeader className="bg-orange-50/30">
             <CardTitle className="text-orange-900">Pending Approvals</CardTitle>
@@ -204,12 +194,6 @@ export function SupervisorDashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Recent Activity Feed */}
-        <div className="pb-8">
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Activity Log</h2>
-            <RecentActivity teamId={teams?.[0]?.id} />
-        </div>
       </div>
     </SupervisorLayout>
   );

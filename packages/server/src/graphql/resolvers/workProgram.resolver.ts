@@ -75,23 +75,12 @@ export class WorkProgramResolver {
   async mySupervisedWorkPrograms(@Ctx() ctx: Context): Promise<WorkProgram[]> {
     requireAuth(ctx);
     
-    const userRepo = AppDataSource.getRepository(User);
     const teamRepo = AppDataSource.getRepository(Team);
     const wpRepo = AppDataSource.getRepository(WorkProgram);
 
-    const user = ctx.userEmail
-      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
-      : ctx.userId
-      ? await userRepo.findOne({ where: { id: ctx.userId } })
-      : null;
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Get teams where user is supervisor
+    // Get teams where user is supervisor via ID in context
     const supervisedTeams = await teamRepo.find({
-      where: { supervisorId: user.id },
+      where: { supervisorId: ctx.userId },
     });
 
     if (supervisedTeams.length === 0) {
@@ -102,7 +91,7 @@ export class WorkProgramResolver {
 
     return await wpRepo.find({
       where: { teamId: In(teamIds) },
-      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member'],
+      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member', 'tasks'],
       order: { createdAt: 'DESC' },
     });
   }

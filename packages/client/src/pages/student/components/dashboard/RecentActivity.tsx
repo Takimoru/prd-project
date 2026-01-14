@@ -15,8 +15,7 @@ interface RecentActivityProps {
 
 export function RecentActivity({ teamId }: RecentActivityProps) {
   const { data, loading } = useQuery(GET_ACTIVITIES, {
-    variables: { teamId: teamId! },
-    skip: !teamId,
+    variables: { teamId },
   });
   const activities = data?.activities || [];
 

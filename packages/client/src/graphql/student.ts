@@ -3,7 +3,7 @@ import { gql } from "@apollo/client";
 // ==================== QUERIES ====================
 
 export const GET_ACTIVITIES = gql`
-  query GetActivities($teamId: ID!) {
+  query GetActivities($teamId: ID) {
     activities(teamId: $teamId) {
       id
       action

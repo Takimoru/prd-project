@@ -208,7 +208,7 @@ type Program {
 }
 
 type Query {
-  activities(teamId: ID!): [Activity!]!
+  activities(teamId: ID): [Activity!]!
   allLogsheets: [Logsheet!]!
   approvedAttendance(programId: ID!): [Attendance!]!
   approvedRegistrations: [Registration!]!

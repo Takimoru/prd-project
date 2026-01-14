@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../../../../components/ui/card";
-import { Button } from "../../../../components/ui/button";
 import { CheckCircle2, Clock, CheckCircle } from "lucide-react";
 // import { Id } from "@/convex/_generated/dataModel";
 import { useMutation } from "@apollo/client";
@@ -16,7 +15,7 @@ interface DashboardOverviewProps {
   isReadOnly?: boolean;
 }
 
-export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly = false }: DashboardOverviewProps) {
+export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false }: DashboardOverviewProps) {
   const [checkIn] = useMutation(CHECK_IN_MUTATION);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null); // Id<"teams"> replace
   const today = new Date().toISOString().split("T")[0];
@@ -141,7 +140,7 @@ export function DashboardOverview({ userId, teams, todaysAttendance, isReadOnly 
         </div>
 
         {/* Recent Activity Feed - showing activity for the first team for now */}
-        <RecentActivity teamId={teams?.[0]?.id || teams?.[0]?._id} />
+        <RecentActivity />
       </div>
 
       {!isReadOnly && (

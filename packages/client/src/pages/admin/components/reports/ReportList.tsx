@@ -1,11 +1,9 @@
 import { Eye } from "lucide-react";
 import { format } from "date-fns";
 import { WeeklyReport } from "../../types/report";
-import { Id } from "@/convex/_generated/dataModel";
-
 interface ReportListProps {
   reports: WeeklyReport[];
-  onSelectReport: (reportId: Id<"weeklyReports">) => void;
+  onSelectReport: (reportId: string) => void;
 }
 
 export function ReportList({ reports, onSelectReport }: ReportListProps) {
@@ -36,9 +34,9 @@ export function ReportList({ reports, onSelectReport }: ReportListProps) {
     <div className="space-y-3">
       {reports.map((report) => (
         <div
-          key={report._id}
+          key={report.id}
           className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
-          onClick={() => onSelectReport(report._id)}
+          onClick={() => onSelectReport(report.id)}
         >
           <div className="flex justify-between items-start">
             <div>
@@ -60,7 +58,7 @@ export function ReportList({ reports, onSelectReport }: ReportListProps) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onSelectReport(report._id);
+                onSelectReport(report.id);
               }}
               className="p-2 text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded"
             >

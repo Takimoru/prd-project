@@ -420,6 +420,10 @@ export class TaskResolver {
 
     if (!workProgram) return;
 
+    // Update main progress column
+    workProgram.progress = percentage;
+    await wpRepo.save(workProgram);
+
     for (const member of workProgram.assignedMembers) {
       let progress = await wppRepo.findOne({
         where: { workProgramId, memberId: member.id },
