@@ -86,8 +86,10 @@ export function TaskDetailModal({ taskId, onClose }: TaskDetailModalProps) {
       await updateTask({
         variables: {
           taskId: taskId,
-          completed: true,
-          completionFiles: uploadedFiles,
+          input: {
+            completed: true,
+            completionFiles: uploadedFiles,
+          }
         }
       });
       toast.success("Task marked as complete!");

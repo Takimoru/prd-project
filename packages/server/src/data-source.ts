@@ -14,6 +14,7 @@ import { WorkProgram } from "./entities/WorkProgram";
 import { WorkProgramProgress } from "./entities/WorkProgramProgress";
 import { Activity } from "./entities/Activity";
 import { WeeklyAttendanceApproval } from "./entities/WeeklyAttendanceApproval";
+import { Logsheet } from "./entities/Logsheet";
 
 export const AppDataSource = new DataSource({
   type: "sqlite",
@@ -35,6 +36,7 @@ export const AppDataSource = new DataSource({
     WorkProgramProgress,
     Activity,
     WeeklyAttendanceApproval,
+    Logsheet,
   ],
   migrations: [],
   subscribers: [],

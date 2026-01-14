@@ -319,8 +319,8 @@ export const GET_TASK_UPDATES = gql(`
 `);
 
 export const UPDATE_TASK_WITH_FILES = gql(`
-  mutation UpdateTaskWithFiles($taskId: ID!, $completed: Boolean, $completionFiles: [String!]) {
-    updateTask(taskId: $taskId, completed: $completed, completionFiles: $completionFiles) {
+  mutation UpdateTaskWithFiles($taskId: ID!, $input: UpdateTaskInput!) {
+    updateTask(id: $taskId, input: $input) {
       id
       status
       completed

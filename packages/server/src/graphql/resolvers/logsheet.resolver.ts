@@ -95,16 +95,27 @@ export class LogsheetResolver {
     @Ctx() ctx: Context
   ): Promise<Logsheet> {
     requireAuth(ctx);
-    requireLeaderRole(ctx);
 
     const userRepo = AppDataSource.getRepository(User);
     const logsheetRepo = AppDataSource.getRepository(Logsheet);
+    const teamRepo = AppDataSource.getRepository(Team);
 
     const user = ctx.userEmail
       ? await userRepo.findOne({ where: { email: ctx.userEmail } })
       : await userRepo.findOne({ where: { id: ctx.userId } });
 
     if (!user) throw new Error('User not found');
+
+    // Check permissions: Admin or Team Leader
+    const team = await teamRepo.findOne({ where: { id: teamId } });
+    if (!team) throw new Error('Team not found');
+
+    const isAdmin = user.role === 'admin';
+    const isTeamLeader = team.leaderId === user.id;
+
+    if (!isAdmin && !isTeamLeader) {
+      throw new Error('Only the team leader or admin can upload logsheets');
+    }
 
     // Generate Recap Data
     const recap = await this.weeklyTaskRecap(teamId, week, ctx);

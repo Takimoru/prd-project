@@ -32,7 +32,7 @@ export function LogsheetPage() {
     
     return interval.reverse().map(date => {
       const year = format(date, "yyyy");
-      const week = format(date, "RR"); // ISO week number
+      const week = format(date, "ww"); // ISO week number
       return {
         label: `Week ${week} (${format(startOfISOWeek(date), "MMM d")} - ${format(endOfISOWeek(date), "MMM d")}, ${year})`,
         value: `${year}-${week}`
