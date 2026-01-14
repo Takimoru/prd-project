@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useMutation, useQuery } from "@apollo/client";
+import { useState, useEffect } from "react";
+import { useMutation, useQuery, useLazyQuery } from "@apollo/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../../../components/ui/dialog";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
@@ -10,6 +10,7 @@ import { useAuth } from "../../../../contexts/AuthContext";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { GET_MY_TEAMS, CREATE_TASK_MUTATION } from "../../../../graphql/dashboard";
+import { GET_WORK_PROGRAMS } from "../../../../graphql/student";
 
 interface CreateTaskModalProps {
   isOpen: boolean;
@@ -23,6 +24,8 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
     skip: !user
   });
 
+  const [fetchWorkPrograms, { data: workProgramsData }] = useLazyQuery(GET_WORK_PROGRAMS);
+
   const [createTaskMutation] = useMutation(CREATE_TASK_MUTATION, {
     refetchQueries: ['GetMyTasks', 'GetTeamTasks']
   });
@@ -32,10 +35,18 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
     title: "",
     description: "",
     teamId: "",
+    workProgramId: "",
     assignedMembers: [] as string[],
     startTime: "",
     endTime: "",
   });
+
+  // Fetch work programs when team is selected
+  useEffect(() => {
+    if (formData.teamId) {
+      fetchWorkPrograms({ variables: { teamId: formData.teamId } });
+    }
+  }, [formData.teamId, fetchWorkPrograms]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,12 +59,15 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
     try {
       await createTaskMutation({
         variables: {
-          teamId: formData.teamId,
-          title: formData.title,
-          description: formData.description || undefined,
-          assignedMemberIds: formData.assignedMembers,
-          startTime: formData.startTime || undefined,
-          endTime: formData.endTime || undefined,
+          input: {
+            teamId: formData.teamId,
+            title: formData.title,
+            description: formData.description || undefined,
+            assignedMemberIds: formData.assignedMembers,
+            startTime: formData.startTime || undefined,
+            endTime: formData.endTime || undefined,
+            workProgramId: formData.workProgramId || undefined,
+          }
         }
       });
       toast.success("Task created successfully");
@@ -62,6 +76,7 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
         title: "",
         description: "",
         teamId: "",
+        workProgramId: "",
         assignedMembers: [],
         startTime: "",
         endTime: "",
@@ -73,6 +88,7 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
       setIsLoading(false);
     }
   };
+
 
   const myTeams = teamsData?.myTeams || [];
   const selectedTeam = myTeams?.find((t: any) => t.id === formData.teamId);
@@ -132,7 +148,7 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
             <Label htmlFor="team">Team</Label>
             <Select
               value={formData.teamId}
-              onValueChange={(value) => setFormData({ ...formData, teamId: value, assignedMembers: [] })}
+              onValueChange={(value) => setFormData({ ...formData, teamId: value, workProgramId: "", assignedMembers: [] })}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a team" />
@@ -146,6 +162,33 @@ export function CreateTaskModal({ isOpen, onClose }: CreateTaskModalProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {selectedTeam && (
+            <div className="space-y-2">
+              <Label htmlFor="workProgram">Work Program (Optional)</Label>
+              <Select
+                value={formData.workProgramId || "independent"}
+                onValueChange={(value) => setFormData({ ...formData, workProgramId: value === "independent" ? "" : value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select work program" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="independent">Independent Task</SelectItem>
+                  {workProgramsData?.workPrograms?.map((wp: any) => (
+                    <SelectItem key={wp.id} value={wp.id}>
+                      {wp.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {formData.workProgramId 
+                  ? "Task completion will update work program progress" 
+                  : "This task won't affect any work program progress"}
+              </p>
+            </div>
+          )}
 
           {selectedTeam && (
             <>
