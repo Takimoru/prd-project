@@ -464,6 +464,7 @@ type WeeklyReport {
   createdAt: DateTime!
   description: String
   id: ID!
+  leader: User
   memberProgress: [MemberProgress!]
   photos: [String!]
   progressPercentage: Int!

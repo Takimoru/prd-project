@@ -1,18 +1,18 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx, Int } from 'type-graphql';
+import { Resolver, Query, Mutation, Arg, ID, Ctx, FieldResolver, Root, InputType, Field, Int } from 'type-graphql';
 import { WorkProgram } from '../../entities/WorkProgram';
 import { WorkProgramProgress } from '../../entities/WorkProgramProgress';
-import { User } from '../../entities/User';
 import { Team } from '../../entities/Team';
+import { User } from '../../entities/User';
 import { Context } from '../context';
-import { requireAuth, requireLeaderRole } from '../../lib/auth-helpers';
+import { requireAuth, requireSupervisorRole, requireLeaderRole, requireAdminRole } from '../../lib/auth-helpers';
 import { AppDataSource } from '../../data-source';
 import { In } from 'typeorm';
 import * as PostHog from '../../lib/posthog';
-import { InputType, Field } from 'type-graphql';
+import { debugLog } from '../../lib/debug-logger';
 
 /**
  * WorkProgram Resolver - Team Leader flows
- * Per PRD Section C: Team Leader Migration PRD
+ * Per PRD Section C: Team Leader (setup work program)
  */
 
 @InputType()
@@ -56,6 +56,13 @@ class UpdateWorkProgramInput {
 
 @Resolver(() => WorkProgram)
 export class WorkProgramResolver {
+  @FieldResolver(() => Team)
+  async team(@Root() wp: WorkProgram): Promise<Team> {
+    const teamRepo = AppDataSource.getRepository(Team);
+    if (wp.team) return wp.team;
+    return await teamRepo.findOneOrFail({ where: { id: wp.teamId } });
+  }
+
   @Query(() => [WorkProgram])
   async workPrograms(
     @Arg('teamId', () => ID) teamId: string,
@@ -66,7 +73,7 @@ export class WorkProgramResolver {
     const wpRepo = AppDataSource.getRepository(WorkProgram);
     return await wpRepo.find({
       where: { teamId },
-      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member', 'tasks'],
+      relations: ['team'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -74,26 +81,52 @@ export class WorkProgramResolver {
   @Query(() => [WorkProgram])
   async mySupervisedWorkPrograms(@Ctx() ctx: Context): Promise<WorkProgram[]> {
     requireAuth(ctx);
+    debugLog(`[WorkProgramResolver] mySupervisedWorkPrograms called for ${ctx.userEmail}`);
     
-    const teamRepo = AppDataSource.getRepository(Team);
+    const userRepo = AppDataSource.getRepository(User);
     const wpRepo = AppDataSource.getRepository(WorkProgram);
 
-    // Get teams where user is supervisor via ID in context
-    const supervisedTeams = await teamRepo.find({
-      where: { supervisorId: ctx.userId },
-    });
+    // Get user from context
+    const user = ctx.userEmail
+      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
+      : ctx.userId
+      ? await userRepo.findOne({ where: { id: ctx.userId } })
+      : null;
 
-    if (supervisedTeams.length === 0) {
-      return [];
+    if (!user) {
+      debugLog(`[WorkProgramResolver] User not found for email ${ctx.userEmail}`);
+      throw new Error('User not found');
     }
 
-    const teamIds = supervisedTeams.map(t => t.id);
+    debugLog(`[WorkProgramResolver] Found user ${user.id} (${user.role})`);
 
-    return await wpRepo.find({
-      where: { teamId: In(teamIds) },
-      relations: ['team', 'createdBy', 'assignedMembers', 'progressRecords', 'progressRecords.member', 'tasks'],
-      order: { createdAt: 'DESC' },
+    // Use standard find with relations and filter in memory - safer than complex joins
+    // Simplification: Join only team (not members) to avoid circularity
+    const allWps = await wpRepo.find({
+      relations: [
+        'team',
+      ],
+      order: { createdAt: 'DESC' }
     });
+
+    debugLog(`[WorkProgramResolver] Fetched ${allWps.length} total WPs from DB`);
+
+    if (user.role === 'admin') {
+      debugLog(`[WorkProgramResolver] User is admin, returning all ${allWps.length} WPs`);
+      return allWps;
+    }
+
+    const filtered = allWps.filter(wp => {
+      const team = wp.team;
+      if (!team) return false;
+      if (team.supervisorId === user.id) return true;
+      if (team.leaderId === user.id) return true;
+      if (team.members && team.members.some(m => m.id === user.id)) return true;
+      return false;
+    });
+
+    debugLog(`[WorkProgramResolver] Returning ${filtered.length} WPs after filtering for supervisor/leader/member`);
+    return filtered;
   }
 
   @Query(() => WorkProgram, { nullable: true })

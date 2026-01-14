@@ -19,9 +19,25 @@ export function SupervisorDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const { data, loading } = useQuery(GET_SUPERVISOR_DASHBOARD_DATA, {
+  const { data, loading, error } = useQuery(GET_SUPERVISOR_DASHBOARD_DATA, {
     skip: !user?.id,
   });
+
+  if (error) {
+    return (
+      <SupervisorLayout>
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+            <h2 className="text-red-800 font-bold text-lg mb-2">Dashboard Error</h2>
+            <p className="text-red-600 mb-4">{error.message}</p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Retry Refresh
+            </Button>
+          </div>
+        </div>
+      </SupervisorLayout>
+    );
+  }
 
   const pendingReports = data?.weeklyReviewQueue;
   const workPrograms = data?.mySupervisedWorkPrograms;

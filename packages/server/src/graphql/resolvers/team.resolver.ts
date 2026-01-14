@@ -82,9 +82,7 @@ export class TeamResolver {
           "tasks",
           "tasks.assignedMembers",
           "tasks.completedBy",
-          "tasks.team",
-          "tasks.team.program",
-          "tasks.completionFiles",
+          "workPrograms",
         ],
       });
       debugLog(`[TeamResolver] myTeams: Fetched ${allTeams.length} total teams from DB`);

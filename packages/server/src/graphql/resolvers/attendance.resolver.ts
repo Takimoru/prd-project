@@ -8,6 +8,7 @@ import { Context } from '../context';
 import { AppDataSource } from '../../data-source';
 import { In } from 'typeorm';
 import { requireAdminRole } from '../../lib/auth-helpers';
+import { debugLog } from '../../lib/debug-logger';
 import * as PostHog from '../../lib/posthog';
 
 @ObjectType()
@@ -307,8 +308,11 @@ export class AttendanceResolver {
   @Query(() => [WeeklyAttendanceApproval])
   async pendingAttendanceQueue(@Ctx() ctx: Context): Promise<WeeklyAttendanceApproval[]> {
     if (!ctx.userId && !ctx.userEmail) {
+      debugLog("[AttendanceResolver] pendingAttendanceQueue: No auth info");
       throw new Error('Authentication required');
     }
+
+    debugLog(`[AttendanceResolver] pendingAttendanceQueue for ${ctx.userEmail}`);
 
     const userRepo = AppDataSource.getRepository(User);
     const approvalRepo = AppDataSource.getRepository(WeeklyAttendanceApproval);
@@ -320,11 +324,12 @@ export class AttendanceResolver {
       : null;
 
     if (!user) {
+      debugLog(`[AttendanceResolver] User not found for email ${ctx.userEmail}`);
       throw new Error('User not found');
     }
 
     // Get pending approvals where this user is the supervisor
-    return await approvalRepo.find({
+    const approvals = await approvalRepo.find({
       where: {
         supervisorId: user.id,
         status: 'pending',
@@ -332,6 +337,9 @@ export class AttendanceResolver {
       relations: ['team', 'student'],
       order: { weekStartDate: 'DESC' },
     });
+
+    debugLog(`[AttendanceResolver] Found ${approvals.length} pending attendance items`);
+    return approvals;
   }
 
   @Mutation(() => WeeklyAttendanceApproval)

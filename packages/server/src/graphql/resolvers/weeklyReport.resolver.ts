@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx } from 'type-graphql';
+import { Resolver, Query, Mutation, Arg, ID, Ctx, InputType, Field, Int, FieldResolver, Root } from 'type-graphql';
 import { WeeklyReport } from '../../entities/WeeklyReport';
 import { Comment } from '../../entities/Comment';
 import { User } from '../../entities/User';
@@ -7,10 +7,10 @@ import { Context } from '../context';
 import { requireAuth, requireSupervisorRole, requireLeaderRole, requireAdminRole } from '../../lib/auth-helpers';
 import { AppDataSource } from '../../data-source';
 import * as PostHog from '../../lib/posthog';
-import { InputType, Field, Int } from 'type-graphql';
 import { In } from 'typeorm';
 import { Task } from '../../entities/Task';
 import { MemberProgress } from '../../entities/WeeklyReport';
+import { debugLog } from '../../lib/debug-logger';
 
 /**
  * WeeklyReport Resolver - Supervisor & Leader flows
@@ -44,6 +44,25 @@ class AddFeedbackInput {
 
 @Resolver(() => WeeklyReport)
 export class WeeklyReportResolver {
+  @FieldResolver(() => User, { nullable: true })
+  async leader(@Root() report: WeeklyReport): Promise<User | null> {
+    const teamRepo = AppDataSource.getRepository(Team);
+    const userRepo = AppDataSource.getRepository(User);
+    
+    // If team is already loaded, get leaderId
+    let leaderId: string | undefined = report.team?.leaderId;
+    
+    if (!leaderId) {
+      // Fetch team if not loaded
+      const team = await teamRepo.findOne({ where: { id: report.teamId } });
+      leaderId = team?.leaderId;
+    }
+    
+    if (!leaderId) return null;
+    
+    return await userRepo.findOne({ where: { id: leaderId } });
+  }
+
   @Query(() => [WeeklyReport])
   async weeklyReports(
     @Arg('teamId', () => ID) teamId: string,
@@ -54,7 +73,7 @@ export class WeeklyReportResolver {
     const reportRepo = AppDataSource.getRepository(WeeklyReport);
     return await reportRepo.find({
       where: { teamId },
-      relations: ['team', 'comments', 'comments.author'],
+      relations: ['team'],
       order: { week: 'DESC' },
     });
   }
@@ -62,6 +81,7 @@ export class WeeklyReportResolver {
   @Query(() => [WeeklyReport])
   async myTeamWeeklyReports(@Ctx() ctx: Context): Promise<WeeklyReport[]> {
     requireAuth(ctx);
+    debugLog(`[WeeklyReportResolver] myTeamWeeklyReports for ${ctx.userEmail}`);
     
     const userRepo = AppDataSource.getRepository(User);
     const teamRepo = AppDataSource.getRepository(Team);
@@ -88,20 +108,22 @@ export class WeeklyReportResolver {
 
     const teamIds = supervisedTeams.map(t => t.id);
     
-    return await reportRepo
-      .createQueryBuilder('report')
-      .leftJoinAndSelect('report.team', 'team')
-      .leftJoinAndSelect('report.comments', 'comments')
-      .leftJoinAndSelect('comments.author', 'author')
-      .where('report.teamId IN (:...teamIds)', { teamIds })
-      .orderBy('report.week', 'DESC')
-      .getMany();
+    // Get all reports for supervised teams
+    const reports = await reportRepo.find({
+      where: { teamId: In(teamIds) },
+      relations: ['team'],
+      order: { week: 'DESC' },
+    });
+
+    debugLog(`[WeeklyReportResolver] myTeamWeeklyReports: Found ${reports.length} reports`);
+    return reports;
   }
 
   @Query(() => [WeeklyReport])
   async weeklyReviewQueue(@Ctx() ctx: Context): Promise<WeeklyReport[]> {
     requireAuth(ctx);
     requireSupervisorRole(ctx);
+    debugLog(`[WeeklyReportResolver] weeklyReviewQueue for ${ctx.userEmail}`);
     
     const userRepo = AppDataSource.getRepository(User);
     const teamRepo = AppDataSource.getRepository(Team);
@@ -114,6 +136,7 @@ export class WeeklyReportResolver {
       : null;
 
     if (!user) {
+      debugLog(`[WeeklyReportResolver] User not found for email ${ctx.userEmail}`);
       throw new Error('User not found');
     }
 
@@ -123,21 +146,25 @@ export class WeeklyReportResolver {
     });
 
     if (supervisedTeams.length === 0) {
+      debugLog(`[WeeklyReportResolver] No supervised teams for user ${user.id}`);
       return [];
     }
 
     const teamIds = supervisedTeams.map(t => t.id);
+    debugLog(`[WeeklyReportResolver] Supervised team IDs: ${teamIds.join(', ')}`);
     
     // Get submitted reports waiting for review
-    return await reportRepo
+    // Simplification: Join only team. Leader is handled by FieldResolver if needed.
+    const reports = await reportRepo
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.team', 'team')
-      .leftJoinAndSelect('report.comments', 'comments')
-      .leftJoinAndSelect('comments.author', 'author')
       .where('report.teamId IN (:...teamIds)', { teamIds })
       .andWhere('report.status = :status', { status: 'submitted' })
       .orderBy('report.submittedAt', 'ASC')
       .getMany();
+
+    debugLog(`[WeeklyReportResolver] Found ${reports.length} pending reports`);
+    return reports;
   }
 
   @Query(() => WeeklyReport, { nullable: true })
