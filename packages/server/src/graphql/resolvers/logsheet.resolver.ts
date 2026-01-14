@@ -56,7 +56,7 @@ export class LogsheetResolver {
         completed: true,
         completedAt: Between(startDate, endDate),
       },
-      relations: ['assignedMembers', 'updates', 'updates.user'],
+      relations: ['assignedMembers', 'updates', 'updates.user', 'completedBy'],
       order: { completedAt: 'ASC' },
     });
 
@@ -76,12 +76,30 @@ export class LogsheetResolver {
         ? task.updates.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0]
         : null;
 
+      // Aggregate all involved members
+      const memberNames = new Set<string>();
+      
+      // 1. Assigned members
+      task.assignedMembers?.forEach(m => memberNames.add(m.name));
+      
+      // 2. Completed by
+      if (task.completedBy) {
+        memberNames.add(task.completedBy.name);
+      }
+      
+      // 3. Members who made updates
+      task.updates?.forEach(u => {
+        if (u.user) {
+          memberNames.add(u.user.name);
+        }
+      });
+
       return {
         date: task.completedAt!.toISOString().split('T')[0],
         taskTitle: task.title,
         taskDescription: task.description,
         workProgramTitle: task.workProgramId ? wpMap.get(task.workProgramId) : undefined,
-        members: task.assignedMembers.map((m) => m.name),
+        members: Array.from(memberNames),
         completedAt: task.completedAt!,
         notes: latestUpdate?.notes,
       };
