@@ -20,12 +20,12 @@ export function AdminSidebar() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
-    { icon: PlusCircle, label: "Create Program", path: "/admin/programs/create" },
-    { icon: Users, label: "Teams", path: "/admin/teams" },
-    { icon: Shield, label: "Supervisors", path: "/admin/supervisors" },
-    { icon: UserCheck, label: "Approvals", path: "/admin/approvals" },
-    { icon: CalendarCheck, label: "Attendance", path: "/admin/attendance" },
-    { icon: FileText, label: "Final Reports", path: "/admin/reports" },
+    { icon: PlusCircle, label: "Buat Periode KKN", path: "/admin/programs/create" },
+    { icon: Users, label: "Manajemen Tim", path: "/admin/teams" },
+    { icon: Shield, label: "Manajemen Dosen Pembimbing", path: "/admin/supervisors" },
+    { icon: UserCheck, label: "Persetujuan Mahasiswa", path: "/admin/approvals" },
+    { icon: CalendarCheck, label: "Tinjauan Absensi", path: "/admin/attendance" },
+    { icon: FileText, label: "Laporan Akhir", path: "/admin/reports" },
   ];
 
   return (
@@ -72,7 +72,7 @@ export function AdminSidebar() {
       <div className="p-4 border-t border-border bg-card/50">
         <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer">
           <Avatar className="w-8 h-8 border border-border">
-            <AvatarImage src={user?.picture} />
+            <AvatarImage src={user?.picture || undefined} />
             <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

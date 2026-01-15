@@ -18,9 +18,9 @@ export function SupervisorTasksPage() {
 
   const getStatusBadge = (completed: boolean) => {
     if (completed) {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Completed</Badge>;
+      return <Badge className="bg-green-100 text-green-800 border-green-200">Selesai</Badge>;
     }
-    return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Pending</Badge>;
+    return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Tertunda</Badge>;
   };
 
   // Group tasks by team
@@ -33,7 +33,7 @@ export function SupervisorTasksPage() {
     return (
       <SupervisorLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground animate-pulse">Loading tasks...</p>
+          <p className="text-muted-foreground animate-pulse">Memuat tugas...</p>
         </div>
       </SupervisorLayout>
     );
@@ -43,8 +43,8 @@ export function SupervisorTasksPage() {
     <SupervisorLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Tasks</h1>
-          <p className="text-muted-foreground mt-1">View all tasks from your supervised teams (Read-only)</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Tugas</h1>
+          <p className="text-muted-foreground mt-1">Lihat semua tugas dari tim bimbingan Anda (Hanya lihat)</p>
         </div>
 
         {tasksByTeam.length > 0 ? (
@@ -78,21 +78,21 @@ export function SupervisorTasksPage() {
                             {task.assignedMembers && task.assignedMembers.length > 0 && (
                               <div className="flex items-center gap-2 text-muted-foreground">
                                 <User className="w-4 h-4" />
-                                <span>Assigned to: {task.assignedMembers.length} member(s)</span>
+                                <span>Ditugaskan ke: {task.assignedMembers.length} anggota</span>
                               </div>
                             )}
                             
                             {task.endTime && (
                               <div className="flex items-center gap-2 text-muted-foreground">
                                 <Clock className="w-4 h-4" />
-                                <span>Due: {format(new Date(task.endTime), "MMM dd, yyyy")}</span>
+                                <span>Tenggat: {format(new Date(task.endTime), "dd MMM yyyy")}</span>
                               </div>
                             )}
 
                             {task.completedAt && (
                               <div className="flex items-center gap-2 text-green-600">
                                 <CheckSquare className="w-4 h-4" />
-                                <span>Completed: {format(new Date(task.completedAt), "MMM dd, yyyy")}</span>
+                                <span>Selesai: {format(new Date(task.completedAt), "dd MMM yyyy")}</span>
                               </div>
                             )}
                           </div>
@@ -102,7 +102,7 @@ export function SupervisorTasksPage() {
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
-                    <p>No tasks for this team yet</p>
+                    <p>Belum ada tugas untuk tim ini</p>
                   </div>
                 )}
               </div>
@@ -111,8 +111,8 @@ export function SupervisorTasksPage() {
         ) : (
           <div className="text-center py-16">
             <CheckSquare className="w-16 h-16 mx-auto mb-4 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No tasks yet</h3>
-            <p className="text-muted-foreground">Tasks from your supervised teams will appear here</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Belum ada tugas</h3>
+            <p className="text-muted-foreground">Tugas dari tim bimbingan Anda akan muncul di sini</p>
           </div>
         )}
       </div>

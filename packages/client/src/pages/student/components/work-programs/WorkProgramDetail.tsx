@@ -220,7 +220,7 @@ export function WorkProgramDetail() {
         {/* Overview Card */}
         <Card>
           <CardHeader>
-            <CardTitle>Overview</CardTitle>
+            <CardTitle>Ringkasan</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="text-muted-foreground whitespace-pre-wrap">
@@ -237,13 +237,13 @@ export function WorkProgramDetail() {
               <div className="flex items-center gap-2">
                 <CheckSquare className="w-4 h-4 text-green-500" />
                 <span>
-                  {completedTasksCount} of {totalTasksCount} tasks completed
+                  {completedTasksCount} dari {totalTasksCount} tugas selesai
                 </span>
               </div>
             </div>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Overall Progress</span>
+                <span className="font-medium">Progres Keseluruhan</span>
                 <span className="text-muted-foreground">{taskBasedProgress}%</span>
               </div>
               <Progress value={taskBasedProgress} className="h-3" />
@@ -255,7 +255,7 @@ export function WorkProgramDetail() {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Tasks</CardTitle>
+              <CardTitle>Tugas</CardTitle>
               <div className="flex gap-2">
                 <Button
                   variant={viewMode === "timeline" ? "default" : "outline"}
@@ -263,7 +263,7 @@ export function WorkProgramDetail() {
                   onClick={() => setViewMode("timeline")}
                 >
                   <List className="w-4 h-4 mr-2" />
-                  Timeline
+                  Linimasa
                 </Button>
                 <Button
                   variant={viewMode === "calendar" ? "default" : "outline"}
@@ -271,7 +271,7 @@ export function WorkProgramDetail() {
                   onClick={() => setViewMode("calendar")}
                 >
                   <CalendarDays className="w-4 h-4 mr-2" />
-                  Calendar
+                  Kalender
                 </Button>
                 <Button
                   variant={viewMode === "chat" ? "default" : "outline"}
@@ -279,7 +279,7 @@ export function WorkProgramDetail() {
                   onClick={() => setViewMode("chat")}
                 >
                   <MessageSquare className="w-4 h-4 mr-2" />
-                  Discussion
+                  Diskusi
                 </Button>
               </div>
             </div>

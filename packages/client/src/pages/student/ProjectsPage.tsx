@@ -22,7 +22,7 @@ export function ProjectsPage() {
           
           {myTeams?.map(team => (
             <div key={team._id} className="mb-8">
-              <h2 className="text-xl font-semibold mb-4 text-muted-foreground">Team: {team.name}</h2>
+              <h2 className="text-xl font-semibold mb-4 text-muted-foreground">Tim: {team.name}</h2>
               <WorkProgramList 
                 teamId={team._id} 
                 isLeader={team.leaderId === user?._id} 

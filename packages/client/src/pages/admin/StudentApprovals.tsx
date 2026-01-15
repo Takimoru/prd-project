@@ -16,8 +16,8 @@ export function StudentApprovals() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Student Approvals"
-        description="Review and approve student registrations"
+        title="Persetujuan Mahasiswa"
+        description="Tinjau dan setujui pendaftaran mahasiswa"
       />
 
       {/* Tabs */}
@@ -31,7 +31,7 @@ export function StudentApprovals() {
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}>
-              Pending
+              Tertunda
               {pendingRegistrations && pendingRegistrations.length > 0 && (
                 <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-yellow-600 rounded-full">
                   {pendingRegistrations.length}
@@ -45,7 +45,7 @@ export function StudentApprovals() {
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground"
               }`}>
-              Approved
+              Disetujui
               {approvedRegistrations && approvedRegistrations.length > 0 && (
                 <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-green-600 rounded-full">
                   {approvedRegistrations.length}
@@ -61,10 +61,10 @@ export function StudentApprovals() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">
-                  Pending Student Registrations
+                  Pendaftaran Mahasiswa Tertunda
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Review documents and grant access based on submission email.
+                  Tinjau dokumen dan berikan akses berdasarkan email pendaftaran.
                 </p>
               </div>
             </div>
@@ -73,7 +73,7 @@ export function StudentApprovals() {
               variant="pending"
               onApprove={handleApproveRegistration}
               onReject={handleRejectRegistration}
-              emptyMessage="No pending registrations 🎉"
+              emptyMessage="Tidak ada pendaftaran tertunda 🎉"
             />
           </div>
         )}
@@ -84,17 +84,17 @@ export function StudentApprovals() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold text-foreground">
-                  Approved Student Registrations
+                  Pendaftaran Mahasiswa Disetujui
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  List of students who have been approved and granted access.
+                  Daftar mahasiswa yang telah disetujui dan diberikan akses.
                 </p>
               </div>
             </div>
             <RegistrationList
               registrations={approvedRegistrations}
               variant="approved"
-              emptyMessage="No approved registrations yet"
+              emptyMessage="Belum ada pendaftaran yang disetujui"
             />
           </div>
         )}

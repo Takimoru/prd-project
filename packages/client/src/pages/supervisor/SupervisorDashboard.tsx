@@ -87,16 +87,16 @@ export function SupervisorDashboard() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Supervisor Dashboard
+            Dashboard Supervisor
           </h1>
           <p className="text-muted-foreground mt-2">
-            Manage your teams and review weekly submissions
+            Kelola tim Anda dan tinjau pengumpulan mingguan
           </p>
         </div>
 
         {/* Work Programs Section */}
         <div>
-           <h2 className="text-xl font-semibold mb-4 text-foreground">Running Work Programs</h2>
+           <h2 className="text-xl font-semibold mb-4 text-foreground">Program Kerja Berjalan</h2>
            {workPrograms && workPrograms.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                {workPrograms.map((wp: any) => (
@@ -123,8 +123,8 @@ export function SupervisorDashboard() {
                              />
                           </div>
                           <div className="flex justify-between text-xs text-muted-foreground">
-                             <span>Start: {new Date(wp.startDate).toLocaleDateString()}</span>
-                             <span>End: {new Date(wp.endDate).toLocaleDateString()}</span>
+                             <span>Mulai: {new Date(wp.startDate).toLocaleDateString()}</span>
+                             <span>Selesai: {new Date(wp.endDate).toLocaleDateString()}</span>
                           </div>
                        </div>
                     </CardContent>
@@ -134,22 +134,22 @@ export function SupervisorDashboard() {
            ) : (
              <div className="p-8 text-center border rounded-lg bg-accent/20 text-muted-foreground">
                 <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p>No running work programs.</p>
+                <p>Tidak ada program kerja yang berjalan.</p>
              </div>
            )}
         </div>
 
         {/* Recent Activity Feed - MOVED TO MIDDLE */}
         <div>
-            <h2 className="text-xl font-semibold mb-4 text-foreground">Recent Activity</h2>
+            <h2 className="text-xl font-semibold mb-4 text-foreground">Aktivitas Terbaru</h2>
             <RecentActivity />
         </div>
 
         {/* Pending Reviews Section - MOVED TO BOTTOM */}
         <Card className="border-orange-200">
           <CardHeader className="bg-orange-50/30">
-            <CardTitle className="text-orange-900">Pending Approvals</CardTitle>
-            <CardDescription>Weekly reports and attendance waiting for review</CardDescription>
+            <CardTitle className="text-orange-900">Persetujuan Tertunda</CardTitle>
+            <CardDescription>Laporan mingguan dan absensi menunggu tinjauan</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
             {allPendingItems.length > 0 ? (
@@ -179,7 +179,7 @@ export function SupervisorDashboard() {
                             </h4>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <span className="font-medium text-orange-700">
-                                   Week {item.weekValue.split("-W")[1]}
+                                   Minggu {item.weekValue.split("-W")[1]}
                                 </span>
                                 <span>•</span>
                                 <span>
@@ -192,7 +192,7 @@ export function SupervisorDashboard() {
                          <Badge variant="outline" className={`border ${
                              item.type === 'report' ? 'text-orange-600 border-orange-200 bg-orange-50' : 'text-purple-600 border-purple-200 bg-purple-50'
                          }`}>
-                             {item.type === 'report' ? 'Report' : 'Attendance'}
+                             {item.type === 'report' ? 'Laporan' : 'Absensi'}
                          </Badge>
                     </div>
                   </div>
@@ -201,15 +201,15 @@ export function SupervisorDashboard() {
             ) : (
               <div className="text-center py-12 text-muted-foreground flex flex-col items-center">
                 <CheckCircle2 className="w-12 h-12 text-green-500 mb-4 opacity-50" />
-                <h3 className="text-lg font-medium text-foreground">All Caught Up!</h3>
-                <p>No pending items to review.</p>
+                <h3 className="text-lg font-medium text-foreground">Semua Sudah Ditinjau!</h3>
+                <p>Tidak ada item tertunda untuk ditinjau.</p>
               </div>
             )}
             
             {/* Quick Link to Attendance Approval */}
             <div className="mt-6 pt-6 border-t flex justify-center">
                 <Button variant="outline" onClick={() => navigate("/supervisor/attendance-approval")}>
-                    Go to Attendance Approvals
+                    Buka Penyetujuan Absensi
                 </Button>
             </div>
           </CardContent>

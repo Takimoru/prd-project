@@ -21,12 +21,12 @@ export function SupervisorSidebar() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/supervisor" },
-    { icon: FileText, label: "Work Programs", path: "/supervisor/work-programs" },
-    { icon: Users, label: "My Teams", path: "/supervisor/teams" },
-    { icon: CheckSquare, label: "Tasks", path: "/supervisor/tasks" },
-    { icon: CalendarCheck, label: "Attendance Approval", path: "/supervisor/attendance-approval" },
-    { icon: CheckSquare, label: "Pending Reviews", path: "/supervisor/pending" },
-    { icon: FileText, label: "All Reports", path: "/supervisor/reports" },
+    { icon: FileText, label: "Program Kerja", path: "/supervisor/work-programs" },
+    { icon: Users, label: "Tim Saya", path: "/supervisor/teams" },
+    { icon: CheckSquare, label: "Tugas", path: "/supervisor/tasks" },
+    { icon: CalendarCheck, label: "Penyetujuan Absensi", path: "/supervisor/attendance-approval" },
+    { icon: CheckSquare, label: "Tinjauan Tertunda", path: "/supervisor/pending" },
+    { icon: FileText, label: "Semua Laporan", path: "/supervisor/reports" },
   ];
 
   const SidebarContent = () => (
@@ -70,7 +70,7 @@ export function SupervisorSidebar() {
       <div className="p-4 border-t border-border bg-card/50 mt-auto">
         <div className="flex items-center gap-3 p-2 rounded-lg mb-2">
           <Avatar className="w-8 h-8 border border-border">
-            <AvatarImage src={user?.picture} />
+            <AvatarImage src={user?.picture || undefined} />
             <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">

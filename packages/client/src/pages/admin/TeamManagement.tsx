@@ -51,24 +51,24 @@ export function TeamManagement() {
       <AdminHeader
         title={
           selectedProgram
-            ? `Teams: ${selectedProgramData?.title}`
-            : "Team Management"
+            ? `Tim: ${selectedProgramData?.title}`
+            : "Manajemen Tim"
         }
         description={
           selectedProgram
-            ? "Manage teams for this program"
-            : "Select a program to manage teams"
+            ? "Kelola tim untuk program ini"
+            : "Pilih program untuk mengelola tim"
         }
         action={
           selectedProgram ? (
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => setSelectedProgram(null)}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Programs
+                Kembali ke Program
               </Button>
               <Button onClick={() => setIsCreating(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create Team
+                Buat Tim
               </Button>
             </div>
           ) : null
@@ -94,8 +94,8 @@ export function TeamManagement() {
                   <div className="flex items-center">
                     <Calendar className="w-4 h-4 mr-2 text-blue-500" />
                     <span>
-                      {format(new Date(program.startDate), "MMM d, yyyy")} -{" "}
-                      {format(new Date(program.endDate), "MMM d, yyyy")}
+                      {format(new Date(program.startDate), "d MMM yyyy")} -{" "}
+                      {format(new Date(program.endDate), "d MMM yyyy")}
                     </span>
                   </div>
                 </div>
@@ -106,14 +106,14 @@ export function TeamManagement() {
                   onClick={() => setSelectedProgram(program.id)}
                 >
                   <Users className="w-4 h-4 mr-2" />
-                  Manage Teams
+                  Kelola Tim
                 </Button>
               </CardFooter>
             </Card>
           ))}
           {programs?.length === 0 && (
             <div className="col-span-full text-center py-12 text-blue-900/50 bg-blue-50/30 rounded-xl border border-blue-100 border-dashed">
-              No programs found.
+              Tidak ada program ditemukan.
             </div>
           )}
         </div>

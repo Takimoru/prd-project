@@ -68,51 +68,51 @@ export function Layout() {
       ? [
           {
             path: "/admin/approvals",
-            label: "Student Approvals",
+            label: "Persetujuan Mahasiswa",
             icon: CheckCircle,
           },
           {
             path: "/admin/programs/create",
-            label: "Create Program",
+            label: "Buat Periode KKN",
             icon: LayoutTemplate,
           },
-          { path: "/admin/teams", label: "Team Management", icon: Users },
+          { path: "/admin/teams", label: "Manajemen Tim", icon: Users },
           {
             path: "/admin/supervisors",
-            label: "Supervisor Management",
+            label: "Manajemen Dosen Pembimbing",
             icon: UserCheck,
           },
           {
             path: "/admin/attendance",
-            label: "Attendance Reviews",
+            label: "Tinjauan Absensi",
             icon: Calendar,
           },
           {
             path: "/admin/reports",
-            label: "Final Reports",
+            label: "Laporan Akhir",
             icon: FileCheck,
           },
           {
             path: "/admin/logsheets",
-            label: "Logsheet Reviews",
+            label: "Tinjauan Logbook",
             icon: FileText,
           },
         ]
       : effectiveRole === "supervisor"
       ? [
           { path: "/supervisor", label: "Supervisor", icon: LayoutDashboard },
-          { path: "/admin/logsheets", label: "Logsheet Reviews", icon: FileText },
+          { path: "/admin/logsheets", label: "Tinjauan Logbook", icon: FileText },
         ]
       : [
           { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
           {
             path: "/dashboard/work-programs",
-            label: "Work Programs",
+            label: "Program Kerja",
             icon: FileText,
           },
           {
             path: "/dashboard/logsheet",
-            label: "Weekly Logsheet",
+            label: "Logbook Mingguan",
             icon: FileText,
           },
         ];

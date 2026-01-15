@@ -22,11 +22,11 @@ export function CreateProgram() {
   const [createProgram, { loading }] = useMutation(CREATE_PROGRAM, {
     refetchQueries: [{ query: GET_PROGRAMS, variables: { includeArchived: false } }],
     onCompleted: () => {
-      toast.success("Program created successfully!");
+      toast.success("Periode KKN berhasil dibuat!");
       navigate("/admin/teams");
     },
     onError: (error) => {
-      toast.error(error.message || "Failed to create program");
+      toast.error(error.message || "Gagal membuat periode KKN");
     },
   });
 
@@ -34,12 +34,12 @@ export function CreateProgram() {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      toast.error("Title is required");
+      toast.error("Judul wajib diisi");
       return;
     }
 
     if (!formData.startDate || !formData.endDate) {
-      toast.error("Start date and end date are required");
+      toast.error("Tanggal mulai dan selesai wajib diisi");
       return;
     }
 
@@ -47,12 +47,12 @@ export function CreateProgram() {
     const endDate = new Date(formData.endDate);
 
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      toast.error("Invalid date format");
+      toast.error("Format tanggal tidak valid");
       return;
     }
 
     if (endDate < startDate) {
-      toast.error("End date must be after start date");
+      toast.error("Tanggal selesai harus setelah tanggal mulai");
       return;
     }
 
@@ -87,35 +87,35 @@ export function CreateProgram() {
     const days = diffDays % 7;
     
     if (weeks > 0 && days > 0) {
-      return `${weeks} week${weeks > 1 ? 's' : ''} and ${days} day${days > 1 ? 's' : ''}`;
+      return `${weeks} minggu dan ${days} hari`;
     } else if (weeks > 0) {
-      return `${weeks} week${weeks > 1 ? 's' : ''}`;
+      return `${weeks} minggu`;
     } else {
-      return `${diffDays} day${diffDays > 1 ? 's' : ''}`;
+      return `${diffDays} hari`;
     }
   };
 
   return (
     <div className="space-y-6">
-      <AdminHeader
-        title="Create New Program"
-        description="Create a new field study program with title and duration"
+        <AdminHeader
+        title="Buat Periode KKN Baru"
+        description="Buat periode KKN baru dengan judul dan durasi"
       />
 
       <Card>
         <CardHeader>
-          <CardTitle>Program Details</CardTitle>
+          <CardTitle>Detail Periode KKN</CardTitle>
           <CardDescription>
-            Fill in the program information below
+            Isi informasi periode KKN di bawah ini
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="title">Program Title *</Label>
+              <Label htmlFor="title">Judul Periode KKN *</Label>
               <Input
                 id="title"
-                placeholder="e.g., Field Study Program 2024"
+                placeholder="Contoh: Periode KKN 2024"
                 value={formData.title}
                 onChange={(e) =>
                   setFormData({ ...formData, title: e.target.value })
@@ -125,10 +125,10 @@ export function CreateProgram() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">Deskripsi</Label>
               <Textarea
                 id="description"
-                placeholder="Enter program description..."
+                placeholder="Masukkan deskripsi periode KKN..."
                 value={formData.description}
                 onChange={(e) =>
                   setFormData({ ...formData, description: e.target.value })
@@ -139,7 +139,7 @@ export function CreateProgram() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date *</Label>
+                <Label htmlFor="startDate">Tanggal Mulai *</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -152,7 +152,7 @@ export function CreateProgram() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="endDate">End Date *</Label>
+                <Label htmlFor="endDate">Tanggal Selesai *</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -168,7 +168,7 @@ export function CreateProgram() {
 
             {formData.startDate && formData.endDate && (
               <div className="p-4 bg-muted rounded-lg">
-                <p className="text-sm font-medium">Program Duration</p>
+                <p className="text-sm font-medium">Durasi Periode KKN</p>
                 <p className="text-2xl font-bold text-primary">
                   {calculateDuration()}
                 </p>
@@ -181,10 +181,10 @@ export function CreateProgram() {
                 variant="outline"
                 onClick={() => navigate("/admin/teams")}
               >
-                Cancel
+                Batal
               </Button>
               <Button type="submit" disabled={loading}>
-                {loading ? "Creating..." : "Create Program"}
+                {loading ? "Membuat..." : "Buat Periode KKN"}
               </Button>
             </div>
           </form>

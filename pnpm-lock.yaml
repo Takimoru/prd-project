@@ -220,6 +220,9 @@ importers:
         specifier: ^8.16.0
         version: 8.18.3
     devDependencies:
+      '@types/body-parser':
+        specifier: ^1.19.6
+        version: 1.19.6
       '@types/cors':
         specifier: ^2.8.17
         version: 2.8.19
@@ -7445,7 +7448,7 @@ snapshots:
   '@types/body-parser@1.19.6':
     dependencies:
       '@types/connect': 3.4.38
-      '@types/node': 20.19.25
+      '@types/node': 24.10.1
 
   '@types/connect@3.4.38':
     dependencies:

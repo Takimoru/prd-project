@@ -124,23 +124,23 @@ export function TeamPage() {
       <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="px-4 sm:px-6 py-6 sm:py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Team</h1>
-            <p className="text-muted-foreground mt-1">Connect with your team members and supervisors</p>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Tim</h1>
+            <p className="text-muted-foreground mt-1">Terhubung dengan anggota tim dan dosen pembimbing Anda</p>
             {myTeams && myTeams.length > 0 && (
               <p className="text-xs text-blue-500 mt-2">
-                Found {myTeams.length} team(s) with {teamMembersArray.length} total members.
+                Ditemukan {myTeams.length} tim dengan total {teamMembersArray.length} anggota.
               </p>
             )}
             {(!myTeams || myTeams.length === 0) && !isLoading && (
               <p className="text-xs text-orange-500 mt-2">
-                No teams found for your account.
+                Tidak ada tim ditemukan untuk akun Anda.
               </p>
             )}
           </div>
 
           {/* Supervisors Section */}
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4">Supervisors</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Dosen Pembimbing</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {supervisors.map((supervisor) => (
                 <div
@@ -190,7 +190,7 @@ export function TeamPage() {
 
           {/* Students Section */}
           <div>
-            <h2 className="text-xl font-semibold text-foreground mb-4">Team Members</h2>
+            <h2 className="text-xl font-semibold text-foreground mb-4">Anggota Tim</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {students.map((member) => (
                 <div
@@ -240,8 +240,8 @@ export function TeamPage() {
 
           {teamMembersArray.length === 0 && (
             <div className="text-center py-16">
-              <h3 className="text-lg font-semibold text-foreground mb-2">No team members yet</h3>
-              <p className="text-muted-foreground">Join a team to see your colleagues here</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Belum ada anggota tim</h3>
+              <p className="text-muted-foreground">Bergabung dengan tim untuk melihat rekan Anda di sini</p>
             </div>
           )}
         </div>

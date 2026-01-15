@@ -18,31 +18,31 @@ export function WorkProgramList({ teamId, isLeader }: WorkProgramListProps) {
     variables: { teamId },
     skip: !teamId,
   });
-  const { data: teamData, loading: teamLoading } = useQuery(GET_TEAM_DETAILS, {
+  const { loading: teamLoading } = useQuery(GET_TEAM_DETAILS, {
     variables: { teamId },
     skip: !teamId,
   });
 
   const workPrograms = workProgramsData?.workPrograms || [];
-  const team = teamData?.team;
+
 
   if (workProgramsLoading || teamLoading) {
-    return <div>Loading work programs...</div>;
+    return <div>Memuat program kerja...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight">Work Programs</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Program Kerja</h2>
           <p className="text-muted-foreground">
-            Manage and track long-term initiatives
+            Kelola dan pantau inisiatif jangka panjang
           </p>
         </div>
         {isLeader && (
           <Button onClick={() => navigate(`/team/${teamId}/programs/new`)}>
             <Plus className="w-4 h-4 mr-2" />
-            New Program
+            Program Baru
           </Button>
         )}
       </div>
@@ -66,7 +66,7 @@ export function WorkProgramList({ teamId, isLeader }: WorkProgramListProps) {
                       {program.title}
                     </h3>
                     <Badge variant="secondary" className="text-xs">
-                      Active
+                      Aktif
                     </Badge>
                   </div>
                   <button 
@@ -88,8 +88,8 @@ export function WorkProgramList({ teamId, isLeader }: WorkProgramListProps) {
                 {/* Progress - Simplified to avoid hooks */}
                 <div className="mb-4">
                   <div className="flex items-center justify-between text-sm mb-2">
-                    <span className="text-muted-foreground">Progress</span>
-                    <span className="font-semibold">View details</span>
+                    <span className="text-muted-foreground">Progres</span>
+                    <span className="font-semibold">Lihat detail</span>
                   </div>
                 </div>
 
@@ -101,7 +101,7 @@ export function WorkProgramList({ teamId, isLeader }: WorkProgramListProps) {
                   </div>
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />
-                    <span>Tasks</span>
+                    <span>Tugas</span>
                   </div>
                 </div>
 
@@ -109,10 +109,10 @@ export function WorkProgramList({ teamId, isLeader }: WorkProgramListProps) {
                 <div className="flex items-center justify-between pt-3 border-t border-border">
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <Calendar className="w-4 h-4" />
-                    <span>Due {format(new Date(program.endDate), "MMM d")}</span>
+                    <span>Tenggat {format(new Date(program.endDate), "d MMM")}</span>
                   </div>
                   <div className="text-sm font-semibold text-foreground">
-                    View details
+                    Lihat detail
                   </div>
                 </div>
               </div>
@@ -122,13 +122,13 @@ export function WorkProgramList({ teamId, isLeader }: WorkProgramListProps) {
         
         {workPrograms.length === 0 && (
           <div className="col-span-full text-center py-12 border border-dashed rounded-lg bg-muted/50">
-            <p className="text-muted-foreground">No work programs found</p>
+            <p className="text-muted-foreground">Tidak ada program kerja ditemukan</p>
             {isLeader && (
               <Button
                 variant="link"
                 onClick={() => navigate(`/team/${teamId}/programs/new`)}
               >
-                Create your first work program
+                Buat program kerja pertama Anda
               </Button>
             )}
           </div>

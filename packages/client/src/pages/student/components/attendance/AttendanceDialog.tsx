@@ -44,17 +44,17 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
 
   const handleSubmit = async () => {
     if (!status) {
-      toast.error("Please select an attendance status");
+      toast.error("Silakan pilih status kehadiran");
       return;
     }
 
     if (status === "permission" && !excuse.trim()) {
-      toast.error("Please provide an excuse for permission");
+      toast.error("Silakan berikan alasan izin");
       return;
     }
 
     if (status === "permission" && !proofUrl) {
-      toast.error("Please upload a proof of permission (e.g., sick note)");
+      toast.error("Silakan unggah bukti izin (misal: surat sakit)");
       return;
     }
 
@@ -82,7 +82,7 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">Daily Attendance</h2>
+          <h2 className="text-xl font-bold text-gray-900">Absensi Harian</h2>
           <button
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700"
@@ -93,7 +93,7 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
 
         <div className="space-y-4">
           <p className="text-gray-600">
-            Please confirm your attendance for today.
+            Silakan konfirmasi kehadiran Anda untuk hari ini.
           </p>
 
           <div className="grid grid-cols-2 gap-4">
@@ -105,8 +105,8 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
                   : "hover:bg-gray-50 border-gray-200"
               }`}
             >
-              <span className="block font-semibold">Present</span>
-              <span className="text-sm text-gray-500">I am here working</span>
+              <span className="block font-semibold">Hadir</span>
+              <span className="text-sm text-gray-500">Saya hadir bekerja</span>
             </button>
             <button
               onClick={() => setStatus("permission")}
@@ -116,8 +116,8 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
                   : "hover:bg-gray-50 border-gray-200"
               }`}
             >
-              <span className="block font-semibold">Permission</span>
-              <span className="text-sm text-gray-500">I cannot attend</span>
+              <span className="block font-semibold">Izin</span>
+              <span className="text-sm text-gray-500">Saya tidak bisa hadir</span>
             </button>
           </div>
 
@@ -125,20 +125,20 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Reason for permission
+                  Alasan izin
                 </label>
                 <textarea
                   value={excuse}
                   onChange={(e) => setExcuse(e.target.value)}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
                   rows={3}
-                  placeholder="Please explain why you cannot attend today..."
+                  placeholder="Jelaskan mengapa Anda tidak bisa hadir hari ini..."
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Proof of permission (Photo/PDF)
+                  Bukti izin (Foto/PDF)
                 </label>
                 <div className="mt-1 flex items-center">
                   <input
@@ -156,7 +156,7 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
                         : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
                     }`}
                   >
-                    {uploading ? "Uploading..." : proofUrl ? "Uploaded successfully" : "Choose File"}
+                    {uploading ? "Mengunggah..." : proofUrl ? "Berhasil diunggah" : "Pilih File"}
                   </label>
                   {proofUrl && (
                     <span className="ml-3 text-xs text-gray-500 truncate max-w-[150px]">
@@ -174,14 +174,14 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
               disabled={isSubmitting || uploading}
             >
-              Cancel
+              Batal
             </button>
             <button
               onClick={handleSubmit}
               disabled={!status || isSubmitting || uploading}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Submitting..." : "Submit Attendance"}
+              {isSubmitting ? "Mengirim..." : "Kirim Absensi"}
             </button>
           </div>
         </div>

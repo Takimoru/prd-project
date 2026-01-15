@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation, useSubscription } from "@apollo/client";
+import { useQuery, useMutation } from "@apollo/client";
 import { GET_WORK_PROGRAM_MESSAGES, SEND_WORK_PROGRAM_MESSAGE, WORK_PROGRAM_MESSAGE_ADDED } from "@/graphql/student";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { Button } from "../../../../components/ui/button";
@@ -85,7 +85,7 @@ export function WorkProgramChat({ workProgramId }: WorkProgramChatProps) {
             </div>
           ) : messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-              <p>No messages yet. Start the discussion!</p>
+              <p>Belum ada pesan. Mulai diskusi!</p>
             </div>
           ) : (
             messages.map((m: any) => {
@@ -112,7 +112,7 @@ export function WorkProgramChat({ workProgramId }: WorkProgramChatProps) {
                     <div className={`flex flex-col ${isMe ? "items-end" : "items-start"}`}>
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-medium text-muted-foreground">
-                          {isMe ? "You" : m.sender.name}
+                          {isMe ? "Anda" : m.sender.name}
                         </span>
                         <span className="text-[10px] text-muted-foreground">
                           {format(new Date(m.createdAt), "HH:mm")}
@@ -139,7 +139,7 @@ export function WorkProgramChat({ workProgramId }: WorkProgramChatProps) {
           <Input
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
+            placeholder="Ketik pesan Anda..."
             disabled={sending}
             className="flex-1"
           />

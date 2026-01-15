@@ -34,12 +34,12 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
   
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-    { icon: FolderKanban, label: "Work Programs", path: "/dashboard/projects" },
-    { icon: CheckSquare, label: "Tasks", path: "/dashboard/tasks" },
-    { icon: Calendar, label: "Calendar", path: "/dashboard/calendar" },
-    { icon: Files, label: "Files", path: "/dashboard/files" },
-    { icon: FileText, label: "Weekly Logsheet", path: "/dashboard/logsheet" },
-    { icon: Users, label: "Team", path: "/dashboard/team" },
+    { icon: FolderKanban, label: "Program Kerja", path: "/dashboard/projects" },
+    { icon: CheckSquare, label: "Tugas", path: "/dashboard/tasks" },
+    { icon: Calendar, label: "Kalender", path: "/dashboard/calendar" },
+    { icon: Files, label: "Berkas", path: "/dashboard/files" },
+    { icon: FileText, label: "Logbook Mingguan", path: "/dashboard/logsheet" },
+    { icon: Users, label: "Tim", path: "/dashboard/team" },
   ];
 
   const SidebarContent = () => (

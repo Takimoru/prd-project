@@ -83,12 +83,12 @@ export function CalendarPage() {
       <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="px-4 sm:px-6 py-6 sm:py-8">
           <DashboardHeader 
-            title="Calendar" 
-            description="View your schedule and deadlines" 
+            title="Kalender" 
+            description="Lihat jadwal dan tenggat waktu Anda" 
           />
 
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-foreground">Schedules</h1>
+            <h1 className="text-3xl font-bold text-foreground">Jadwal</h1>
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={prevMonth}>
                 <ChevronLeft className="h-4 w-4" />
@@ -100,7 +100,7 @@ export function CalendarPage() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
               <Button variant="outline" onClick={goToToday} className="ml-2">
-                Today
+                Hari Ini
               </Button>
             </div>
           </div>
@@ -108,7 +108,7 @@ export function CalendarPage() {
           <Card className="overflow-hidden">
             <CardHeader className="p-0 border-b bg-muted/50">
               <div className="grid grid-cols-7">
-                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((day) => (
                   <div key={day} className="py-3 text-center text-sm font-medium text-muted-foreground">
                     {day}
                   </div>

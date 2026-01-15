@@ -41,11 +41,11 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
         },
         refetchQueries: ['GetDashboardData'] // Refetch dashboard to update attendance status
       });
-      toast.success(status === "present" ? "Attendance submitted!" : "Permission submitted");
+      toast.success(status === "present" ? "Absensi berhasil dikirim!" : "Izin berhasil dikirim");
       setSelectedTeamId(null);
     } catch (error: any) {
       console.error("Check-in failed:", error);
-      toast.error(error.message || "Failed to submit attendance.");
+      toast.error(error.message || "Gagal mengirim absensi.");
       throw error;
     }
   };
@@ -62,18 +62,18 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
                 <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                   <CheckCircle2 className="w-4 h-4 text-blue-500" />
                 </div>
-                Work Programs Progress
+                Progres Program Kerja
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {(!teams || teams.length === 0) ? (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No work programs yet
+                    Belum ada program kerja
                   </p>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    View work programs in the Projects page
+                    Lihat program kerja di halaman Program Kerja
                   </p>
                 )}
               </div>
@@ -87,7 +87,7 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
                 <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
                   <Clock className="w-4 h-4 text-green-500" />
                 </div>
-                Attendance
+                Absensi
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -104,26 +104,26 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
                       <div>
                         <p className="font-medium text-sm">{team.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          {hasCheckedIn ? "Checked in today" : "Not checked in"}
+                          {hasCheckedIn ? "Sudah check-in hari ini" : "Belum check-in"}
                         </p>
                       </div>
                       {hasCheckedIn ? (
                         <div className="flex items-center gap-1.5 text-green-500">
                           <CheckCircle className="w-4 h-4" />
-                          <span className="text-xs font-medium">Checked in</span>
+                          <span className="text-xs font-medium">Sudah check-in</span>
                         </div>
                       ) : (
                         isReadOnly ? (
                           <div className="flex items-center gap-1.5 text-muted-foreground">
                              <Clock className="w-4 h-4" />
-                             <span className="text-xs font-medium">Pending</span>
+                             <span className="text-xs font-medium">Tertunda</span>
                           </div>
                         ) : (
                           <button
                             onClick={() => handleCheckInClick(teamId)}
                             className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
                           >
-                            Check In
+                            Isi Absensi
                           </button>
                         )
                       )}
@@ -132,7 +132,7 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
                 })}
                 {(!teams || teams.length === 0) && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No teams yet
+                    Belum ada tim
                   </p>
                 )}
               </div>

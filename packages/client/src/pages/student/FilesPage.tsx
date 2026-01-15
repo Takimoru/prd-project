@@ -82,12 +82,12 @@ export function FilesPage() {
       <div className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="px-4 sm:px-6 py-6 sm:py-8">
           <DashboardHeader 
-            title="Files" 
-            description="Manage your task completion files" 
+            title="File" 
+            description="Kelola file penyelesaian tugas Anda" 
           />
           
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">Library</h1>
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">Pustaka</h1>
           </div>
 
           {!hasFiles ? (
@@ -95,9 +95,9 @@ export function FilesPage() {
               <CardContent className="flex items-center justify-center h-64">
                 <div className="text-center">
                   <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                  <h3 className="text-lg font-semibold text-foreground mb-2">No files yet</h3>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Belum ada file</h3>
                   <p className="text-muted-foreground">
-                    Files uploaded when completing tasks will appear here, organized by work program
+                    File yang diunggah saat menyelesaikan tugas akan muncul di sini, dikelompokkan berdasarkan program kerja
                   </p>
                 </div>
               </CardContent>
@@ -114,7 +114,7 @@ export function FilesPage() {
                       <div className="flex-1">
                         <h3 className="text-lg font-semibold">{data.programName}</h3>
                         <p className="text-sm text-muted-foreground font-normal">
-                          {data.files.length} file{data.files.length > 1 ? 's' : ''}
+                          {data.files.length} file
                         </p>
                       </div>
                       <Badge variant="secondary">
@@ -137,11 +137,11 @@ export function FilesPage() {
                               {item.file.split('/').pop()}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              From task: <span className="font-medium">{item.taskTitle}</span>
+                              Dari tugas: <span className="font-medium">{item.taskTitle}</span>
                             </p>
                             {item.completedAt && (
                               <p className="text-xs text-muted-foreground mt-1">
-                                Uploaded {format(new Date(item.completedAt), "MMM d, yyyy 'at' h:mm a")}
+                                Diunggah {format(new Date(item.completedAt), "d MMM yyyy, HH:mm")}
                               </p>
                             )}
                           </div>

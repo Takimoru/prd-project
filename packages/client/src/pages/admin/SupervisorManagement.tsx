@@ -38,8 +38,8 @@ export function SupervisorManagement() {
   return (
     <div className="space-y-6">
       <AdminHeader
-        title="Supervisor Management"
-        description="Create and manage supervisors for team assignments"
+        title="Manajemen Dosen Pembimbing"
+        description="Buat dan kelola dosen pembimbing untuk penugasan tim"
         action={
           <Button
             onClick={() => {
@@ -48,7 +48,7 @@ export function SupervisorManagement() {
             }}
             className="bg-[hsl(var(--accent-orange))] hover:bg-[hsl(var(--accent-orange))/0.9] text-white shadow-lg shadow-orange-900/20">
             <Plus className="w-4 h-4 mr-2" />
-            Add Supervisor
+            Tambah Pembimbing
           </Button>
         }
       />
@@ -58,13 +58,13 @@ export function SupervisorManagement() {
         {isCreating && (
           <div className="bg-card rounded-lg shadow-lg border border-border p-6">
             <h3 className="text-lg font-semibold text-foreground mb-4">
-              {editingId ? "Edit Supervisor" : "Create New Supervisor"}
+              {editingId ? "Edit Dosen Pembimbing" : "Buat Dosen Pembimbing Baru"}
             </h3>
             <form onSubmit={handleFormSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
-                    Name *
+                    Nama *
                   </label>
                   <input
                     type="text"
@@ -76,13 +76,13 @@ export function SupervisorManagement() {
                       })
                     }
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="Supervisor name"
+                    placeholder="Nama dosen pembimbing"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
-                    Email * (for login)
+                    Email * (untuk login)
                   </label>
                   <input
                     type="email"
@@ -94,7 +94,7 @@ export function SupervisorManagement() {
                       })
                     }
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="supervisor@university.edu"
+                    placeholder="dosen@university.edu"
                     required
                   />
                 </div>
@@ -112,7 +112,7 @@ export function SupervisorManagement() {
                       })
                     }
                     className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-                    placeholder="NIDN number"
+                    placeholder="Nomor NIDN"
                     required
                   />
                 </div>
@@ -121,13 +121,13 @@ export function SupervisorManagement() {
                 <Button
                   type="submit"
                   className="bg-primary hover:bg-primary/90">
-                  {editingId ? "Update Supervisor" : "Create Supervisor"}
+                  {editingId ? "Perbarui" : "Buat"}
                 </Button>
                 <Button
                   type="button"
                   onClick={handleCancelSupervisorForm}
                   variant="outline">
-                  Cancel
+                  Batal
                 </Button>
               </div>
             </form>
@@ -138,7 +138,7 @@ export function SupervisorManagement() {
         <div className="bg-card rounded-lg shadow-lg border border-border">
           <div className="p-6 border-b border-border">
             <h2 className="text-xl font-semibold text-foreground">
-              Supervisors
+              Daftar Dosen Pembimbing
             </h2>
           </div>
           <div className="p-6">
@@ -165,13 +165,13 @@ export function SupervisorManagement() {
                       <button
                         onClick={() => handleEditSupervisor(supervisor)}
                         className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded transition-colors"
-                        title="Edit supervisor">
+                        title="Edit dosen pembimbing">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteSupervisor(supervisor.id)}
                         className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Delete supervisor">
+                        title="Hapus dosen pembimbing">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -180,8 +180,7 @@ export function SupervisorManagement() {
               </div>
             ) : (
               <p className="text-muted-foreground text-center py-8">
-                No supervisors created yet. Click "Add Supervisor" to create
-                one.
+                Belum ada dosen pembimbing. Klik "Tambah Pembimbing" untuk membuat baru.
               </p>
             )}
           </div>

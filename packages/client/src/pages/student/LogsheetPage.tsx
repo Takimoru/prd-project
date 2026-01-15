@@ -37,7 +37,7 @@ export function LogsheetPage() {
       const year = format(date, "yyyy");
       const week = format(date, "ww"); // ISO week number
       return {
-        label: `Week ${week} (${format(startOfISOWeek(date), "MMM d")} - ${format(endOfISOWeek(date), "MMM d")}, ${year})`,
+        label: `Minggu ke-${week} (${format(startOfISOWeek(date), "d MMM")} - ${format(endOfISOWeek(date), "d MMM")}, ${year})`,
         value: `${year}-${week}`
       };
     });
@@ -66,7 +66,7 @@ export function LogsheetPage() {
 
   const handleDownloadCSV = () => {
     if (recap.length === 0) {
-      toast.error("No data to download");
+      toast.error("Tidak ada data untuk diunduh");
       return;
     }
 
@@ -100,10 +100,10 @@ export function LogsheetPage() {
       await uploadLogsheet({
         variables: { teamId: selectedTeamId, week: selectedWeek }
       });
-      toast.success("Logsheet uploaded to Admin successfully!");
+      toast.success("Logbook berhasil diunggah ke Admin!");
       refetchLogs();
     } catch (error: any) {
-      toast.error(error.message || "Failed to upload logsheet");
+      toast.error(error.message || "Gagal mengunggah logbook");
     }
   };
 
@@ -123,9 +123,9 @@ export function LogsheetPage() {
         <div className="px-4 sm:px-6 py-6 sm:py-8 space-y-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">Weekly Logsheet</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Logbook Mingguan</h1>
               <p className="text-muted-foreground mt-1">
-                Generate and archive your team's weekly task recap.
+                Buat dan arsipkan rekap tugas mingguan tim Anda.
               </p>
             </div>
           </div>
@@ -134,14 +134,14 @@ export function LogsheetPage() {
             {/* Selection Card */}
             <Card className="lg:col-span-1 border-primary/10 bg-primary/5">
               <CardHeader>
-                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-primary/70">Settings</CardTitle>
+                <CardTitle className="text-sm font-semibold uppercase tracking-wider text-primary/70">Pengaturan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Select Team</label>
+                  <label className="text-xs font-medium text-muted-foreground">Pilih Tim</label>
                   <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
                     <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Choose team" />
+                      <SelectValue placeholder="Pilih tim" />
                     </SelectTrigger>
                     <SelectContent>
                       {myTeams.map((team: any) => (
@@ -154,10 +154,10 @@ export function LogsheetPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Select Week</label>
+                  <label className="text-xs font-medium text-muted-foreground">Pilih Minggu</label>
                   <Select value={selectedWeek} onValueChange={setSelectedWeek}>
                     <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Choose week" />
+                      <SelectValue placeholder="Pilih minggu" />
                     </SelectTrigger>
                     <SelectContent>
                       {weeks.map((week) => (
@@ -177,7 +177,7 @@ export function LogsheetPage() {
                     disabled={recap.length === 0 || recapLoading}
                   >
                     <Download className="w-4 h-4" />
-                    Export CSV
+                    Ekspor CSV
                   </Button>
                   <Button 
                     className="w-full justify-start gap-2"
@@ -185,7 +185,7 @@ export function LogsheetPage() {
                     disabled={recap.length === 0 || recapLoading || uploadLoading}
                   >
                     {uploadLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                    Archive to Admin
+                    Arsipkan ke Admin
                   </Button>
                 </div>
               </CardContent>
@@ -196,9 +196,9 @@ export function LogsheetPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Weekly Recap Preview</CardTitle>
+                    <CardTitle>Pratinjau Rekap Mingguan</CardTitle>
                     <CardDescription>
-                      Tasks completed in {selectedWeek}
+                      Tugas selesai pada {selectedWeek.replace("Week", "Minggu")}
                     </CardDescription>
                   </div>
                   {recap.length > 0 && (
@@ -216,10 +216,10 @@ export function LogsheetPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[100px]">Date</TableHead>
-                          <TableHead>Task</TableHead>
-                          <TableHead>Members</TableHead>
-                          <TableHead className="hidden lg:table-cell">Notes</TableHead>
+                          <TableHead className="w-[100px]">Tanggal</TableHead>
+                          <TableHead>Tugas</TableHead>
+                          <TableHead>Anggota</TableHead>
+                          <TableHead className="hidden lg:table-cell">Catatan</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -250,8 +250,8 @@ export function LogsheetPage() {
                 ) : (
                   <div className="text-center py-20 bg-muted/20 rounded-lg border border-dashed">
                     <FileText className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                    <p className="text-muted-foreground">No tasks completed during this period.</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">Try selecting a different week or verifying your team activities.</p>
+                    <p className="text-muted-foreground">Tidak ada tugas yang selesai pada periode ini.</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">Coba pilih minggu lain atau verifikasi aktivitas tim Anda.</p>
                   </div>
                 )}
               </CardContent>

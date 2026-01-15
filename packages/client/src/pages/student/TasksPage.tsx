@@ -74,23 +74,23 @@ export function TasksPage() {
         <div className="px-4 sm:px-6 py-6 sm:py-8">
           <div className="flex justify-between items-start mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-foreground tracking-tight">Tasks</h1>
-              <p className="text-muted-foreground mt-1">Manage your tasks across all work programs</p>
+              <h1 className="text-3xl font-bold text-foreground tracking-tight">Tugas</h1>
+              <p className="text-muted-foreground mt-1">Kelola tugas Anda di semua program kerja</p>
             </div>
             <button
               onClick={() => setIsCreateModalOpen(true)}
               className="bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md text-sm font-medium transition-colors"
             >
-              Create Task
+              Buat Tugas
             </button>
           </div>
 
           {/* Filter Tabs */}
           <div className="flex items-center gap-2 mb-6 border-b border-border">
             {[
-              { key: "all", label: "All Tasks", count: myTasks?.length || 0 },
-              { key: "todo", label: "To Do", count: myTasks?.filter((t: any) => !t.completed).length || 0 },
-              { key: "done", label: "Done", count: myTasks?.filter((t: any) => t.completed).length || 0 },
+              { key: "all", label: "Semua Tugas", count: myTasks?.length || 0 },
+              { key: "todo", label: "Kerjakan", count: myTasks?.filter((t: any) => !t.completed).length || 0 },
+              { key: "done", label: "Selesai", count: myTasks?.filter((t: any) => t.completed).length || 0 },
             ].map(filter => (
               <button
                 key={filter.key}
@@ -134,13 +134,13 @@ export function TasksPage() {
                       <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{task.description}</p>
                     )}
                     <div className="flex items-center gap-3 mt-2">
-                      <span className="text-xs text-muted-foreground">Due: {task.endTime ? new Date(task.endTime).toLocaleDateString() : 'No due date'}</span>
-                      <span className="text-xs text-muted-foreground">Created: {new Date(task.createdAt).toLocaleDateString()}</span>
+                      <span className="text-xs text-muted-foreground">Tenggat: {task.endTime ? new Date(task.endTime).toLocaleDateString() : 'Tidak ada tenggat'}</span>
+                      <span className="text-xs text-muted-foreground">Dibuat: {new Date(task.createdAt).toLocaleDateString()}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className={getStatusBadge(!!task.completed)}>
-                      {task.completed ? "Done" : "To Do"}
+                      {task.completed ? "Selesai" : "Kerjakan"}
                     </Badge>
                   </div>
                 </div>
@@ -151,8 +151,8 @@ export function TasksPage() {
           {filteredTasks.length === 0 && (
             <div className="text-center py-16">
               <CheckSquare className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">No tasks found</h3>
-              <p className="text-muted-foreground">Try selecting a different filter or create a new task</p>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Tidak ada tugas ditemukan</h3>
+              <p className="text-muted-foreground">Coba pilih filter lain atau buat tugas baru</p>
             </div>
           )}
         </div>

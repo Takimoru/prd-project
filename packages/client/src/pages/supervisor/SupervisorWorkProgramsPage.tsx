@@ -10,13 +10,13 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, MessageSquare, ChevronRight, Loader2 } from "lucide-react";
+import { FileText, MessageSquare, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 
 export function SupervisorWorkProgramsPage() {
   const navigate = useNavigate();
-  const { data, loading, error } = useQuery(GET_SUPERVISOR_DASHBOARD_DATA);
+  const { data, loading } = useQuery(GET_SUPERVISOR_DASHBOARD_DATA);
 
   if (loading) {
     return (
@@ -34,9 +34,9 @@ export function SupervisorWorkProgramsPage() {
     <SupervisorLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Work Programs</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Program Kerja</h1>
           <p className="text-muted-foreground mt-2">
-            Monitor and discuss work programs across your assigned teams.
+            Pantau dan diskusikan program kerja di tim yang Anda bimbing.
           </p>
         </div>
 
@@ -50,18 +50,18 @@ export function SupervisorWorkProgramsPage() {
                     <CardDescription>{wp.team?.name}</CardDescription>
                   </div>
                   <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100">
-                    {wp.progress}% Complete
+                    {wp.progress}% Selesai
                   </Badge>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4">
                     <div className="flex gap-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">Starts:</span>
+                        <span className="font-medium">Mulai:</span>
                         {format(new Date(wp.startDate), "MMM d, yyyy")}
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="font-medium">Ends:</span>
+                        <span className="font-medium">Selesai:</span>
                         {format(new Date(wp.endDate), "MMM d, yyyy")}
                       </div>
                     </div>
@@ -72,14 +72,14 @@ export function SupervisorWorkProgramsPage() {
                         onClick={() => navigate(`/team/${wp.teamId}/programs/${wp.id}`)}
                       >
                         <FileText className="w-4 h-4 mr-2" />
-                        Details
+                        Detail
                       </Button>
                       <Button 
                         size="sm"
                         onClick={() => navigate(`/team/${wp.teamId}/programs/${wp.id}?tab=chat`)}
                       >
                         <MessageSquare className="w-4 h-4 mr-2" />
-                        Discussion
+                        Diskusi
                       </Button>
                     </div>
                   </div>
@@ -89,8 +89,8 @@ export function SupervisorWorkProgramsPage() {
           ) : (
             <div className="text-center py-12 border-2 border-dashed rounded-lg bg-muted/20">
               <FileText className="w-12 h-12 mx-auto text-muted-foreground opacity-20 mb-4" />
-              <h3 className="text-lg font-medium">No Work Programs Found</h3>
-              <p className="text-muted-foreground">You are not supervising any active work programs at the moment.</p>
+              <h3 className="text-lg font-medium">Tidak Ada Program Kerja Ditemukan</h3>
+              <p className="text-muted-foreground">Anda tidak membimbing program kerja aktif saat ini.</p>
             </div>
           )}
         </div>
