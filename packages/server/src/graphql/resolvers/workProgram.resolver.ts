@@ -148,7 +148,8 @@ export class WorkProgramResolver {
     // Use standard find with relations and filter in memory - safer than complex joins
     // Relations removed to prevent circularity
     const allWps = await wpRepo.find({
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
+      relations: ['team', 'team.members']
     });
 
     debugLog(`[WorkProgramResolver] Fetched ${allWps.length} total WPs from DB`);

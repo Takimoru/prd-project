@@ -69,14 +69,14 @@ export function SupervisorWorkProgramsPage() {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => navigate(`/team/${wp.teamId}/programs/${wp.id}`)}
+                        onClick={() => navigate(`/supervisor/work-programs/${wp.id}`)}
                       >
                         <FileText className="w-4 h-4 mr-2" />
                         Detail
                       </Button>
                       <Button 
                         size="sm"
-                        onClick={() => navigate(`/team/${wp.teamId}/programs/${wp.id}?tab=chat`)}
+                        onClick={() => navigate(`/supervisor/work-programs/${wp.id}?tab=chat`)}
                       >
                         <MessageSquare className="w-4 h-4 mr-2" />
                         Diskusi

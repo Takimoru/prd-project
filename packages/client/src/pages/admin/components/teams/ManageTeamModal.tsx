@@ -46,23 +46,23 @@ export function ManageTeamModal({
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>{isEditing ? "Edit Team" : "Create New Team"}</DialogTitle>
+          <DialogTitle>{isEditing ? "Edit Tim" : "Buat Tim Baru"}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Team Name</Label>
+            <Label htmlFor="name">Nama Tim</Label>
             <Input
               id="name"
               required
               value={formData.name}
               onChange={(e) => onChange({ ...formData, name: e.target.value })}
-              placeholder="e.g., Alpha Squad"
+              placeholder="Tim A"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="leader">Select Leader</Label>
+            <Label htmlFor="leader">Pilih Leader Tim</Label>
             <Select
               value={formData.leaderId}
               onValueChange={(value) =>
@@ -70,7 +70,7 @@ export function ManageTeamModal({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a leader" />
+                <SelectValue placeholder="Pilih Leader" />
               </SelectTrigger>
               <SelectContent>
                 {availableStudents?.map((student) => (
@@ -83,7 +83,7 @@ export function ManageTeamModal({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="supervisor">Select Supervisor (Optional)</Label>
+            <Label htmlFor="supervisor">Pilih Dosen Pembimbing</Label>
             <Select
               value={formData.supervisorId || "none"}
               onValueChange={(value) =>
@@ -94,10 +94,10 @@ export function ManageTeamModal({
               }
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a supervisor" />
+                <SelectValue placeholder="Pilih Dosen Pembimbing" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No Supervisor</SelectItem>
+                <SelectItem value="none">Tidak ada</SelectItem>
                 {availableSupervisors?.map((supervisor) => (
                   <SelectItem key={supervisor.id} value={supervisor.id}>
                     {supervisor.name} ({supervisor.email})
@@ -108,7 +108,7 @@ export function ManageTeamModal({
           </div>
 
           <div className="space-y-2">
-            <Label>Select Members</Label>
+            <Label>Pilih Anggota</Label>
             <ScrollArea className="h-[240px] border rounded-md p-4">
               <div className="space-y-2">
                 {availableStudents?.map((student) => (
@@ -140,13 +140,13 @@ export function ManageTeamModal({
                 ))}
                 {availableStudents?.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    No available students found
+                    Tidak ada anggota yang tersedia
                   </p>
                 )}
               </div>
             </ScrollArea>
             <p className={`text-xs mt-1 ${formData.memberIds.length < 7 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
-              Selected: {formData.memberIds.length} members {formData.memberIds.length < 7 && "(Minimum 7 required)"}
+              Pilih Anggota: {formData.memberIds.length} Anggota {formData.memberIds.length < 7 && "(Minimum 7 anggota diperlukan)"}
             </p>
           </div>
 
@@ -157,7 +157,7 @@ export function ManageTeamModal({
             <Button 
               type="submit" 
               disabled={!isEditing && formData.memberIds.length < 7}
-              title={!isEditing && formData.memberIds.length < 7 ? "At least 7 members are required to create a team" : ""}
+              title={!isEditing && formData.memberIds.length < 7 ? "Minimum 7 anggota diperlukan untuk membuat tim" : ""}
             >
               {isEditing ? "Update Team" : "Create Team"}
             </Button>

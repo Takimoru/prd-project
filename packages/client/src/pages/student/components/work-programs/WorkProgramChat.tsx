@@ -89,7 +89,11 @@ export function WorkProgramChat({ workProgramId }: WorkProgramChatProps) {
             </div>
           ) : (
             messages.map((m: any) => {
-              const isMe = m.sender.id === user?.id || m.sender.id === user?._id;
+              // Robust ID comparison: convert to string to handle potential number/string mismatches
+              const currentUserId = String(user?.id || user?._id || '');
+              const senderId = String(m.sender.id || '');
+              const isMe = currentUserId === senderId;
+              
               return (
                 <div
                   key={m.id}
@@ -121,11 +125,15 @@ export function WorkProgramChat({ workProgramId }: WorkProgramChatProps) {
                       <div
                         className={`px-3 py-2 rounded-2xl text-sm ${
                           isMe
-                            ? "bg-primary text-white rounded-tr-none"
-                            : "bg-muted text-gray-800 rounded-tl-none"
+                            ? "bg-primary text-primary-foreground rounded-tr-none"
+                            : "bg-secondary text-secondary-foreground rounded-tl-none border border-border"
                         }`}
                       >
                         {m.content}
+                      </div>
+                      {/* Debug Info - Temporary */}
+                      <div className="text-[9px] text-muted-foreground mt-1 font-mono">
+                         U:{currentUserId.slice(-4)} vs S:{senderId.slice(-4)} ({isMe ? 'ME' : 'NOT'})
                       </div>
                     </div>
                   </div>
