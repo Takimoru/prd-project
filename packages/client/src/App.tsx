@@ -42,6 +42,7 @@ import { SupervisorAllReports } from "./pages/supervisor/SupervisorAllReports";
 import { WeeklySummaryReview } from "./pages/supervisor/WeeklySummaryReview";
 import { SpectatorDashboard } from "./pages/supervisor/SpectatorDashboard";
 import { WeeklyAttendanceApproval } from "./pages/supervisor/WeeklyAttendanceApproval";
+import { SupervisorWorkProgramsPage } from "./pages/supervisor/SupervisorWorkProgramsPage";
 import { useParams } from "react-router-dom";
 
 // Wrapper to extract params for SpectatorDashboard
@@ -87,8 +88,9 @@ function App() {
               <Route path="/supervisor" element={<ProtectedRoute><NewSupervisorDashboard /></ProtectedRoute>} />
               <Route path="/supervisor/teams" element={<ProtectedRoute><SupervisorTeamList /></ProtectedRoute>} />
               <Route path="/supervisor/tasks" element={<ProtectedRoute><SupervisorTasksPage /></ProtectedRoute>} />
-              <Route path="/supervisor/pending" element={<ProtectedRoute><SupervisorPendingReviews /></ProtectedRoute>} />
+               <Route path="/supervisor/pending" element={<ProtectedRoute><SupervisorPendingReviews /></ProtectedRoute>} />
               <Route path="/supervisor/reports" element={<ProtectedRoute><SupervisorAllReports /></ProtectedRoute>} />
+              <Route path="/supervisor/work-programs" element={<ProtectedRoute><SupervisorWorkProgramsPage /></ProtectedRoute>} />
               <Route path="/supervisor/spectator/:teamId" element={<ProtectedRoute><SpectatorDashboardWrapper /></ProtectedRoute>} />
               <Route path="/supervisor/attendance-approval" element={<ProtectedRoute><WeeklyAttendanceApproval /></ProtectedRoute>} />
               <Route path="/supervisor/review/:teamId/:week" element={<ProtectedRoute><WeeklySummaryReview /></ProtectedRoute>} />

@@ -2,7 +2,7 @@ import { useQuery, useMutation } from "@apollo/client";
 import { GET_WORK_PROGRAM, GET_WORK_PROGRAM_PROGRESS, DELETE_WORK_PROGRAM } from "@/graphql/student";
 import { GET_TEAM_TASKS } from "@/graphql/dashboard";
 import { GET_TEAM_DETAILS } from "@/graphql/dashboard";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 
 import { AdminHeader } from "../../../admin/components/AdminHeader";
 import { Button } from "../../../../components/ui/button";
@@ -32,11 +32,16 @@ import { WorkProgramChat } from "./WorkProgramChat";
 
 export function WorkProgramDetail() {
   const { programId } = useParams();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [removeWorkProgram] = useMutation(DELETE_WORK_PROGRAM);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"timeline" | "calendar" | "chat">("timeline");
+  
+  const initialTab = (searchParams.get("tab") as any) || "timeline";
+  const [viewMode, setViewMode] = useState<"timeline" | "calendar" | "chat">(
+    ["timeline", "calendar", "chat"].includes(initialTab) ? initialTab : "timeline"
+  );
   
   const { data: programData, loading: programLoading } = useQuery(GET_WORK_PROGRAM, {
     variables: { id: programId! },

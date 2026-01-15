@@ -5,6 +5,7 @@ import { User } from '../../entities/User';
 import { Context } from '../context';
 import { AppDataSource } from '../../data-source';
 import { requireAuth } from '../../lib/auth-helpers';
+import { debugLog } from '../../lib/debug-logger';
 
 @Resolver(() => WorkProgramMessage)
 export class WorkProgramChatResolver {
@@ -57,11 +58,14 @@ export class WorkProgramChatResolver {
       senderId: user.id,
     });
 
+    debugLog(`[Chat] Saving message for WP ${workProgramId} by user ${user.id}`);
     const saved = await messageRepo.save(message);
+    debugLog(`[Chat] Saved message ID ${saved.id}`);
     const result = await messageRepo.findOneOrFail({
       where: { id: saved.id },
       relations: ['sender', 'workProgram'],
     });
+    debugLog(`[Chat] Fetched result with relations for message ${saved.id}`);
 
     await ctx.pubSub.publish('WORK_PROGRAM_MESSAGE_ADDED', result);
 

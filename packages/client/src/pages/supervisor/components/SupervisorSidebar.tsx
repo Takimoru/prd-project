@@ -21,6 +21,7 @@ export function SupervisorSidebar() {
 
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/supervisor" },
+    { icon: FileText, label: "Work Programs", path: "/supervisor/work-programs" },
     { icon: Users, label: "My Teams", path: "/supervisor/teams" },
     { icon: CheckSquare, label: "Tasks", path: "/supervisor/tasks" },
     { icon: CalendarCheck, label: "Attendance Approval", path: "/supervisor/attendance-approval" },
