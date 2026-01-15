@@ -221,6 +221,7 @@ export class AttendanceResolver {
       existing.lat = input.lat;
       existing.long = input.long;
       existing.photoUrl = input.photoUrl;
+      existing.proofUrl = input.proofUrl;
       existing.timestamp = new Date();
       await attendanceRepo.save(existing);
 
@@ -240,6 +241,7 @@ export class AttendanceResolver {
       lat: input.lat,
       long: input.long,
       photoUrl: input.photoUrl,
+      proofUrl: input.proofUrl,
     });
 
     const saved = await attendanceRepo.save(attendance);

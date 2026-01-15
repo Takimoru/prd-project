@@ -22,5 +22,8 @@ export class CheckInInput {
 
   @Field({ nullable: true })
   photoUrl?: string;
+
+  @Field({ nullable: true })
+  proofUrl?: string;
 }
 

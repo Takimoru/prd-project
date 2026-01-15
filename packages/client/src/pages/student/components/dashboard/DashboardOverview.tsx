@@ -25,7 +25,7 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
     setSelectedTeamId(teamId);
   };
 
-  const handleSubmitAttendance = async (status: "present" | "permission", excuse?: string) => {
+  const handleSubmitAttendance = async (status: "present" | "permission", excuse?: string, proofUrl?: string) => {
     if (!selectedTeamId) return;
 
     try {
@@ -36,6 +36,7 @@ export function DashboardOverview({ teams, todaysAttendance, isReadOnly = false 
             date: today,
             status,
             excuse,
+            proofUrl,
           },
         },
         refetchQueries: ['GetDashboardData'] // Refetch dashboard to update attendance status

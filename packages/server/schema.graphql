@@ -33,6 +33,7 @@ type Attendance {
   lat: Float
   long: Float
   photoUrl: String
+  proofUrl: String
   status: String!
   team: Team!
   teamId: String!
@@ -53,6 +54,7 @@ input CheckInInput {
   lat: Float
   long: Float
   photoUrl: String
+  proofUrl: String
   status: String!
   teamId: ID!
 }

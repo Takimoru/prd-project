@@ -5,13 +5,42 @@ import toast from "react-hot-toast";
 interface AttendanceDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (status: "present" | "permission", excuse?: string) => Promise<void>;
+  onSubmit: (status: "present" | "permission", excuse?: string, proofUrl?: string) => Promise<void>;
 }
 
 export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialogProps) {
   const [status, setStatus] = useState<"present" | "permission" | null>(null);
   const [excuse, setExcuse] = useState("");
+  const [proofUrl, setProofUrl] = useState<string | undefined>(undefined);
+  const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/upload/single", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error("Upload failed");
+
+      const data = await response.json();
+      setProofUrl(data.url);
+      toast.success("File uploaded successfully");
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload file");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!status) {
@@ -24,12 +53,22 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
       return;
     }
 
+    if (status === "permission" && !proofUrl) {
+      toast.error("Please upload a proof of permission (e.g., sick note)");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
-      await onSubmit(status, status === "permission" ? excuse : undefined);
+      await onSubmit(
+        status, 
+        status === "permission" ? excuse : undefined,
+        status === "permission" ? proofUrl : undefined
+      );
       onClose();
       setStatus(null);
       setExcuse("");
+      setProofUrl(undefined);
     } catch (error) {
       console.error("Failed to submit attendance:", error);
     } finally {
@@ -83,17 +122,49 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
           </div>
 
           {status === "permission" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Reason for permission
-              </label>
-              <textarea
-                value={excuse}
-                onChange={(e) => setExcuse(e.target.value)}
-                className="w-full px-3 py-2 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
-                rows={3}
-                placeholder="Please explain why you cannot attend today..."
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Reason for permission
+                </label>
+                <textarea
+                  value={excuse}
+                  onChange={(e) => setExcuse(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-primary-500 focus:border-primary-500"
+                  rows={3}
+                  placeholder="Please explain why you cannot attend today..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Proof of permission (Photo/PDF)
+                </label>
+                <div className="mt-1 flex items-center">
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                    id="proof-upload"
+                  />
+                  <label
+                    htmlFor="proof-upload"
+                    className={`cursor-pointer px-4 py-2 border rounded-lg text-sm font-medium ${
+                      proofUrl 
+                        ? "bg-green-50 border-green-500 text-green-700" 
+                        : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                    }`}
+                  >
+                    {uploading ? "Uploading..." : proofUrl ? "Uploaded successfully" : "Choose File"}
+                  </label>
+                  {proofUrl && (
+                    <span className="ml-3 text-xs text-gray-500 truncate max-w-[150px]">
+                      {proofUrl.split('/').pop()}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 
@@ -101,13 +172,13 @@ export function AttendanceDialog({ isOpen, onClose, onSubmit }: AttendanceDialog
             <button
               onClick={onClose}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200"
-              disabled={isSubmitting}
+              disabled={isSubmitting || uploading}
             >
               Cancel
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!status || isSubmitting}
+              disabled={!status || isSubmitting || uploading}
               className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Submitting..." : "Submit Attendance"}

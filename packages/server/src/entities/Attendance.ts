@@ -48,6 +48,10 @@ export class Attendance {
   @Column({ nullable: true })
   photoUrl?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  proofUrl?: string;
+
   @Field(() => Float, { nullable: true })
   @Column("float", { nullable: true })
   lat?: number;
