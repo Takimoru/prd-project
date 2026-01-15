@@ -4,6 +4,7 @@ import { WorkProgramProgress } from '../../entities/WorkProgramProgress';
 import { Team } from '../../entities/Team';
 import { User } from '../../entities/User';
 import { Task } from '../../entities/Task';
+import { WorkProgramMessage } from '../../entities/WorkProgramMessage';
 import { Context } from '../context';
 import { requireAuth, requireSupervisorRole, requireLeaderRole, requireAdminRole } from '../../lib/auth-helpers';
 import { AppDataSource } from '../../data-source';
@@ -94,6 +95,17 @@ export class WorkProgramResolver {
     const progressRepo = AppDataSource.getRepository(WorkProgramProgress);
     if (wp.progressRecords) return wp.progressRecords;
     return await progressRepo.find({ where: { workProgramId: wp.id } });
+  }
+
+  @FieldResolver(() => [WorkProgramMessage])
+  async messages(@Root() wp: WorkProgram): Promise<WorkProgramMessage[]> {
+    const messageRepo = AppDataSource.getRepository(WorkProgramMessage);
+    if (wp.messages) return wp.messages;
+    return await messageRepo.find({ 
+      where: { workProgramId: wp.id },
+      order: { createdAt: 'ASC' },
+      relations: ['sender']
+    });
   }
 
   @Query(() => [WorkProgram])

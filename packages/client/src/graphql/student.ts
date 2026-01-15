@@ -170,3 +170,47 @@ export const UPDATE_WORK_PROGRAM_PROGRESS = gql`
   }
 `;
 
+export const GET_WORK_PROGRAM_MESSAGES = gql`
+  query GetWorkProgramMessages($workProgramId: ID!) {
+    workProgramMessages(workProgramId: $workProgramId) {
+      id
+      content
+      createdAt
+      sender {
+        id
+        name
+        picture
+      }
+    }
+  }
+`;
+
+export const SEND_WORK_PROGRAM_MESSAGE = gql`
+  mutation SendWorkProgramMessage($workProgramId: ID!, $content: String!) {
+    sendWorkProgramMessage(workProgramId: $workProgramId, content: $content) {
+      id
+      content
+      createdAt
+      sender {
+        id
+        name
+      }
+    }
+  }
+`;
+
+export const WORK_PROGRAM_MESSAGE_ADDED = gql`
+  subscription OnWorkProgramMessageAdded($workProgramId: ID!) {
+    workProgramMessageAdded(workProgramId: $workProgramId) {
+      id
+      content
+      createdAt
+      sender {
+        id
+        name
+        picture
+      }
+    }
+  }
+`;
+

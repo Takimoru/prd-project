@@ -180,6 +180,7 @@ type Mutation {
   rejectRegistration(id: ID!, reviewNotes: String): Registration!
   rejectWeeklyReport(input: AddFeedbackInput!): WeeklyReport!
   removeMember(teamId: ID!, userId: ID!): Team!
+  sendWorkProgramMessage(content: String!, workProgramId: ID!): WorkProgramMessage!
   submitRegistration(input: SubmitRegistrationInput!): Registration!
   submitWeeklyReport(description: String!, photos: [String!], progress: Int!, status: String, taskIds: [String!], teamId: ID!, week: String!): WeeklyReport!
   submitWeeklySummary(input: SubmitWeeklySummaryInput!): WeeklyReport!
@@ -247,6 +248,7 @@ type Query {
   weeklyReviewQueue: [WeeklyReport!]!
   weeklyTaskRecap(teamId: ID!, week: String!): [LogsheetRecapRow!]!
   workProgram(id: ID!): WorkProgram
+  workProgramMessages(workProgramId: ID!): [WorkProgramMessage!]!
   workProgramProgress(workProgramId: ID!): [WorkProgramProgress!]!
   workPrograms(teamId: ID!): [WorkProgram!]!
 }
@@ -302,6 +304,7 @@ type Subscription {
   reportUpdated(teamId: ID!): WeeklyReport!
   taskUpdated(taskId: ID, teamId: ID): Task!
   teamUpdated(teamId: ID!): Team!
+  workProgramMessageAdded(workProgramId: ID!): WorkProgramMessage!
 }
 
 type Task {
@@ -433,6 +436,7 @@ type User {
   teamsLed: [Team!]!
   teamsSupervised: [Team!]!
   updatedAt: DateTime!
+  workProgramMessagesSent: [WorkProgramMessage!]!
   workProgramProgress: [WorkProgramProgress!]!
   workProgramsAssigned: [WorkProgram!]!
   workProgramsCreated: [WorkProgram!]!
@@ -486,6 +490,7 @@ type WorkProgram {
   description: String!
   endDate: DateTime!
   id: ID!
+  messages: [WorkProgramMessage!]!
   progress: Int
   progressRecords: [WorkProgramProgress!]!
   startDate: DateTime!
@@ -493,6 +498,16 @@ type WorkProgram {
   team: Team!
   teamId: String!
   title: String!
+}
+
+type WorkProgramMessage {
+  content: String!
+  createdAt: DateTime!
+  id: ID!
+  sender: User!
+  senderId: String!
+  workProgram: WorkProgram!
+  workProgramId: String!
 }
 
 type WorkProgramProgress {

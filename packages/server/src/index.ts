@@ -32,6 +32,7 @@ import { WeeklyReportResolver } from "./graphql/resolvers/weeklyReport.resolver"
 import { AdminResolver } from "./graphql/resolvers/admin.resolver";
 import { ActivityResolver } from "./graphql/resolvers/activity.resolver";
 import { LogsheetResolver } from "./graphql/resolvers/logsheet.resolver";
+import { WorkProgramChatResolver } from "./graphql/resolvers/workProgramChat.resolver";
 import uploadRouter from "./routes/upload";
 
 dotenv.config();
@@ -63,6 +64,7 @@ async function startServer() {
       AdminResolver,
       ActivityResolver,
       LogsheetResolver,
+      WorkProgramChatResolver,
     ],
     validate: false, // Set to true to enable class-validator
     emitSchemaFile: path.resolve(__dirname, "../schema.graphql"),

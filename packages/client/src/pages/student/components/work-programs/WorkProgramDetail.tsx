@@ -21,19 +21,22 @@ import {
   Users,
   Download,
   List,
-  CalendarDays
+  CalendarDays,
+  MessageSquare
 } from "lucide-react";
 import { format, parseISO, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from "date-fns";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { useState } from "react";
+import { WorkProgramChat } from "./WorkProgramChat";
 
 
 export function WorkProgramDetail() {
   const { programId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [removeWorkProgram] = useMutation(DELETE_WORK_PROGRAM);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [viewMode, setViewMode] = useState<"timeline" | "calendar">("timeline");
+  const [viewMode, setViewMode] = useState<"timeline" | "calendar" | "chat">("timeline");
   
   const { data: programData, loading: programLoading } = useQuery(GET_WORK_PROGRAM, {
     variables: { id: programId! },
@@ -66,7 +69,7 @@ export function WorkProgramDetail() {
   const linkedTasks = tasks.filter((t: any) => t.workProgramId === programId) || [];
 
   // Calculate task-based progress
-  const completedTasksCount = linkedTasks.filter(t => t.completed).length;
+  const completedTasksCount = linkedTasks.filter((t: any) => t.completed).length;
   const totalTasksCount = linkedTasks.length;
   const taskBasedProgress = totalTasksCount > 0 
     ? Math.round((completedTasksCount / totalTasksCount) * 100) 
@@ -165,8 +168,6 @@ export function WorkProgramDetail() {
   }
 
   const isLeader = user?.id === team?.leaderId || user?._id === team?.leaderId;
-
-  const [removeWorkProgram] = useMutation(DELETE_WORK_PROGRAM);
 
   const handleDelete = async () => {
     if (!program || !user || !confirm("Are you sure you want to delete this work program?")) return;
@@ -267,18 +268,28 @@ export function WorkProgramDetail() {
                   <CalendarDays className="w-4 h-4 mr-2" />
                   Calendar
                 </Button>
+                <Button
+                  variant={viewMode === "chat" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setViewMode("chat")}
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Discussion
+                </Button>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             {viewMode === "timeline" ? (
               <TimelineView tasks={linkedTasks} />
-            ) : (
+            ) : viewMode === "calendar" ? (
               <CalendarView 
                 tasks={linkedTasks} 
                 currentMonth={currentMonth}
                 onMonthChange={setCurrentMonth}
               />
+            ) : (
+              <WorkProgramChat workProgramId={programId!} />
             )}
           </CardContent>
         </Card>
@@ -313,26 +324,32 @@ export function WorkProgramDetail() {
   );
 }
 
-// Timeline View Component
+// Timeline View Component - Specifically showing completed tasks timeline (as per request)
 function TimelineView({ tasks }: { tasks: any[] }) {
-  if (tasks.length === 0) {
+  const completedTasks = tasks.filter(t => t.completed);
+
+  if (completedTasks.length === 0) {
     return (
       <div className="flex items-center justify-center h-32 text-muted-foreground border border-dashed rounded-lg">
         <div className="text-center">
           <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p>No tasks linked to this program yet</p>
+          <p>No completed tasks in this program yet</p>
         </div>
       </div>
     );
   }
 
-  // Sort tasks by start time
-  const sortedTasks = [...tasks].sort((a, b) => 
-    new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+  // Sort tasks by completion time
+  const sortedTasks = [...completedTasks].sort((a, b) => 
+    new Date(a.completedAt).getTime() - new Date(b.completedAt).getTime()
   );
 
   return (
     <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-4 text-sm font-medium text-green-600">
+        <CheckCircle2 className="w-4 h-4" />
+        Timeline of Completed Tasks
+      </div>
       {sortedTasks.map((task: any, index: number) => (
         <TaskCard key={task.id} task={task} showConnector={index < sortedTasks.length - 1} />
       ))}

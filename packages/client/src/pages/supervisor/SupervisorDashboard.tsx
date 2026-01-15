@@ -100,7 +100,11 @@ export function SupervisorDashboard() {
            {workPrograms && workPrograms.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                {workPrograms.map((wp: any) => (
-                 <Card key={wp.id} className="hover:shadow-md transition-all border-l-4 border-l-blue-500">
+                 <Card 
+                   key={wp.id} 
+                   className="hover:shadow-md transition-all border-l-4 border-l-blue-500 cursor-pointer"
+                   onClick={() => navigate(`/team/${wp.teamId}/programs/${wp.id}`)}
+                 >
                     <CardHeader className="pb-2">
                        <div className="flex justify-between items-start">
                           <div>

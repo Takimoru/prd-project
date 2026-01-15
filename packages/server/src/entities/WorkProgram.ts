@@ -4,6 +4,7 @@ import { Team } from "./Team";
 import { User } from "./User";
 import { Task } from "./Task";
 import { WorkProgramProgress } from "./WorkProgramProgress";
+import { WorkProgramMessage } from "./WorkProgramMessage";
 
 @ObjectType()
 @Entity()
@@ -65,4 +66,8 @@ export class WorkProgram {
   @Field(() => [WorkProgramProgress])
   @OneToMany(() => WorkProgramProgress, progress => progress.workProgram)
   progressRecords: WorkProgramProgress[];
+
+  @Field(() => [WorkProgramMessage])
+  @OneToMany(() => WorkProgramMessage, message => message.workProgram)
+  messages: WorkProgramMessage[];
 }

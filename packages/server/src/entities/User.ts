@@ -11,6 +11,7 @@ import { WorkProgramProgress } from "./WorkProgramProgress";
 import { Activity } from "./Activity";
 import { WeeklyAttendanceApproval } from "./WeeklyAttendanceApproval";
 import { TaskUpdate } from "./TaskUpdate";
+import { WorkProgramMessage } from "./WorkProgramMessage";
 
 @ObjectType()
 @Entity()
@@ -128,4 +129,8 @@ export class User {
   @Field(() => [WeeklyAttendanceApproval])
   @OneToMany(() => WeeklyAttendanceApproval, approval => approval.supervisor)
   attendanceApprovalsAsSupervisor: WeeklyAttendanceApproval[];
+
+  @Field(() => [WorkProgramMessage])
+  @OneToMany(() => WorkProgramMessage, message => message.sender)
+  workProgramMessagesSent: WorkProgramMessage[];
 }
