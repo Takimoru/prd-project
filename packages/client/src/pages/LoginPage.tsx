@@ -45,11 +45,11 @@ export function LoginPage() {
           </div>
           
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">
-            Field Study System
+            Sistem Informasi KKN
           </h1>
           
           <p className="text-blue-100 text-lg md:text-xl font-light mb-12">
-            Sign in with your university email to continue
+            login Dengan Akun Google Anda
           </p>
 
           <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 w-full max-w-sm border border-white/20">

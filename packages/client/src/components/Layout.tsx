@@ -101,7 +101,11 @@ export function Layout() {
       : effectiveRole === "supervisor"
       ? [
           { path: "/supervisor", label: "Supervisor", icon: LayoutDashboard },
-          { path: "/admin/logsheets", label: "Tinjauan Logbook", icon: FileText },
+          {
+            path: "/admin/logsheets",
+            label: "Tinjauan Logbook",
+            icon: FileText,
+          },
         ]
       : [
           { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -218,7 +222,7 @@ export function Layout() {
           <div className="flex-1">
             <Link to="/" className="flex items-center space-x-2">
               <span className="font-bold text-sm sm:text-base">
-                Field Study System
+                Sistem Informasi KKN
               </span>
             </Link>
           </div>
@@ -251,7 +255,7 @@ export function Layout() {
           <div className="flex-1 md:flex-initial">
             <Link to="/" className="flex items-center space-x-2">
               <span className="font-bold text-sm sm:text-base">
-                Field Study System
+                Sistem Informasi KKN
               </span>
             </Link>
           </div>

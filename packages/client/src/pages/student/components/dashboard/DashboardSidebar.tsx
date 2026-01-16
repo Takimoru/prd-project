@@ -1,37 +1,48 @@
 import { NavLink } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  CheckSquare, 
-  Calendar, 
-  Files, 
+import {
+  LayoutDashboard,
+  FolderKanban,
+  CheckSquare,
+  Calendar,
+  Files,
   FileText,
-  Users, 
+  Users,
   Menu,
-  LogOut
+  LogOut,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "../../../../components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "../../../../components/ui/sheet";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "../../../../components/ui/avatar";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+} from "../../../../components/ui/sheet";
 import { Button } from "../../../../components/ui/button";
 import { useState } from "react";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { ThemeToggle } from "../../../../components/ThemeToggle";
 
 interface DashboardSidebarProps {
-  user: {
-    _id?: string; // Optional for compatibility
-    id?: string;
-    name: string;
-    email: string;
-    role: string;
-    picture?: string;
-  } | undefined | null;
+  user:
+    | {
+        _id?: string; // Optional for compatibility
+        id?: string;
+        name: string;
+        email: string;
+        role: string;
+        picture?: string;
+      }
+    | undefined
+    | null;
 }
 
 export function DashboardSidebar({ user }: DashboardSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { logout } = useAuth();
-  
+
   const navItems = [
     { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
     { icon: FolderKanban, label: "Program Kerja", path: "/dashboard/projects" },
@@ -48,10 +59,10 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
       <div className="p-6 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold">W</span>
+            <span className="text-primary-foreground font-bold">S</span>
           </div>
           <div>
-            <h2 className="font-semibold text-foreground">Simonpro</h2>
+            <h2 className="font-semibold text-foreground">Simken</h2>
           </div>
         </div>
         <ThemeToggle />
@@ -70,8 +81,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
               }`
-            }
-          >
+            }>
             <item.icon className="w-4 h-4" />
             {item.label}
           </NavLink>
@@ -86,18 +96,21 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
             <AvatarFallback>{user?.name?.charAt(0)}</AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 flex flex-col">
-            <p className="text-sm font-medium text-foreground truncate">{user?.name}</p>
-            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+            <p className="text-sm font-medium text-foreground truncate">
+              {user?.name}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user?.email}
+            </p>
           </div>
         </div>
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           className="w-full justify-start gap-2 text-muted-foreground hover:text-foreground hover:bg-destructive/10 hover:border-destructive/50"
           onClick={() => {
             setIsOpen(false);
             logout();
-          }}
-        >
+          }}>
           <LogOut className="w-4 h-4" />
           Logout
         </Button>
@@ -122,7 +135,9 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 p-0 bg-[hsl(var(--sidebar-background))]">
+            <SheetContent
+              side="left"
+              className="w-64 p-0 bg-[hsl(var(--sidebar-background))]">
               <div className="flex flex-col h-full">
                 <SidebarContent />
               </div>

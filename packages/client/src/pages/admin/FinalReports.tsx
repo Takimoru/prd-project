@@ -32,8 +32,8 @@ export function FinalReports() {
   return (
     <div className="space-y-8">
       <AdminHeader
-        title="Final Reports"
-        description="Review and approve weekly progress reports submitted by teams."
+        title="Laporan Akhir"
+        description="Tinjau dan setujui laporan kemajuan mingguan yang dikirimkan oleh tim."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -42,7 +42,7 @@ export function FinalReports() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <LayoutGrid className="w-4 h-4 text-primary" />
-              Select Program
+              Pilih Periode
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -55,7 +55,7 @@ export function FinalReports() {
               }}
             >
               <SelectTrigger className="w-full bg-background transition-all">
-                <SelectValue placeholder="Choose a program" />
+                <SelectValue placeholder="Pilih periode" />
               </SelectTrigger>
             <SelectContent>
                 {programs?.map((program: any) => (
@@ -76,7 +76,7 @@ export function FinalReports() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
-              Select Team
+              Pilih Tim
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -89,7 +89,7 @@ export function FinalReports() {
               disabled={!selectedProgram}
             >
               <SelectTrigger className="w-full bg-background transition-all">
-                <SelectValue placeholder={!selectedProgram ? "Select program first" : "Choose a team"} />
+                <SelectValue placeholder={!selectedProgram ? "Pilih periode terlebih dahulu" : "Pilih tim"} />
               </SelectTrigger>
               <SelectContent>
                 {teamsForProgram?.map((team: any) => (
@@ -110,25 +110,25 @@ export function FinalReports() {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileCheck className="w-8 h-8 text-primary/60" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">No Team Selected</h3>
+            <h3 className="text-lg font-semibold text-foreground">Tidak Ada Tim Dipilih</h3>
             <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-              Please select a program and then a team to review their weekly reports and progress.
+              Silakan pilih periode dan kemudian pilih tim untuk meninjau laporan dan kemajuan mingguan mereka.
             </p>
           </div>
         ) : !reportsForTeam ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground font-medium animate-pulse">
-              Loading reports...
+              Memuat laporan...
             </p>
           </div>
         ) : (
           <>
             <div className="p-6 border-b bg-muted/30">
               <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
-                Weekly Reports
+                Laporan Mingguan
                 <span className="text-xs font-normal text-muted-foreground bg-background px-2 py-0.5 rounded-full border">
-                  {reportsForTeam.length} submissions
+                  {reportsForTeam.length} pengajuan
                 </span>
               </h2>
             </div>

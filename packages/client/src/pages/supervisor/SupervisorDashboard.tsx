@@ -28,10 +28,10 @@ export function SupervisorDashboard() {
       <SupervisorLayout>
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
           <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
-            <h2 className="text-red-800 font-bold text-lg mb-2">Dashboard Error</h2>
+            <h2 className="text-red-800 font-bold text-lg mb-2">Error Dashboard</h2>
             <p className="text-red-600 mb-4">{error.message}</p>
             <Button onClick={() => window.location.reload()} variant="outline">
-              Retry Refresh
+              Coba Muat Ulang
             </Button>
           </div>
         </div>
@@ -49,7 +49,7 @@ export function SupervisorDashboard() {
       ...r, 
       type: 'report' as const,
       displayName: r.team?.name,
-      displaySub: `Leader: ${r.leader?.name}`,
+      displaySub: `Ketua: ${r.leader?.name}`,
       weekValue: r.week
     })) || []),
     ...(pendingAttendance?.map((a: any) => {
@@ -63,7 +63,7 @@ export function SupervisorDashboard() {
           ...a, 
           type: 'attendance' as const,
           displayName: a.student?.name,
-          displaySub: `Team: ${a.team?.name}`,
+          displaySub: `Tim: ${a.team?.name}`,
           weekValue: weekStr,
           originalWeek: a.weekStartDate
         };
@@ -75,7 +75,7 @@ export function SupervisorDashboard() {
     return (
       <SupervisorLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground animate-pulse">Loading dashboard...</p>
+          <p className="text-muted-foreground animate-pulse">Memuat dashboard...</p>
         </div>
       </SupervisorLayout>
     );
@@ -87,7 +87,7 @@ export function SupervisorDashboard() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-foreground">
-            Dashboard Supervisor
+            Dashboard Dosen Pembimbing
           </h1>
           <p className="text-muted-foreground mt-2">
             Kelola tim Anda dan tinjau pengumpulan mingguan

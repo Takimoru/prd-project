@@ -97,12 +97,13 @@ export function WeeklyAttendanceApproval() {
           notes,
         },
       });
-      toast.success(`Attendance ${status} successfully`);
+      const statusText = status === "approved" ? "disetujui" : "ditolak";
+      toast.success(`Absensi berhasil ${statusText}`);
       setNotes(""); // Clear notes on success
       refetch(); // Refresh data
     } catch (error) {
       console.error(error);
-      toast.error("Failed to update status");
+      toast.error("Gagal memperbarui status");
     }
   };
 
@@ -121,9 +122,9 @@ export function WeeklyAttendanceApproval() {
           <ArrowLeft className="w-5 h-5" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">Attendance Approval</h1>
+          <h1 className="text-2xl font-bold">Penyetujuan Absensi</h1>
           <p className="text-muted-foreground">
-            Review and approve accumulated team attendance.
+            Tinjau dan setujui akumulasi absensi tim.
           </p>
         </div>
       </div>
@@ -136,11 +137,11 @@ export function WeeklyAttendanceApproval() {
             {displayTeams && displayTeams.length > 1 && (
               <div className="w-full md:w-64">
                 <label className="text-sm font-medium mb-1 block">
-                  Select Team
+                  Pilih Tim
                 </label>
                 <Select value={selectedTeamId} onValueChange={setSelectedTeamId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a team" />
+                    <SelectValue placeholder="Pilih tim" />
                   </SelectTrigger>
                   <SelectContent>
                     {displayTeams?.map((team: any) => (
@@ -155,7 +156,7 @@ export function WeeklyAttendanceApproval() {
 
             <div className="w-full md:w-48">
               <label className="text-sm font-medium mb-1 block">
-                Week (YYYY-WW)
+                Minggu (YYYY-WW)
               </label>
               <div className="flex items-center border rounded-md px-3 py-2 bg-background">
                 <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
@@ -176,7 +177,7 @@ export function WeeklyAttendanceApproval() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
           {/* Left: Student List */}
           <div className="md:col-span-4 lg:col-span-3 space-y-4">
-            <h3 className="font-semibold text-lg">Students</h3>
+            <h3 className="font-semibold text-lg">Mahasiswa</h3>
             <div className="space-y-2">
               {weeklyData.students?.map((student: any) => (
                 <button
@@ -189,7 +190,7 @@ export function WeeklyAttendanceApproval() {
                 >
                   <div className="min-w-0">
                     <p className="font-medium truncate">{student.userName}</p>
-                    <p className="text-xs text-muted-foreground truncate">{student.presentCount} days present</p>
+                    <p className="text-xs text-muted-foreground truncate">{student.presentCount} hari hadir</p>
                   </div>
                   {student.approvalStatus === "approved" && <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />}
                   {student.approvalStatus === "rejected" && <XCircle className="w-4 h-4 text-red-600 shrink-0" />}
@@ -219,33 +220,33 @@ export function WeeklyAttendanceApproval() {
                       }
                       variant="outline"
                    >
-                      {selectedStudent.approvalStatus.toUpperCase()}
+                      {selectedStudent.approvalStatus.toUpperCase() === "APPROVED" ? "DISETUJUI" : selectedStudent.approvalStatus.toUpperCase() === "REJECTED" ? "DITOLAK" : "MENUNGGU"}
                    </Badge>
                 </div>
 
                 {/* Attendance Grid */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Weekly Attendance Log</CardTitle>
+                    <CardTitle className="text-base">Log Absensi Mingguan</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="grid grid-cols-7 gap-2">
                        {selectedStudent.dailyRecords.map((day: any) => {
                           const date = new Date(day.date);
-                          const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+                          const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' });
                           const dayNum = date.getDate();
                           
                           let statusColor = "bg-gray-50 border-gray-200 text-gray-400";
                           let statusIcon = null;
-                          let statusText = "Absent";
+                          let statusText = "Absen";
 
                           if (day.status === "present") {
                              statusColor = "bg-green-50 border-green-200 text-green-700";
                              statusIcon = <CheckCircle2 className="w-5 h-5 mb-1" />;
-                             statusText = "Present";
+                             statusText = "Hadir";
                           } else if (day.status === "permission") {
                              statusColor = "bg-yellow-50 border-yellow-200 text-yellow-700";
-                             statusText = "Permission";
+                             statusText = "Izin";
                           } else if (day.status === "alpha") {
                              statusColor = "bg-red-50 border-red-200 text-red-700";
                              statusText = "Alpha";
@@ -268,9 +269,9 @@ export function WeeklyAttendanceApproval() {
                 <Card>
                   <CardContent className="pt-6 space-y-4">
                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Notes / Feedback</label>
+                        <label className="text-sm font-medium">Catatan / Umpan Balik</label>
                         <Textarea 
-                          placeholder="Add feedback for the student..." 
+                          placeholder="Tambahkan umpan balik untuk mahasiswa..." 
                           value={notes} 
                           onChange={e => setNotes(e.target.value)} 
                           className="h-24"
@@ -283,7 +284,7 @@ export function WeeklyAttendanceApproval() {
                           disabled={selectedStudent.approvalStatus === "approved"}
                         >
                           <CheckCircle2 className="w-5 h-5 mr-2" />
-                          Approve Attendance
+                          Setujui Absensi
                         </Button>
                         <Button 
                           className="flex-1"
@@ -292,7 +293,7 @@ export function WeeklyAttendanceApproval() {
                           disabled={selectedStudent.approvalStatus === "rejected"}
                         >
                            <XCircle className="w-5 h-5 mr-2" />
-                           Reject
+                           Tolak
                         </Button>
                      </div>
                   </CardContent>
@@ -302,8 +303,8 @@ export function WeeklyAttendanceApproval() {
             ) : (
               <div className="h-full flex flex-col items-center justify-center p-12 text-center text-muted-foreground border-2 border-dashed rounded-lg bg-accent/20">
                 <Users className="w-16 h-16 mb-4 opacity-50" />
-                <h3 className="text-xl font-semibold mb-2">Select a Student</h3>
-                <p className="max-w-xs">Select a student from the sidebar to view their detailed attendance for this week and take action.</p>
+                <h3 className="text-xl font-semibold mb-2">Pilih Mahasiswa</h3>
+                <p className="max-w-xs">Pilih mahasiswa dari sidebar untuk melihat detail absensi minggu ini dan mengambil tindakan.</p>
               </div>
             )}
           </div>
@@ -312,7 +313,7 @@ export function WeeklyAttendanceApproval() {
         selectedTeamId && (
           <div className="flex justify-center py-12 text-muted-foreground">
             <Loader2 className="w-6 h-6 animate-spin mr-2" />
-            Loading attendance data...
+            Memuat data absensi...
           </div>
         )
       )}

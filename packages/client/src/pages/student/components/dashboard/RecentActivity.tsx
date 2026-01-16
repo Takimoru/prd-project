@@ -8,6 +8,7 @@ import { Activity, CheckCircle, FileText, PlusCircle } from "lucide-react";
 import { useQuery } from "@apollo/client";
 import { GET_ACTIVITIES } from "@/graphql/student";
 import { formatDistanceToNow } from "date-fns";
+import { id } from "date-fns/locale";
 
 interface RecentActivityProps {
   teamId?: string;
@@ -43,23 +44,23 @@ export function RecentActivity({ teamId }: RecentActivityProps) {
       case "created_task":
         return (
           <span>
-            created task <span className="font-medium">{activity.targetTitle}</span>
+            membuat tugas <span className="font-medium">{activity.targetTitle}</span>
           </span>
         );
       case "completed_task":
         return (
           <span>
-            completed <span className="font-medium">{activity.targetTitle}</span>
+            menyelesaikan <span className="font-medium">{activity.targetTitle}</span>
           </span>
         );
       case "updated_task":
         return (
           <span>
-            updated {activity.details?.toLowerCase().includes("progress") ? "progress of" : ""} <span className="font-medium">{activity.targetTitle}</span>
+            memperbarui {activity.details?.toLowerCase().includes("progress") ? "progres" : ""} <span className="font-medium">{activity.targetTitle}</span>
           </span>
         );
       default:
-        return <span>performed an action</span>;
+        return <span>melakukan aksi</span>;
     }
   };
 
@@ -70,16 +71,16 @@ export function RecentActivity({ teamId }: RecentActivityProps) {
           <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center">
             <Activity className="w-4 h-4 text-primary-500" />
           </div>
-          Recent Activity
+          Aktivitas Terbaru
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {loading ? (
-            <p className="text-sm text-gray-500 text-center py-4">Loading...</p>
+            <p className="text-sm text-gray-500 text-center py-4">Memuat data...</p>
           ) : activities.length === 0 ? (
             <p className="text-sm text-gray-500 text-center py-4">
-              No recent activity
+              Belum ada aktivitas
             </p>
           ) : (
             <div className="space-y-4">
@@ -100,6 +101,7 @@ export function RecentActivity({ teamId }: RecentActivityProps) {
                     <p className="text-xs text-gray-500">
                       {formatDistanceToNow(new Date(activity.timestamp), {
                         addSuffix: true,
+                        locale: id,
                       })}
                     </p>
                   </div>
