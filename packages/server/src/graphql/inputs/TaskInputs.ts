@@ -25,6 +25,15 @@ export class CreateTaskInput {
 }
 
 @InputType()
+export class TaskFileInput {
+  @Field()
+  url: string;
+
+  @Field({ nullable: true })
+  name?: string;
+}
+
+@InputType()
 export class UpdateTaskInput {
   @Field({ nullable: true })
   title?: string;
@@ -44,7 +53,7 @@ export class UpdateTaskInput {
   @Field({ nullable: true })
   completed?: boolean;
 
-  @Field(() => [String], { nullable: true })
-  completionFiles?: string[];
+  @Field(() => [TaskFileInput], { nullable: true })
+  completionFiles?: TaskFileInput[];
 }
 

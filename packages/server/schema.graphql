@@ -376,6 +376,11 @@ type TaskFile {
   url: String!
 }
 
+input TaskFileInput {
+  name: String
+  url: String!
+}
+
 type TaskUpdate {
   createdAt: DateTime!
   id: ID!
@@ -424,7 +429,7 @@ input UpdateSupervisorInput {
 input UpdateTaskInput {
   assignedMemberIds: [ID!]
   completed: Boolean
-  completionFiles: [String!]
+  completionFiles: [TaskFileInput!]
   description: String
   endTime: String
   startTime: String

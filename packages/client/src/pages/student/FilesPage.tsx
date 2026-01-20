@@ -25,6 +25,7 @@ export function FilesPage() {
       programId: string;
       files: Array<{
         file: string;
+        originalName?: string;
         taskTitle: string;
         taskId: string;
         completedAt?: string;
@@ -54,6 +55,7 @@ export function FilesPage() {
           const fileUrl = typeof file === 'string' ? file : file.url;
           files[programId].files.push({
             file: fileUrl,
+            originalName: typeof file === 'string' ? undefined : file.name,
             taskTitle: task.title,
             taskId: task.id,
             completedAt: task.completedAt,
@@ -150,7 +152,8 @@ export function FilesPage() {
                             onClick={async () => {
                               try {
                                 const filename = item.file.split('/').pop();
-                                const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload/download?file=${filename}&name=${filename}`;
+                                const downloadName = item.originalName || filename;
+                                const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload/download?file=${filename}&name=${downloadName}`;
                                 
                                 toast.loading("Mengunduh file...", { id: "download-toast" });
                                 
@@ -167,7 +170,7 @@ export function FilesPage() {
                                 const url = window.URL.createObjectURL(blob);
                                 const link = document.createElement('a');
                                 link.href = url;
-                                link.setAttribute('download', filename || "download");
+                                link.setAttribute('download', downloadName || "download");
                                 document.body.appendChild(link);
                                 link.click();
                                 window.URL.revokeObjectURL(url);
