@@ -6,6 +6,7 @@ import {
   Calendar,
   Files,
   FileText,
+  FileCheck,
   Users,
   Menu,
   LogOut,
@@ -50,6 +51,7 @@ export function DashboardSidebar({ user }: DashboardSidebarProps) {
     { icon: Calendar, label: "Kalender", path: "/dashboard/calendar" },
     { icon: Files, label: "Berkas", path: "/dashboard/files" },
     { icon: FileText, label: "Logbook Mingguan", path: "/dashboard/logsheet" },
+    { icon: FileCheck, label: "Laporan Akhir", path: "/dashboard/final-report" },
     { icon: Users, label: "Tim", path: "/dashboard/team" },
   ];
 

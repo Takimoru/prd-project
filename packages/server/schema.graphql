@@ -129,6 +129,32 @@ type DocumentationItem {
   url: String!
 }
 
+type FinalReport {
+  createdAt: DateTime!
+  description: String
+  fileName: String!
+  fileUrl: String!
+  id: ID!
+  reviewNotes: String
+  reviewedAt: DateTime
+  reviewedBy: User
+  reviewedById: String
+  status: FinalReportStatus!
+  team: Team!
+  teamId: String!
+  title: String!
+  updatedAt: DateTime!
+  uploadedBy: User!
+  uploadedById: String!
+}
+
+"""Status of final report"""
+enum FinalReportStatus {
+  APPROVED
+  PENDING
+  REVISION_REQUESTED
+}
+
 type Logsheet {
   createdAt: DateTime!
   createdBy: User!
@@ -180,6 +206,7 @@ type Mutation {
   rejectRegistration(id: ID!, reviewNotes: String): Registration!
   rejectWeeklyReport(input: AddFeedbackInput!): WeeklyReport!
   removeMember(teamId: ID!, userId: ID!): Team!
+  reviewFinalReport(input: ReviewFinalReportInput!): FinalReport!
   sendWorkProgramMessage(content: String!, workProgramId: ID!): WorkProgramMessage!
   submitRegistration(input: SubmitRegistrationInput!): Registration!
   submitWeeklyReport(description: String!, photos: [String!], progress: Int!, status: String, taskIds: [String!], teamId: ID!, week: String!): WeeklyReport!
@@ -192,6 +219,7 @@ type Mutation {
   updateTeamProgress(progress: Int!, teamId: ID!): Team!
   updateWorkProgram(id: ID!, input: UpdateWorkProgramInput!): WorkProgram!
   updateWorkProgramProgress(attachments: [String!], notes: String, percentage: Int!, workProgramId: ID!): WorkProgramProgress!
+  uploadFinalReport(input: UploadFinalReportInput!): FinalReport!
   uploadLogsheet(teamId: ID!, week: String!): Logsheet!
 }
 
@@ -212,6 +240,7 @@ type Program {
 
 type Query {
   activities(teamId: ID): [Activity!]!
+  allFinalReports: [FinalReport!]!
   allLogsheets: [Logsheet!]!
   approvedAttendance(programId: ID!): [Attendance!]!
   approvedRegistrations: [Registration!]!
@@ -219,9 +248,11 @@ type Query {
   downloadFinalReport(reportUrl: String!, teamId: ID!): String!
   exportAttendanceCSV(programId: ID!): CSVExportResult!
   finalReports(teamId: ID!): [String!]!
+  finalReportsByTeam(teamId: ID!): [FinalReport!]!
   isAdmin(email: String): Boolean!
   me: User
   mySupervisedWorkPrograms: [WorkProgram!]!
+  myTeamFinalReports(teamId: ID!): [FinalReport!]!
   myTeamLogsheets(teamId: ID!): [Logsheet!]!
   myTeamWeeklyReports: [WeeklyReport!]!
   myTeams: [Team!]!
@@ -270,6 +301,12 @@ type Registration {
   submittedAt: DateTime!
   user: User
   userId: String
+}
+
+input ReviewFinalReportInput {
+  reportId: ID!
+  reviewNotes: String
+  status: FinalReportStatus!
 }
 
 type StudentAttendanceSummary {
@@ -408,6 +445,14 @@ input UpdateWorkProgramInput {
   endDate: String
   startDate: String
   title: String
+}
+
+input UploadFinalReportInput {
+  description: String
+  fileName: String!
+  fileUrl: String!
+  teamId: String!
+  title: String!
 }
 
 type User {

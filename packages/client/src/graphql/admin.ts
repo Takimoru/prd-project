@@ -175,7 +175,10 @@ export const GET_APPROVED_REGISTRATIONS = gql`
       fullName
       studentId
       email
+      phone
+      paymentProofUrl
       submittedAt
+      reviewedAt
       program {
         id
         title
@@ -184,6 +187,10 @@ export const GET_APPROVED_REGISTRATIONS = gql`
         id
         name
         email
+      }
+      reviewedBy {
+        id
+        name
       }
     }
   }

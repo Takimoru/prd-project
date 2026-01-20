@@ -55,11 +55,11 @@ export function RegistrationPage() {
     const maxSizeMb = 5;
     const allowedTypes = ["application/pdf", "image/jpeg", "image/png"];
     if (!allowedTypes.includes(file.type)) {
-      toast.error("Payment proof must be a PDF or image file (JPG/PNG).");
+      toast.error("Bukti pembayaran harus berupa file PDF atau gambar (JPG/PNG).");
       return;
     }
     if (file.size > maxSizeMb * 1024 * 1024) {
-      toast.error(`File must be smaller than ${maxSizeMb} MB.`);
+      toast.error(`File harus lebih kecil dari ${maxSizeMb} MB.`);
       return;
     }
     setFormData((prev) => ({ ...prev, paymentFile: file }));
@@ -70,15 +70,15 @@ export function RegistrationPage() {
     if (isSubmitting) return;
 
     if (!formData.programId) {
-      toast.error("Please select a program.");
+      toast.error("Silakan pilih program.");
       return;
     }
     if (!validateEmailDomain(formData.email)) {
-      toast.error("Please use your university email address.");
+      toast.error("Silakan gunakan alamat email universitas Anda.");
       return;
     }
     if (!formData.paymentFile) {
-      toast.error("Payment proof is required.");
+      toast.error("Bukti pembayaran wajib diunggah.");
       return;
     }
 
@@ -97,13 +97,13 @@ export function RegistrationPage() {
 
       if (!uploadResponse.ok) {
         const errorData = await uploadResponse.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to upload payment proof.");
+        throw new Error(errorData.error || "Gagal mengunggah bukti pembayaran.");
       }
 
       const uploadResult = await uploadResponse.json();
       
       if (!uploadResult.success || !uploadResult.url) {
-        throw new Error("Failed to upload payment proof.");
+        throw new Error("Gagal mengunggah bukti pembayaran.");
       }
 
       // Get full URL (backend returns relative path)
@@ -127,10 +127,10 @@ export function RegistrationPage() {
 
       setIsSuccess(true);
       setFormData(INITIAL_FORM);
-      toast.success("Registration submitted! Please wait for admin verification.");
+      toast.success("Pendaftaran berhasil dikirim! Silakan tunggu verifikasi admin.");
     } catch (error: any) {
       console.error("Registration submission failed:", error);
-      toast.error(error.message || "Failed to submit registration.");
+      toast.error(error.message || "Gagal mengirim pendaftaran.");
     } finally {
       setIsSubmitting(false);
     }
@@ -145,10 +145,10 @@ export function RegistrationPage() {
               <FileUp className="w-7 h-7 sm:w-8 sm:h-8 text-primary-600" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Field Study Registration
+              Registrasi KKN
             </h1>
             <p className="text-sm sm:text-base text-gray-600 mt-2">
-              Submit your data and payment proof. Admin will verify before you can log in.
+              Kirimkan data dan bukti pembayaran Anda. Admin akan memverifikasi sebelum Anda dapat masuk.
             </p>
           </div>
 
@@ -157,11 +157,11 @@ export function RegistrationPage() {
               <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5" />
               <div>
                 <p className="font-semibold text-green-900">
-                  Registration received!
+                  Pendaftaran diterima!
                 </p>
                 <p className="text-sm text-green-800 mt-1">
-                  We&apos;ll notify you once the admin verifies your data and payment.
-                  After approval, sign in with Google using the same email address.
+                  Kami akan memberi tahu Anda setelah admin memverifikasi data dan pembayaran Anda.
+                  Setelah disetujui, masuk dengan Google menggunakan alamat email yang sama.
                 </p>
               </div>
             </div>
@@ -170,7 +170,7 @@ export function RegistrationPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Program
+                Pilih Program
               </label>
               <select
                 value={formData.programId}
@@ -180,9 +180,9 @@ export function RegistrationPage() {
                 className="w-full px-3 py-2 border rounded-lg"
                 required
               >
-                <option value="">Choose a program</option>
+                <option value="">Pilih program</option>
                 {programsLoading ? (
-                  <option value="">Loading programs...</option>
+                  <option value="">Memuat program...</option>
                 ) : (
                   programs.map((program: any) => (
                     <option key={program.id} value={program.id}>
@@ -196,7 +196,7 @@ export function RegistrationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
+                  Nama Lengkap
                 </label>
                 <input
                   type="text"
@@ -210,7 +210,7 @@ export function RegistrationPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Student ID
+                  NIM
                 </label>
                 <input
                   type="text"
@@ -227,7 +227,7 @@ export function RegistrationPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
+                  Nomor Telepon
                 </label>
                 <input
                   type="tel"
@@ -241,7 +241,7 @@ export function RegistrationPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  University Email
+                  Email Universitas
                 </label>
                 <input
                   type="email"
@@ -253,14 +253,14 @@ export function RegistrationPage() {
                   required
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Use the same email you will use to sign in with Google.
+                  Gunakan email yang sama yang akan Anda gunakan untuk masuk dengan Google.
                 </p>
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Payment Proof (PDF / JPG / PNG)
+                Bukti Pembayaran (PDF / JPG / PNG)
               </label>
               <input
                 type="file"
@@ -271,7 +271,7 @@ export function RegistrationPage() {
               />
               {formData.paymentFile && (
                 <p className="text-xs text-gray-500 mt-1">
-                  Selected: {formData.paymentFile.name}
+                  Terpilih: {formData.paymentFile.name}
                 </p>
               )}
             </div>
@@ -281,14 +281,14 @@ export function RegistrationPage() {
               disabled={isSubmitting}
               className="w-full px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
             >
-              {isSubmitting ? "Submitting..." : "Submit Registration"}
+              {isSubmitting ? "Mengirim..." : "Kirim Pendaftaran"}
             </button>
           </form>
 
           <p className="text-center text-sm text-gray-500 mt-6">
-            Already approved?{" "}
+            Sudah disetujui?{" "}
             <Link to="/login" className="text-primary-600 hover:underline font-medium">
-              Sign in with Google
+              Masuk dengan Google
             </Link>
           </p>
         </div>

@@ -1,18 +1,15 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@apollo/client";
 import { useAuth } from "../../../contexts/AuthContext";
-import toast from "react-hot-toast";
-import { WeeklyReport } from "../types/report";
+import { toast } from "react-hot-toast";
 import {
   GET_PROGRAMS,
   GET_TEAMS_BY_PROGRAM,
-  GET_WEEKLY_REPORTS,
-  GET_WEEKLY_REPORT,
-  GET_FINAL_REPORTS,
-  APPROVE_WEEKLY_REPORT,
-  REJECT_WEEKLY_REPORT,
-  ADD_WEEKLY_REPORT_FEEDBACK,
 } from "../../../graphql/admin";
+import {
+  GET_FINAL_REPORTS_BY_TEAM,
+  REVIEW_FINAL_REPORT,
+} from "../../../graphql/finalReport";
 
 export function useFinalReports() {
   const { user } = useAuth();
@@ -32,43 +29,18 @@ export function useFinalReports() {
   });
   const teamsForProgram = teamsData?.teams || [];
 
-  const { data: reportsData } = useQuery(GET_WEEKLY_REPORTS, {
+  const { data: reportsData } = useQuery(GET_FINAL_REPORTS_BY_TEAM, {
     variables: { teamId: selectedTeam },
     skip: !selectedTeam,
   });
-  const reportsForTeam = reportsData?.weeklyReports as
-    | WeeklyReport[]
-    | undefined;
+  const reportsForTeam = reportsData?.finalReportsByTeam || [];
 
-  const { data: finalReportsData } = useQuery(GET_FINAL_REPORTS, {
-    variables: { teamId: selectedTeam },
-    skip: !selectedTeam,
-  });
-  const finalReports = finalReportsData?.finalReports || [];
-
-  // Get selected report details
-  const { data: selectedReportData } = useQuery(GET_WEEKLY_REPORT, {
-    variables: { id: selectedReportId },
-    skip: !selectedReportId,
-  });
-  const selectedReport = selectedReportData?.weeklyReport as
-    | WeeklyReport
-    | undefined;
+  const selectedReport = reportsForTeam.find((r: any) => r.id === selectedReportId);
 
   // GraphQL Mutations
-  const [approveReportMutation] = useMutation(APPROVE_WEEKLY_REPORT, {
+  const [reviewReportMutation] = useMutation(REVIEW_FINAL_REPORT, {
     refetchQueries: [
-      { query: GET_WEEKLY_REPORTS, variables: { teamId: selectedTeam } },
-    ],
-  });
-  const [rejectReportMutation] = useMutation(REJECT_WEEKLY_REPORT, {
-    refetchQueries: [
-      { query: GET_WEEKLY_REPORTS, variables: { teamId: selectedTeam } },
-    ],
-  });
-  const [addFeedbackMutation] = useMutation(ADD_WEEKLY_REPORT_FEEDBACK, {
-    refetchQueries: [
-      { query: GET_WEEKLY_REPORTS, variables: { teamId: selectedTeam } },
+      { query: GET_FINAL_REPORTS_BY_TEAM, variables: { teamId: selectedTeam } },
     ],
   });
 
@@ -79,8 +51,13 @@ export function useFinalReports() {
     }
 
     try {
-      await approveReportMutation({
-        variables: { id: reportId },
+      await reviewReportMutation({
+        variables: {
+          input: {
+            reportId,
+            status: "approved",
+          },
+        },
       });
       toast.success("Report approved!");
       setSelectedReportId(null);
@@ -102,11 +79,12 @@ export function useFinalReports() {
     }
 
     try {
-      await rejectReportMutation({
+      await reviewReportMutation({
         variables: {
           input: {
             reportId,
-            comment: comment.trim(),
+            status: "revision_requested",
+            reviewNotes: comment.trim(),
           },
         },
       });
@@ -128,7 +106,6 @@ export function useFinalReports() {
     programs,
     teamsForProgram,
     reportsForTeam,
-    finalReports,
     selectedReportData: selectedReport,
     handleApproveReport,
     handleRequestRevision,

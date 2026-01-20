@@ -6,6 +6,7 @@ import {
   APPROVE_WEEKLY_ATTENDANCE 
 } from "@/graphql/supervisor";
 import { useAuth } from "../../contexts/AuthContext";
+import { SupervisorLayout } from "./components/SupervisorLayout";
 import {
   Card,
   CardContent,
@@ -23,12 +24,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 import { Badge } from "@/components/ui/badge";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { Loader2, CheckCircle2, XCircle, Calendar, Users, ArrowLeft } from "lucide-react";
+import { useSearchParams } from "react-router-dom";
+import { Loader2, CheckCircle2, XCircle, Calendar, Users } from "lucide-react";
 import { toast } from "react-hot-toast";
 
 export function WeeklyAttendanceApproval() {
-  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   
@@ -109,25 +109,23 @@ export function WeeklyAttendanceApproval() {
 
   if (!user || teamsLoading) {
     return (
-      <div className="flex justify-center p-8">
-        <Loader2 className="animate-spin" />
-      </div>
+      <SupervisorLayout>
+        <div className="flex justify-center p-8">
+          <Loader2 className="animate-spin" />
+        </div>
+      </SupervisorLayout>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
+    <SupervisorLayout>
+      <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Penyetujuan Absensi</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold text-foreground">Penyetujuan Absensi</h1>
+          <p className="text-muted-foreground mt-2">
             Tinjau dan setujui akumulasi absensi tim.
           </p>
         </div>
-      </div>
 
       {/* Team & Week Selection */}
       <Card className="border-l-4 border-l-blue-600">
@@ -318,5 +316,6 @@ export function WeeklyAttendanceApproval() {
         )
       )}
     </div>
+    </SupervisorLayout>
   );
 }

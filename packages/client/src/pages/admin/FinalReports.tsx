@@ -3,12 +3,12 @@ import { ReportList } from "./components/reports/ReportList";
 import { ReportDetailModal } from "./components/reports/ReportDetailModal";
 import { AdminHeader } from "./components/AdminHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { Loader2, LayoutGrid, Users, FileCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -46,18 +46,17 @@ export function FinalReports() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedProgram || ""} 
+            <Select
+              value={selectedProgram || ""}
               onValueChange={(val) => {
                 setSelectedProgram(val);
                 setSelectedTeam(null);
                 setSelectedReportId(null);
-              }}
-            >
+              }}>
               <SelectTrigger className="w-full bg-background transition-all">
                 <SelectValue placeholder="Pilih periode" />
               </SelectTrigger>
-            <SelectContent>
+              <SelectContent>
                 {programs?.map((program: any) => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.title}
@@ -69,10 +68,11 @@ export function FinalReports() {
         </Card>
 
         {/* Team Selection Card */}
-        <Card className={cn(
-          "border-primary/20 shadow-sm transition-all",
-          !selectedProgram && "opacity-50 grayscale pointer-events-none"
-        )}>
+        <Card
+          className={cn(
+            "border-primary/20 shadow-sm transition-all",
+            !selectedProgram && "opacity-50 grayscale pointer-events-none"
+          )}>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
@@ -80,16 +80,21 @@ export function FinalReports() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Select 
-              value={selectedTeam || ""} 
+            <Select
+              value={selectedTeam || ""}
               onValueChange={(val) => {
                 setSelectedTeam(val);
                 setSelectedReportId(null);
               }}
-              disabled={!selectedProgram}
-            >
+              disabled={!selectedProgram}>
               <SelectTrigger className="w-full bg-background transition-all">
-                <SelectValue placeholder={!selectedProgram ? "Pilih periode terlebih dahulu" : "Pilih tim"} />
+                <SelectValue
+                  placeholder={
+                    !selectedProgram
+                      ? "Pilih periode terlebih dahulu"
+                      : "Pilih tim"
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {teamsForProgram?.map((team: any) => (
@@ -110,9 +115,12 @@ export function FinalReports() {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <FileCheck className="w-8 h-8 text-primary/60" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Tidak Ada Tim Dipilih</h3>
+            <h3 className="text-lg font-semibold text-foreground">
+              Tidak Ada Tim Dipilih
+            </h3>
             <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-              Silakan pilih periode dan kemudian pilih tim untuk meninjau laporan dan kemajuan mingguan mereka.
+              Silakan pilih periode dan kemudian pilih tim untuk meninjau
+              laporan dan kemajuan mingguan mereka.
             </p>
           </div>
         ) : !reportsForTeam ? (
@@ -126,7 +134,7 @@ export function FinalReports() {
           <>
             <div className="p-6 border-b bg-muted/30">
               <h2 className="text-xl font-bold flex items-center gap-2 text-foreground">
-                Laporan Mingguan
+                Laporan Akhir
                 <span className="text-xs font-normal text-muted-foreground bg-background px-2 py-0.5 rounded-full border">
                   {reportsForTeam.length} pengajuan
                 </span>
@@ -146,7 +154,10 @@ export function FinalReports() {
       {selectedReportId && selectedReportData && (
         <ReportDetailModal
           report={selectedReportData}
-          teamName={teamsForProgram?.find((t: any) => t.id === selectedTeam)?.name || "Team"}
+          teamName={
+            teamsForProgram?.find((t: any) => t.id === selectedTeam)?.name ||
+            "Team"
+          }
           onClose={() => setSelectedReportId(null)}
           onApprove={handleApproveReport}
           onRequestRevision={handleRequestRevision}
@@ -155,4 +166,3 @@ export function FinalReports() {
     </div>
   );
 }
-

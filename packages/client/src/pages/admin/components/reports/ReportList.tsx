@@ -32,7 +32,7 @@ export function ReportList({ reports, onSelectReport }: ReportListProps) {
 
   return (
     <div className="space-y-3">
-      {reports.map((report) => (
+      {reports.map((report: any) => (
         <div
           key={report.id}
           className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
@@ -42,18 +42,19 @@ export function ReportList({ reports, onSelectReport }: ReportListProps) {
             <div>
               <div className="flex items-center space-x-2 mb-2">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Week {report.week}
+                  {report.title}
                 </h3>
                 {getStatusBadge(report.status)}
               </div>
-              <p className="text-sm text-gray-600">
-                Progress: {report.progressPercentage}%
+              <p className="text-sm text-gray-600 mb-1">
+                {report.description || "Tidak ada deskripsi"}
               </p>
-              {report.submittedAt && (
-                <p className="text-xs text-gray-500 mt-1">
-                  Submitted: {format(new Date(report.submittedAt), "MMM dd, yyyy HH:mm")}
-                </p>
-              )}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                <span>
+                  Diunggah: {format(new Date(report.createdAt), "d MMM yyyy, HH:mm")}
+                </span>
+                <span>oleh {report.uploadedBy?.name}</span>
+              </div>
             </div>
             <button
               onClick={(e) => {
