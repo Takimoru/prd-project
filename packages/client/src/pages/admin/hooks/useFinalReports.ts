@@ -55,7 +55,7 @@ export function useFinalReports() {
         variables: {
           input: {
             reportId,
-            status: "approved",
+            status: "APPROVED",
           },
         },
       });
@@ -83,7 +83,7 @@ export function useFinalReports() {
         variables: {
           input: {
             reportId,
-            status: "revision_requested",
+            status: "REVISION_REQUESTED",
             reviewNotes: comment.trim(),
           },
         },

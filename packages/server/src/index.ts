@@ -70,6 +70,7 @@ async function startServer() {
     ],
     validate: false, // Set to true to enable class-validator
     emitSchemaFile: path.resolve(__dirname, "../schema.graphql"),
+    pubSub,
   });
 
   // Create WebSocket server for subscriptions

@@ -11,7 +11,7 @@ type Activity {
   targetTitle: String!
   team: Team!
   teamId: String!
-  timestamp: DateTime!
+  timestamp: DateTimeISO!
   user: User!
   userId: String!
 }
@@ -37,7 +37,7 @@ type Attendance {
   status: String!
   team: Team!
   teamId: String!
-  timestamp: DateTime!
+  timestamp: DateTimeISO!
   user: User!
   userId: String!
 }
@@ -63,7 +63,7 @@ type Comment {
   author: User!
   authorId: String!
   content: String!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   id: ID!
   weeklyReport: WeeklyReport
   weeklyReportId: String
@@ -118,9 +118,9 @@ type DailyAttendanceRecord {
 }
 
 """
-The javascript `Date` as string. Type represents date and time as the ISO Date string.
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.This scalar is serialized to a string in ISO 8601 format and parsed from a string in ISO 8601 format.
 """
-scalar DateTime
+scalar DateTimeISO
 
 type DocumentationItem {
   name: String!
@@ -130,20 +130,20 @@ type DocumentationItem {
 }
 
 type FinalReport {
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   description: String
   fileName: String!
   fileUrl: String!
   id: ID!
   reviewNotes: String
-  reviewedAt: DateTime
+  reviewedAt: DateTimeISO
   reviewedBy: User
   reviewedById: String
   status: FinalReportStatus!
   team: Team!
   teamId: String!
   title: String!
-  updatedAt: DateTime!
+  updatedAt: DateTimeISO!
   uploadedBy: User!
   uploadedById: String!
 }
@@ -156,7 +156,7 @@ enum FinalReportStatus {
 }
 
 type Logsheet {
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   createdBy: User!
   createdById: String!
   fileUrl: String!
@@ -167,7 +167,7 @@ type Logsheet {
 }
 
 type LogsheetRecapRow {
-  completedAt: DateTime!
+  completedAt: DateTimeISO!
   date: String!
   members: [String!]!
   notes: String
@@ -225,17 +225,17 @@ type Mutation {
 
 type Program {
   archived: Boolean!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   createdBy: String!
   creator: User
   description: String!
-  endDate: DateTime!
+  endDate: DateTimeISO!
   id: ID!
   registrations: [Registration!]!
-  startDate: DateTime!
+  startDate: DateTimeISO!
   teams: [Team!]!
   title: String!
-  updatedAt: DateTime!
+  updatedAt: DateTimeISO!
 }
 
 type Query {
@@ -293,12 +293,12 @@ type Registration {
   program: Program!
   programId: String!
   reviewNotes: String
-  reviewedAt: DateTime
+  reviewedAt: DateTimeISO
   reviewedBy: User
   reviewedById: String
   status: String!
   studentId: String
-  submittedAt: DateTime!
+  submittedAt: DateTimeISO!
   user: User
   userId: String
 }
@@ -347,17 +347,17 @@ type Subscription {
 type Task {
   assignedMembers: [User!]!
   completed: Boolean!
-  completedAt: DateTime
+  completedAt: DateTimeISO
   completedBy: User
   completedById: String
   completionFiles: [TaskFile!]!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   createdBy: User!
   createdById: String!
   description: String
-  endTime: DateTime
+  endTime: DateTimeISO
   id: ID!
-  startTime: DateTime
+  startTime: DateTimeISO
   status: String!
   team: Team!
   teamId: String!
@@ -372,7 +372,7 @@ type TaskFile {
   name: String
   task: Task!
   taskId: String!
-  uploadedAt: DateTime!
+  uploadedAt: DateTimeISO!
   url: String!
 }
 
@@ -382,7 +382,7 @@ input TaskFileInput {
 }
 
 type TaskUpdate {
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   id: ID!
   notes: String
   progress: Int
@@ -466,7 +466,7 @@ type User {
   attendanceApprovalsAsStudent: [WeeklyAttendanceApproval!]!
   attendanceApprovalsAsSupervisor: [WeeklyAttendanceApproval!]!
   comments: [Comment!]!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   email: String!
   googleId: String!
   id: ID!
@@ -485,7 +485,7 @@ type User {
   teams: [Team!]!
   teamsLed: [Team!]!
   teamsSupervised: [Team!]!
-  updatedAt: DateTime!
+  updatedAt: DateTimeISO!
   workProgramMessagesSent: [WorkProgramMessage!]!
   workProgramProgress: [WorkProgramProgress!]!
   workProgramsAssigned: [WorkProgram!]!
@@ -493,7 +493,7 @@ type User {
 }
 
 type WeeklyAttendanceApproval {
-  approvedAt: DateTime
+  approvedAt: DateTimeISO
   id: ID!
   notes: String
   status: String!
@@ -517,7 +517,7 @@ type WeeklyAttendanceSummary {
 
 type WeeklyReport {
   comments: [Comment!]!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   description: String
   id: ID!
   leader: User
@@ -525,7 +525,7 @@ type WeeklyReport {
   photos: [String!]
   progressPercentage: Int!
   status: String!
-  submittedAt: DateTime
+  submittedAt: DateTimeISO
   taskIds: [String!]
   team: Team!
   teamId: String!
@@ -534,16 +534,16 @@ type WeeklyReport {
 
 type WorkProgram {
   assignedMembers: [User!]!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   createdBy: User!
   createdById: String!
   description: String!
-  endDate: DateTime!
+  endDate: DateTimeISO!
   id: ID!
   messages: [WorkProgramMessage!]!
-  progress: Int
+  progress: Int!
   progressRecords: [WorkProgramProgress!]!
-  startDate: DateTime!
+  startDate: DateTimeISO!
   tasks: [Task!]!
   team: Team!
   teamId: String!
@@ -552,7 +552,7 @@ type WorkProgram {
 
 type WorkProgramMessage {
   content: String!
-  createdAt: DateTime!
+  createdAt: DateTimeISO!
   id: ID!
   sender: User!
   senderId: String!
@@ -566,7 +566,7 @@ type WorkProgramProgress {
   memberId: String!
   notes: String
   percentage: Int!
-  updatedAt: DateTime!
+  updatedAt: DateTimeISO!
   workProgram: WorkProgram!
   workProgramId: String!
 }

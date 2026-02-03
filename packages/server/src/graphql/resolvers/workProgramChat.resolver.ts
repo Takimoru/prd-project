@@ -1,4 +1,5 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx, FieldResolver, Root, Subscription, PubSub, PubSubEngine } from 'type-graphql';
+import { Resolver, Query, Mutation, Arg, ID, Ctx, FieldResolver, Root, Subscription, PubSub } from 'type-graphql';
+import { PubSubEngine } from 'graphql-subscriptions';
 import { WorkProgramMessage } from '../../entities/WorkProgramMessage';
 import { WorkProgram } from '../../entities/WorkProgram';
 import { User } from '../../entities/User';

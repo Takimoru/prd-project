@@ -1,10 +1,14 @@
+console.log("Loading FinalReportResolver...");
 import { Resolver, Query, Mutation, Arg, ID, Ctx, FieldResolver, Root, InputType, Field } from 'type-graphql';
+import * as fs from 'fs';
+import * as path from 'path';
 import { FinalReport, FinalReportStatus } from '../../entities/FinalReport';
 import { Team } from '../../entities/Team';
 import { User } from '../../entities/User';
 import { Context } from '../context';
 import { AppDataSource } from '../../data-source';
 import { requireAuth, requireAdminRole } from '../../lib/auth-helpers';
+import { debugLog } from '../../lib/debug-logger';
 
 @InputType()
 class UploadFinalReportInput {
@@ -132,33 +136,57 @@ export class FinalReportResolver {
 
   // Admin: Review final report (approve/request revision)
   @Mutation(() => FinalReport)
+  @Mutation(() => FinalReport)
   async reviewFinalReport(
     @Arg('input') input: ReviewFinalReportInput,
     @Ctx() ctx: Context
   ): Promise<FinalReport> {
-    requireAdminRole(ctx);
+    debugLog(`[ReviewFinalReport] START: ${JSON.stringify(input)} | User: ${ctx.userEmail}`);
+    try {
+      requireAdminRole(ctx);
+      debugLog(`[ReviewFinalReport] Admin role verified`);
 
-    const userRepo = AppDataSource.getRepository(User);
-    const reportRepo = AppDataSource.getRepository(FinalReport);
+      const userRepo = AppDataSource.getRepository(User);
+      const reportRepo = AppDataSource.getRepository(FinalReport);
 
-    const user = ctx.userEmail
-      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
-      : await userRepo.findOne({ where: { id: ctx.userId } });
+      const user = ctx.userEmail
+        ? await userRepo.findOne({ where: { email: ctx.userEmail } })
+        : await userRepo.findOne({ where: { id: ctx.userId } });
 
-    if (!user) throw new Error('User not found');
+      if (!user) throw new Error('User not found');
+      debugLog(`[ReviewFinalReport] User found: ${user.id}`);
 
-    const report = await reportRepo.findOne({
-      where: { id: input.reportId },
-    });
+      const report = await reportRepo.findOne({
+        where: { id: input.reportId },
+      });
 
-    if (!report) throw new Error('Laporan tidak ditemukan');
+      if (!report) throw new Error('Laporan tidak ditemukan');
+      debugLog(`[ReviewFinalReport] Report found: ${report.id}`);
 
-    report.status = input.status;
-    report.reviewNotes = input.reviewNotes;
-    report.reviewedById = user.id;
-    report.reviewedAt = new Date();
+      report.status = input.status;
+      report.reviewNotes = input.reviewNotes;
+      report.reviewedById = user.id;
+      report.reviewedAt = new Date();
 
-    return await reportRepo.save(report);
+      const savedReport = await reportRepo.save(report);
+      debugLog(`[ReviewFinalReport] Report saved`);
+      
+      // Refetch to ensure everything is correct for GraphQL return
+      const finalReport = await reportRepo.findOne({
+        where: { id: savedReport.id }
+      });
+      debugLog(`[ReviewFinalReport] Report refetched`);
+      
+      return finalReport!;
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : '';
+      
+      console.error(`[ReviewFinalReport] ERROR: ${errorMessage}`, errorStack);
+      debugLog(`[ReviewFinalReport] ERROR: ${errorMessage} \nStack: ${errorStack}`);
+      
+      throw new Error(errorMessage);
+    }
   }
 
   // Field Resolvers
