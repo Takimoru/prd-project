@@ -73,7 +73,7 @@ export class AdminResolver {
     const teamIds = teams.map(t => t.id);
     const approvals = await approvalRepo.find({
       where: {
-        teamId: { $in: teamIds } as any,
+        teamId: In(teamIds),
         status: 'approved',
       },
     });
