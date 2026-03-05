@@ -10,6 +10,7 @@ export const SUBMIT_REGISTRATION = gql`
       studentId
       email
       phone
+      major
       paymentProofUrl
       submittedAt
       program {

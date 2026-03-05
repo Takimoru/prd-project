@@ -59,6 +59,10 @@ export class Registration {
 
   @Field({ nullable: true })
   @Column({ nullable: true })
+  major?: string;
+
+  @Field({ nullable: true })
+  @Column({ nullable: true })
   paymentProofUrl?: string;
 
   @Field()

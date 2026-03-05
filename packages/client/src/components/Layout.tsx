@@ -24,6 +24,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -229,6 +230,7 @@ export function Layout() {
 
           {/* User Info & Logout */}
           <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle />
             {user && (
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
@@ -262,6 +264,7 @@ export function Layout() {
 
           {/* User Info & Logout */}
           <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle />
             {user && (
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">

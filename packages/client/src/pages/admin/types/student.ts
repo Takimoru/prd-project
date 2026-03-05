@@ -4,6 +4,7 @@ export interface Registration {
   email: string;
   studentId?: string;
   phone?: string;
+  major?: string;
   program?: {
     id: string;
     title: string;

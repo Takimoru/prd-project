@@ -12,6 +12,7 @@ type RegistrationForm = {
   studentId: string;
   phone: string;
   email: string;
+  major: string;
   paymentFile: File | null;
 };
 
@@ -21,6 +22,7 @@ const INITIAL_FORM: RegistrationForm = {
   studentId: "",
   phone: "",
   email: "",
+  major: "",
   paymentFile: null,
 };
 
@@ -120,6 +122,7 @@ export function RegistrationPage() {
             studentId: formData.studentId.trim(),
             phone: formData.phone.trim(),
             email: formData.email.trim().toLowerCase(),
+            major: formData.major,
             paymentProofUrl: paymentProofUrl,
           },
         },
@@ -222,6 +225,35 @@ export function RegistrationPage() {
                   required
                 />
               </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Jurusan / Program Studi
+              </label>
+              <select
+                value={formData.major}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, major: e.target.value }))
+                }
+                className="w-full px-3 py-2 border rounded-lg"
+                required
+              >
+                <option value="">Pilih jurusan/prodi</option>
+                <option value="Informatika">Informatika</option>
+                <option value="Sistem Informasi">Sistem Informasi</option>
+                <option value="Teknologi Informasi">Teknologi Informasi</option>
+                <option value="Akuntansi">Akuntansi</option>
+                <option value="Manajemen">Manajemen</option>
+                <option value="Farmasi">Farmasi</option>
+                <option value="Hukum">Hukum</option>
+                <option value="PG PAUD">PG PAUD</option>
+                <option value="Desain Komunikasi Visual">Desain Komunikasi Visual</option>
+                <option value="Teknik Industri">Teknik Industri</option>
+                <option value="Teknik Sipil">Teknik Sipil</option>
+                <option value="Teknologi Pangan">Teknologi Pangan</option>
+                <option value="Hasil Pertanian">Hasil Pertanian</option>
+              </select>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

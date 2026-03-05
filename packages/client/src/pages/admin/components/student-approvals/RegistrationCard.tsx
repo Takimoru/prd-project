@@ -42,6 +42,9 @@ export function RegistrationCard({
           Telepon: {registration.phone || "—"}
         </p>
         <p className="text-sm text-gray-600">
+          Jurusan: {registration.major || "—"}
+        </p>
+        <p className="text-sm text-gray-600">
           Program: {registration.program?.title || "Tidak Diketahui"}
         </p>
         <p className="text-xs text-gray-500 mt-1">

@@ -45,3 +45,30 @@ export class AddMemberInput {
   userId: string;
 }
 
+@InputType()
+export class GenerateTeamsInput {
+  @Field(() => ID)
+  programId: string;
+}
+
+@InputType()
+export class FinalizeTeamItem {
+  @Field()
+  name: string;
+
+  @Field(() => [ID])
+  memberIds: string[];
+}
+
+@InputType()
+export class FinalizeTeamsInput {
+  @Field(() => ID)
+  programId: string;
+
+  @Field()
+  runId: string;
+
+  @Field(() => [FinalizeTeamItem])
+  teams: FinalizeTeamItem[];
+}
+

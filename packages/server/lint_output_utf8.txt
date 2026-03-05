@@ -1,0 +1,32 @@
+﻿
+> @mentoring/backend@1.0.0 lint D:\ngoding\Mentoring\baru\prd-project\packages\server
+> eslint src/**/*.ts
+
+pnpm.exe : 'eslint' 
+is not recognized as 
+an internal or 
+external command,
+At C:\Users\Takimoru\A
+ppData\Local\pnpm\pnpm
+.ps1:14 char:3
++   & "$basedir/.tools
+/@pnpm+win-x64/10.23.0
+/node_modules/@pnpm/wi
+n-x64 ...
++   ~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~
+~~~~~
+    + CategoryInfo    
+          : NotSpeci  
+  fied: ('eslint' i   
+ s not...ternal co    
+mmand,:String) []    
+, RemoteException
+    + FullyQualifiedE 
+   rrorId : NativeCo  
+  mmandError
+ 
+operable program or 
+batch file.
+ΓÇëELIFECYCLEΓÇë Command failed with exit code 1.

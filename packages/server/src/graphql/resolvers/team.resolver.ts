@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Arg, ID, Ctx, Int, FieldResolver, Root } from "type-graphql";
+import { Resolver, Query, Mutation, Arg, ID, Ctx, Int, FieldResolver, Root, ObjectType, Field } from "type-graphql";
 import { GraphQLError } from "graphql";
 import { Team } from "../../entities/Team";
 import { User } from "../../entities/User";
@@ -6,6 +6,8 @@ import {
   CreateTeamInput,
   UpdateTeamInput,
   AddMemberInput,
+  GenerateTeamsInput,
+  FinalizeTeamsInput,
 } from "../inputs/TeamInputs";
 import { Context } from "../context";
 import { checkIsAdmin, requireAdminRole } from "../../lib/auth-helpers";
@@ -17,6 +19,8 @@ import { Program } from "../../entities/Program";
 import { Task } from "../../entities/Task";
 import { WorkProgram } from "../../entities/WorkProgram";
 import { WeeklyReport } from "../../entities/WeeklyReport";
+import { TeamGenerationRun } from "../../entities/TeamGenerationRun";
+import { Registration } from "../../entities/Registration";
 
 @Resolver(() => Team)
 export class TeamResolver {
@@ -500,4 +504,251 @@ export class TeamResolver {
       );
     }
   }
+
+  // ===== AUTO-GENERATION MUTATIONS =====
+
+  @Mutation(() => String)
+  async generateTeams(
+    @Arg("input") input: GenerateTeamsInput,
+    @Ctx() ctx: Context
+  ): Promise<string> {
+    requireAdminRole(ctx);
+
+    const userRepo = AppDataSource.getRepository(User);
+    const teamRepo = AppDataSource.getRepository(Team);
+    const registrationRepo = AppDataSource.getRepository(Registration);
+    const runRepo = AppDataSource.getRepository(TeamGenerationRun);
+
+    // Get the admin user
+    const adminUser = ctx.userEmail
+      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
+      : ctx.userId
+      ? await userRepo.findOne({ where: { id: ctx.userId } })
+      : null;
+
+    if (!adminUser || !checkIsAdmin(adminUser)) {
+      throw new Error("Only admins can generate teams");
+    }
+
+    // Fetch all approved registrations for this program, including user with major
+    const approvedRegistrations = await registrationRepo.find({
+      where: { programId: input.programId, status: "approved" },
+      relations: ["user"],
+    });
+
+    if (approvedRegistrations.length === 0) {
+      throw new Error("Tidak ada mahasiswa yang telah disetujui untuk periode ini");
+    }
+
+    // Find students already assigned to teams in this program
+    const existingTeams = await teamRepo.find({
+      where: { programId: input.programId },
+      relations: ["members"],
+    });
+
+    const assignedStudentIds = new Set<string>();
+    existingTeams.forEach((team) => {
+      if (team.leaderId) assignedStudentIds.add(team.leaderId);
+      team.members?.forEach((m) => assignedStudentIds.add(m.id));
+    });
+
+    // Build pool of unassigned students (with their major)
+    const unassignedStudents = approvedRegistrations
+      .filter((reg) => reg.user && !assignedStudentIds.has(reg.user.id))
+      .map((reg) => ({
+        id: reg.user!.id,
+        name: reg.user!.name,
+        email: reg.user!.email,
+        major: reg.user!.major || reg.major || "Lainnya",
+      }));
+
+    const totalUnassigned = unassignedStudents.length;
+    const T = Math.floor(totalUnassigned / 15);
+
+    if (T === 0) {
+      throw new Error("Jumlah Mahasiswa Belum Cukup (minimum 15 mahasiswa)");
+    }
+
+    // Group students by major
+    const byMajor = new Map<string, typeof unassignedStudents>();
+    for (const student of unassignedStudents) {
+      const key = student.major;
+      if (!byMajor.has(key)) byMajor.set(key, []);
+      byMajor.get(key)!.push(student);
+    }
+
+    // Create T empty teams
+    const previewTeams: Array<{
+      tempId: string;
+      name: string;
+      members: Array<{ id: string; name: string; email: string; major: string }>;
+    }> = Array.from({ length: T }, (_, i) => ({
+      tempId: `preview-team-${i + 1}`,
+      name: `Tim KKN ${i + 1}`,
+      members: [],
+    }));
+
+    const assignedInPreview = new Set<string>();
+
+    // Step 1: Round-robin — assign 1 student per major to each team in rotation
+    const majorKeys = Array.from(byMajor.keys());
+    for (const major of majorKeys) {
+      const pool = byMajor.get(major)!;
+      let poolIdx = 0;
+      for (let teamIdx = 0; teamIdx < T; teamIdx++) {
+        if (poolIdx >= pool.length) break; // major pool exhausted
+        // Find next unassigned student in this major's pool
+        while (poolIdx < pool.length && assignedInPreview.has(pool[poolIdx].id)) {
+          poolIdx++;
+        }
+        if (poolIdx >= pool.length) break;
+        const student = pool[poolIdx++];
+        previewTeams[teamIdx].members.push(student);
+        assignedInPreview.add(student.id);
+      }
+    }
+
+    // Step 2: Fill remaining seats until each team has 15
+    // Sort: programs with most remaining come first
+    const getRemaining = () => {
+      const remaining: typeof unassignedStudents = [];
+      for (const [, pool] of byMajor) {
+        for (const s of pool) {
+          if (!assignedInPreview.has(s.id)) remaining.push(s);
+        }
+      }
+      // Sort by major frequency (desc)
+      const majorCount = new Map<string, number>();
+      for (const s of remaining) {
+        majorCount.set(s.major, (majorCount.get(s.major) || 0) + 1);
+      }
+      remaining.sort((a, b) => (majorCount.get(b.major) || 0) - (majorCount.get(a.major) || 0));
+      return remaining;
+    };
+
+    for (let teamIdx = 0; teamIdx < T; teamIdx++) {
+      while (previewTeams[teamIdx].members.length < 15) {
+        const remaining = getRemaining();
+        if (remaining.length === 0) break;
+        const student = remaining[0];
+        if (!assignedInPreview.has(student.id) && previewTeams[teamIdx].members.length < 15) {
+          previewTeams[teamIdx].members.push(student);
+          assignedInPreview.add(student.id);
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Build program composition summary
+    const teamSummaries = previewTeams.map((team) => {
+      const composition: Record<string, number> = {};
+      for (const m of team.members) {
+        composition[m.major] = (composition[m.major] || 0) + 1;
+      }
+      return {
+        tempId: team.tempId,
+        name: team.name,
+        memberCount: team.members.length,
+        members: team.members,
+        programComposition: Object.entries(composition).map(([major, count]) => ({
+          major,
+          count,
+        })),
+      };
+    });
+
+    // Store generation run for audit
+    const run = runRepo.create({
+      programId: input.programId,
+      generatedBy: adminUser.id,
+      parameters: JSON.stringify({ programId: input.programId, teamSize: 15, totalUnassigned }),
+      summary: JSON.stringify({
+        teamCount: T,
+        totalStudents: assignedInPreview.size,
+        teams: teamSummaries,
+      }),
+    });
+    const savedRun = await runRepo.save(run);
+
+    // Build left-over students list
+    const leftOverStudents = unassignedStudents.filter(s => !assignedInPreview.has(s.id));
+
+    // Return preview as JSON string (client parses it)
+    return JSON.stringify({
+      runId: savedRun.id,
+      teams: teamSummaries,
+      unassignedStudents: leftOverStudents,
+    });
+  }
+
+  @Mutation(() => [Team])
+  async finalizeTeams(
+    @Arg("input") input: FinalizeTeamsInput,
+    @Ctx() ctx: Context
+  ): Promise<Team[]> {
+    requireAdminRole(ctx);
+
+    const userRepo = AppDataSource.getRepository(User);
+    const teamRepo = AppDataSource.getRepository(Team);
+    const runRepo = AppDataSource.getRepository(TeamGenerationRun);
+
+    const adminUser = ctx.userEmail
+      ? await userRepo.findOne({ where: { email: ctx.userEmail } })
+      : ctx.userId
+      ? await userRepo.findOne({ where: { id: ctx.userId } })
+      : null;
+
+    if (!adminUser || !checkIsAdmin(adminUser)) {
+      throw new Error("Only admins can finalize team generation");
+    }
+
+    // Verify the run exists
+    const run = await runRepo.findOne({ where: { id: input.runId } });
+    if (!run) {
+      throw new Error("Generation run not found. Please generate teams again.");
+    }
+
+    debugLog(`[TeamResolver] Finalizing ${input.teams.length} teams for program ${input.programId}`);
+    
+    const createdTeams: Team[] = [];
+
+    for (const teamItem of input.teams) {
+      if (teamItem.memberIds.length === 0) continue;
+
+      // First member becomes the leader
+      const leaderId = teamItem.memberIds[0];
+
+      const members = await userRepo.find({
+        where: { id: In(teamItem.memberIds) },
+      });
+
+      const team = teamRepo.create({
+        programId: input.programId,
+        name: teamItem.name,
+        leaderId: leaderId,
+        progress: 0,
+        members: members,
+        autoGenerated: true,
+        generationRunId: input.runId,
+        generatedBy: adminUser.id,
+        generatedAt: new Date(),
+      });
+
+      const saved = await teamRepo.save(team);
+      createdTeams.push(saved);
+    }
+
+    // Update run summary to mark as finalized
+    run.summary = JSON.stringify({
+      ...JSON.parse(run.summary || "{}"),
+      finalizedAt: new Date().toISOString(),
+      finalizedBy: adminUser.id,
+      finalTeamCount: createdTeams.length,
+    });
+    await runRepo.save(run);
+
+    return createdTeams;
+  }
 }
+
