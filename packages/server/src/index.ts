@@ -69,8 +69,7 @@ async function startServer() {
       FinalReportResolver,
     ],
     validate: false, // Set to true to enable class-validator
-    emitSchemaFile: path.resolve(__dirname, "../schema.graphql"),
-    pubSub,
+    pubSub: pubSub as any,
   });
 
   // Create WebSocket server for subscriptions
@@ -176,7 +175,7 @@ async function startServer() {
 
   const PORT = process.env.PORT || 4000;
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: PORT }, resolve)
+    httpServer.listen({ port: Number(PORT), host: "0.0.0.0" }, resolve)
   );
   console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
 }

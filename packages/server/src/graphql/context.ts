@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PubSub } from "graphql-subscriptions";
+import { PubSub, PubSubEngine } from "graphql-subscriptions";
 
 export const pubSub = new PubSub();
 
@@ -9,5 +9,5 @@ export interface Context {
   userId?: string;
   userEmail?: string;
   userRole?: string;
-  pubSub: PubSub;
+  pubSub: any;
 }
