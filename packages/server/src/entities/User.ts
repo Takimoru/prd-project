@@ -40,6 +40,10 @@ export class User {
   @Column({ nullable: true })
   nidn?: string;
 
+  @Field({ nullable: true })
+  @Column({ nullable: true })
+  major?: string;
+
   @Field()
   @Column({ unique: true })
   googleId: string;

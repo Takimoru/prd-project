@@ -7,7 +7,7 @@ import { Team } from '../../entities/Team';
 import { Activity } from '../../entities/Activity';
 import { WorkProgram } from '../../entities/WorkProgram';
 import { WorkProgramProgress } from '../../entities/WorkProgramProgress';
-import { CreateTaskInput, UpdateTaskInput } from '../inputs/TaskInputs';
+import { CreateTaskInput, UpdateTaskInput, TaskFileInput } from '../inputs/TaskInputs';
 import { Context } from '../context';
 import { AppDataSource } from '../../data-source';
 import { In } from 'typeorm';
@@ -260,10 +260,11 @@ export class TaskResolver {
       }
 
       // Create completion files
-      for (const url of input.completionFiles) {
+      for (const fileInput of input.completionFiles) {
         const file = taskFileRepo.create({
           taskId: id,
-          url,
+          url: fileInput.url,
+          name: fileInput.name,
         });
         await taskFileRepo.save(file);
       }

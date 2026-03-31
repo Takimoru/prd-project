@@ -5,7 +5,7 @@ async function promote() {
   await AppDataSource.initialize();
 
   const userRepo = AppDataSource.getRepository(User);
-  const email = 'nicolastzakis@students.universitasmulia.ac.id';
+  const email = 'nicolastz127@gmail.com';
   
   const user = await userRepo.findOne({
     where: { email },

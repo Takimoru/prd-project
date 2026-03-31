@@ -33,8 +33,8 @@ export function AttendanceReviews() {
   return (
     <div className="space-y-8">
       <AdminHeader
-        title="Attendance Reviews"
-        description="Monitor and approve student attendance across all work programs."
+        title="Tinjauan Absensi"
+        description="Pantau dan setujui absensi mahasiswa di semua program kerja."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -43,7 +43,7 @@ export function AttendanceReviews() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <LayoutGrid className="w-4 h-4 text-primary" />
-              Select Program
+              Pilih Periode
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -55,7 +55,7 @@ export function AttendanceReviews() {
               }}
             >
               <SelectTrigger className="w-full bg-background transition-all">
-                <SelectValue placeholder="Choose a program" />
+                <SelectValue placeholder="Pilih periode" />
               </SelectTrigger>
               <SelectContent>
                 {programs?.map((program: any) => (
@@ -76,7 +76,7 @@ export function AttendanceReviews() {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="w-4 h-4 text-primary" />
-              Select Team
+              Pilih Tim
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -86,7 +86,7 @@ export function AttendanceReviews() {
               disabled={!selectedProgram}
             >
               <SelectTrigger className="w-full bg-background transition-all">
-                <SelectValue placeholder={!selectedProgram ? "Select program first" : "Choose a team"} />
+                <SelectValue placeholder={!selectedProgram ? "Pilih periode terlebih dahulu" : "Pilih tim"} />
               </SelectTrigger>
               <SelectContent>
                 {teamsForProgram?.map((team: any) => (
@@ -107,16 +107,16 @@ export function AttendanceReviews() {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <ClipboardCheck className="w-8 h-8 text-primary/60" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">No Team Selected</h3>
+            <h3 className="text-lg font-semibold text-foreground">Tidak Ada Tim Dipilih</h3>
             <p className="text-muted-foreground max-w-xs mx-auto mt-2">
-              Please select a program and then a team to review their weekly attendance records.
+              Silakan pilih periode dan kemudian pilih tim untuk meninjau catatan absensi mingguan mereka.
             </p>
           </div>
         ) : !attendanceSummary ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <Loader2 className="w-10 h-10 animate-spin text-primary" />
             <p className="text-sm text-muted-foreground font-medium animate-pulse">
-              Fetching attendance records...
+              Memuat data absensi...
             </p>
           </div>
         ) : (

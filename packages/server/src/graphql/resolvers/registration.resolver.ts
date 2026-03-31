@@ -1,6 +1,7 @@
 import { Resolver, Query, Mutation, Arg, ID, Ctx } from 'type-graphql';
 import { Registration } from '../../entities/Registration';
 import { User } from '../../entities/User';
+import { Program } from '../../entities/Program';
 import { SubmitRegistrationInput } from '../inputs/RegistrationInputs';
 import { Context } from '../context';
 import { checkIsAdmin } from '../../lib/auth-helpers';
@@ -54,42 +55,87 @@ export class RegistrationResolver {
     @Arg('input') input: SubmitRegistrationInput,
     @Ctx() ctx: Context
   ): Promise<Registration> {
-    const regRepo = AppDataSource.getRepository(Registration);
-    const normalizedEmail = input.email.toLowerCase().trim();
+    try {
+      console.log('[submitRegistration] Starting registration process:', {
+        email: input.email,
+        programId: input.programId,
+        fullName: input.fullName,
+        studentId: input.studentId,
+      });
 
-    // Check for existing active registrations
-    const existing = await regRepo.find({
-      where: [
-        { email: normalizedEmail, status: 'pending' },
-        { email: normalizedEmail, status: 'approved' },
-      ],
-    });
+      const regRepo = AppDataSource.getRepository(Registration);
+      const programRepo = AppDataSource.getRepository(Program);
+      const normalizedEmail = input.email.toLowerCase().trim();
 
-    if (existing.length > 0) {
-      throw new Error(
-        'You already have a registration in progress. Please wait for admin review.'
-      );
+      // Validate program exists
+      const program = await programRepo.findOne({ where: { id: input.programId } });
+      if (!program) {
+        console.error('[submitRegistration] Program not found:', input.programId);
+        throw new Error(`Program not found. Please select a valid program.`);
+      }
+      console.log('[submitRegistration] Program found:', program.title);
+
+      // Check for existing active registrations
+      const existing = await regRepo.find({
+        where: [
+          { email: normalizedEmail, status: 'pending' },
+          { email: normalizedEmail, status: 'approved' },
+        ],
+      });
+
+      if (existing.length > 0) {
+        console.warn('[submitRegistration] Duplicate registration attempt:', {
+          email: normalizedEmail,
+          existingStatus: existing[0].status,
+        });
+        throw new Error(
+          'You already have a registration in progress. Please wait for admin review.'
+        );
+      }
+
+      console.log('[submitRegistration] Creating registration record...');
+      const registration = regRepo.create({
+        programId: input.programId,
+        fullName: input.fullName,
+        studentId: input.studentId,
+        phone: input.phone,
+        email: normalizedEmail,
+        major: input.major,
+        paymentProofUrl: input.paymentProofUrl,
+        status: 'pending',
+      });
+
+      console.log('[submitRegistration] Saving registration to database...');
+      const saved = await regRepo.save(registration);
+      console.log('[submitRegistration] Registration saved with ID:', saved.id);
+
+      // Track analytics: registration_submitted
+      PostHog.trackRegistrationSubmitted(normalizedEmail, input.programId, saved.id);
+
+      console.log('[submitRegistration] Fetching registration with program relation...');
+      const result = await regRepo.findOne({
+        where: { id: saved.id },
+        relations: ['program'],
+      });
+
+      if (!result) {
+        console.error('[submitRegistration] Failed to retrieve saved registration');
+        throw new Error('Registration was saved but could not be retrieved');
+      }
+
+      console.log('[submitRegistration] Registration completed successfully:', result.id);
+      return result;
+    } catch (error: any) {
+      console.error('[submitRegistration] Error occurred:', {
+        message: error.message,
+        stack: error.stack,
+        input: {
+          email: input.email,
+          programId: input.programId,
+        },
+      });
+      throw error;
     }
-
-    const registration = regRepo.create({
-      programId: input.programId,
-      fullName: input.fullName,
-      studentId: input.studentId,
-      phone: input.phone,
-      email: normalizedEmail,
-      paymentProofUrl: input.paymentProofUrl,
-      status: 'pending',
-    });
-
-    const saved = await regRepo.save(registration);
-
-    // Track analytics: registration_submitted
-    PostHog.trackRegistrationSubmitted(normalizedEmail, input.programId, saved.id);
-
-    return await regRepo.findOne({
-      where: { id: saved.id },
-      relations: ['program'],
-    }) as Registration;
   }
 
   @Mutation(() => Registration)
@@ -142,6 +188,7 @@ export class RegistrationResolver {
       if (user.role !== 'admin' && user.role !== 'supervisor' && user.role !== 'student') {
         user.role = 'student';
         user.studentId = registration.studentId || user.studentId;
+        user.major = registration.major || user.major;
         await userRepo.save(user);
       }
 
@@ -157,6 +204,7 @@ export class RegistrationResolver {
         email: registration.email,
         role: 'student',
         studentId: registration.studentId,
+        major: registration.major,
         googleId: `approved-${registration.id}`,
       });
       const savedUser = await userRepo.save(newUser);

@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/ca
 import { Badge } from "../../components/ui/badge";
 import { FileText, Download, Folder, Loader2 } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "react-hot-toast";
 
 export function FilesPage() {
   const { user, isLoading } = useStudentData();
@@ -24,6 +25,7 @@ export function FilesPage() {
       programId: string;
       files: Array<{
         file: string;
+        originalName?: string;
         taskTitle: string;
         taskId: string;
         completedAt?: string;
@@ -53,6 +55,7 @@ export function FilesPage() {
           const fileUrl = typeof file === 'string' ? file : file.url;
           files[programId].files.push({
             file: fileUrl,
+            originalName: typeof file === 'string' ? undefined : file.name,
             taskTitle: task.title,
             taskId: task.id,
             completedAt: task.completedAt,
@@ -145,15 +148,45 @@ export function FilesPage() {
                               </p>
                             )}
                           </div>
-                          <a
-                            href={item.file}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-2 hover:bg-accent rounded-md transition-colors opacity-0 group-hover:opacity-100"
+                          <button
+                            onClick={async () => {
+                              try {
+                                const filename = item.file.split('/').pop();
+                                const downloadName = item.originalName || filename;
+                                const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload/download?file=${filename}&name=${downloadName}`;
+                                
+                                toast.loading("Mengunduh file...", { id: "download-toast" });
+                                
+                                const response = await fetch(downloadUrl);
+                                
+                                if (!response.ok) {
+                                  if (response.status === 404) {
+                                    throw new Error("File tidak ditemukan di server");
+                                  }
+                                  throw new Error("Gagal mengunduh file");
+                                }
+
+                                const blob = await response.blob();
+                                const url = window.URL.createObjectURL(blob);
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', downloadName || "download");
+                                document.body.appendChild(link);
+                                link.click();
+                                window.URL.revokeObjectURL(url);
+                                document.body.removeChild(link);
+                                
+                                toast.success("File berhasil diunduh!", { id: "download-toast" });
+                              } catch (error: any) {
+                                console.error('Download failed:', error);
+                                toast.error(error.message || "Gagal mengunduh file", { id: "download-toast" });
+                              }
+                            }}
+                            className="p-2 hover:bg-accent rounded-md transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
                             title="Download file"
                           >
                             <Download className="w-5 h-5 text-muted-foreground hover:text-foreground" />
-                          </a>
+                          </button>
                         </div>
                       ))}
                     </div>

@@ -183,6 +183,13 @@ export class UserResolver {
       throw error;
     }
 
+    // Validate email domain
+    if (!input.email.endsWith("@universitasmulia.ac.id")) {
+      const error = new Error("Email must be a valid @universitasmulia.ac.id address");
+      (error as any).extensions = { code: "BAD_USER_INPUT" };
+      throw error;
+    }
+
     // Generate a unique googleId for supervisor (since they don't use Google OAuth)
     // Note: Password is not stored in User entity, supervisors will use email-based auth
     const googleId = `supervisor_${Date.now()}_${Math.random()
@@ -230,6 +237,13 @@ export class UserResolver {
 
     // Update fields
     if (input.email !== undefined) {
+      // Validate email domain
+      if (!input.email.endsWith("@universitasmulia.ac.id")) {
+        const error = new Error("Email must be a valid @universitasmulia.ac.id address");
+        (error as any).extensions = { code: "BAD_USER_INPUT" };
+        throw error;
+      }
+
       // Check if email is already taken by another user
       const existingUser = await userRepo.findOne({
         where: { email: input.email },

@@ -34,7 +34,7 @@ export function TaskDetailModal({ taskId, onClose }: TaskDetailModalProps) {
   const [note, setNote] = useState("");
   const [progress, setProgress] = useState<number | "">("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<Array<{ url: string; name: string }>>([]);
   const [fileInputKey, setFileInputKey] = useState(0);
 
   const { data: taskData, loading: taskLoading } = useQuery(GET_TASK_DETAILS, {
@@ -59,14 +59,46 @@ export function TaskDetailModal({ taskId, onClose }: TaskDetailModalProps) {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // In a real app, you would upload to storage here
-    // For now, we'll simulate with placeholder URLs
-    const newFiles = Array.from(files).map(
-      (file) => `https://storage.example.com/${Date.now()}_${file.name}`
-    );
+    const formData = new FormData();
+    // Assuming /api/upload/multiple expects 'files' field
+    Array.from(files).forEach((file) => {
+      formData.append("files", file);
+    });
+    
+    // Add context for analytics/tracking if needed
+    if (taskId) formData.append("targetId", taskId);
+    formData.append("targetType", "task_completion");
 
-    setUploadedFiles((prev) => [...prev, ...newFiles]);
-    toast.success(`${files.length} file(s) added`);
+    toast.loading("Uploading files...", { id: "upload-toast" });
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api/upload/multiple`, {
+        method: "POST",
+        body: formData,
+        // Don't set Content-Type header, let browser set it with boundary
+      });
+
+      if (!response.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const data = await response.json();
+      
+      if (data.success && data.files) {
+         const newFiles: any[] = data.files.map((f: any) => ({
+           url: f.url,
+           name: f.originalName
+         }));
+         
+         setUploadedFiles((prev) => [...prev, ...newFiles]);
+         toast.success(`${files.length} file(s) uploaded`, { id: "upload-toast" });
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Failed to upload files", { id: "upload-toast" });
+    }
   };
 
   const removeFile = (index: number) => {
@@ -88,7 +120,10 @@ export function TaskDetailModal({ taskId, onClose }: TaskDetailModalProps) {
           taskId: taskId,
           input: {
             completed: true,
-            completionFiles: uploadedFiles,
+            completionFiles: uploadedFiles.map(f => ({
+              url: f.url,
+              name: f.name
+            })),
           }
         }
       });
@@ -286,7 +321,7 @@ export function TaskDetailModal({ taskId, onClose }: TaskDetailModalProps) {
                         className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm">
                         <FileText className="w-4 h-4 text-muted-foreground" />
                         <span className="flex-1 truncate">
-                          {file.split("/").pop()}
+                          {file.name}
                         </span>
                         <Button
                           type="button"

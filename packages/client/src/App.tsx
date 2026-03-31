@@ -24,6 +24,7 @@ import { WorkProgramsPage } from "./pages/student/WorkProgramsPage";
 import { WorkProgramForm } from "./pages/student/components/work-programs/WorkProgramForm";
 import { WorkProgramDetail } from "./pages/student/components/work-programs/WorkProgramDetail";
 import { LogsheetPage } from "./pages/student/LogsheetPage";
+import { FinalReportPage } from "./pages/student/FinalReportPage";
 // Admin Pages
 import { StudentApprovals } from "./pages/admin/StudentApprovals";
 import { CreateProgram } from "./pages/admin/CreateProgram";
@@ -37,12 +38,11 @@ import { AdminRedirect } from "./components/AdminRedirect";
 import { SupervisorDashboard as NewSupervisorDashboard } from "./pages/supervisor/SupervisorDashboard";
 import { SupervisorTeamList } from "./pages/supervisor/SupervisorTeamList";
 import { SupervisorTasksPage } from "./pages/supervisor/SupervisorTasksPage";
-import { SupervisorPendingReviews } from "./pages/supervisor/SupervisorPendingReviews";
-import { SupervisorAllReports } from "./pages/supervisor/SupervisorAllReports";
 import { WeeklySummaryReview } from "./pages/supervisor/WeeklySummaryReview";
 import { SpectatorDashboard } from "./pages/supervisor/SpectatorDashboard";
 import { WeeklyAttendanceApproval } from "./pages/supervisor/WeeklyAttendanceApproval";
 import { SupervisorWorkProgramsPage } from "./pages/supervisor/SupervisorWorkProgramsPage";
+import { SupervisorWorkProgramDetail } from "./pages/supervisor/SupervisorWorkProgramDetail";
 import { useParams } from "react-router-dom";
 
 // Wrapper to extract params for SpectatorDashboard
@@ -88,9 +88,8 @@ function App() {
               <Route path="/supervisor" element={<ProtectedRoute><NewSupervisorDashboard /></ProtectedRoute>} />
               <Route path="/supervisor/teams" element={<ProtectedRoute><SupervisorTeamList /></ProtectedRoute>} />
               <Route path="/supervisor/tasks" element={<ProtectedRoute><SupervisorTasksPage /></ProtectedRoute>} />
-               <Route path="/supervisor/pending" element={<ProtectedRoute><SupervisorPendingReviews /></ProtectedRoute>} />
-              <Route path="/supervisor/reports" element={<ProtectedRoute><SupervisorAllReports /></ProtectedRoute>} />
               <Route path="/supervisor/work-programs" element={<ProtectedRoute><SupervisorWorkProgramsPage /></ProtectedRoute>} />
+              <Route path="/supervisor/work-programs/:programId" element={<ProtectedRoute><SupervisorWorkProgramDetail /></ProtectedRoute>} />
               <Route path="/supervisor/spectator/:teamId" element={<ProtectedRoute><SpectatorDashboardWrapper /></ProtectedRoute>} />
               <Route path="/supervisor/attendance-approval" element={<ProtectedRoute><WeeklyAttendanceApproval /></ProtectedRoute>} />
               <Route path="/supervisor/review/:teamId/:week" element={<ProtectedRoute><WeeklySummaryReview /></ProtectedRoute>} />
@@ -104,6 +103,7 @@ function App() {
               <Route path="/dashboard/team" element={<ProtectedRoute><TeamPage /></ProtectedRoute>} />
               <Route path="/dashboard/work-programs" element={<ProtectedRoute><WorkProgramsPage /></ProtectedRoute>} />
               <Route path="/dashboard/logsheet" element={<ProtectedRoute><LogsheetPage /></ProtectedRoute>} />
+              <Route path="/dashboard/final-report" element={<ProtectedRoute><FinalReportPage /></ProtectedRoute>} />
               
               {/* Admin Routes - Use Layout */}
               <Route

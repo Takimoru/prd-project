@@ -10,6 +10,8 @@ import { AdminHeader } from "./components/AdminHeader";
 import { TeamList } from "./components/teams/TeamList";
 import { ManageTeamModal } from "./components/teams/ManageTeamModal";
 import { TeamAttendanceModal } from "./components/teams/TeamAttendanceModal";
+import { GenerationPreviewPanel } from "./components/teams/GenerationPreviewPanel";
+import { GenerateTeamsButton } from "./components/teams/GenerateTeamsButton";
 import { Button } from "../../components/ui/button";
 import {
   Card,
@@ -41,9 +43,19 @@ export function TeamManagement() {
     handleDeleteTeam,
     startEditing,
     resetForm,
+    // Auto-generation
+    isGenerating,
+    isFinalizing,
+    isPreviewMode,
+    previewData,
+    handleGenerateTeams,
+    handleFinalizeTeams,
+    discardPreview,
+    moveStudentBetweenPreviewTeams,
+    removeStudentFromPreviewTeam,
+    renamePreviewTeam,
   } = useTeamManagement();
 
-  // Helper to find selected program data
   const selectedProgramData = programs?.find((p: any) => p.id === selectedProgram);
 
   return (
@@ -56,20 +68,31 @@ export function TeamManagement() {
         }
         description={
           selectedProgram
-            ? "Kelola tim untuk program ini"
+            ? isPreviewMode
+              ? "Mode preview — review dan finalisasi tim yang digenerate"
+              : "Kelola tim untuk program ini"
             : "Pilih program untuk mengelola tim"
         }
         action={
           selectedProgram ? (
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setSelectedProgram(null)}>
+            <div className="flex gap-2 flex-wrap">
+              <Button variant="outline" onClick={() => { discardPreview(); setSelectedProgram(null); }}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Kembali ke Program
               </Button>
-              <Button onClick={() => setIsCreating(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Buat Tim
-              </Button>
+              {!isPreviewMode && (
+                <>
+                  <GenerateTeamsButton
+                    onGenerate={handleGenerateTeams}
+                    isGenerating={isGenerating}
+                    unassignedCount={availableStudents.length}
+                  />
+                  <Button onClick={() => setIsCreating(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Buat Tim
+                  </Button>
+                </>
+              )}
             </div>
           ) : null
         }
@@ -117,6 +140,17 @@ export function TeamManagement() {
             </div>
           )}
         </div>
+      ) : isPreviewMode && previewData ? (
+        // Generation Preview View
+        <GenerationPreviewPanel
+          previewData={previewData}
+          onFinalize={handleFinalizeTeams}
+          onDiscard={discardPreview}
+          onMoveStudent={moveStudentBetweenPreviewTeams}
+          onRemoveStudent={removeStudentFromPreviewTeam}
+          onRenameTeam={renamePreviewTeam}
+          isFinalizing={isFinalizing}
+        />
       ) : (
         // Team List View
         <TeamList

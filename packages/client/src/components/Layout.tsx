@@ -24,6 +24,7 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function Layout() {
   const { user, logout } = useAuth();
@@ -101,7 +102,11 @@ export function Layout() {
       : effectiveRole === "supervisor"
       ? [
           { path: "/supervisor", label: "Supervisor", icon: LayoutDashboard },
-          { path: "/admin/logsheets", label: "Tinjauan Logbook", icon: FileText },
+          {
+            path: "/admin/logsheets",
+            label: "Tinjauan Logbook",
+            icon: FileText,
+          },
         ]
       : [
           { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -218,13 +223,14 @@ export function Layout() {
           <div className="flex-1">
             <Link to="/" className="flex items-center space-x-2">
               <span className="font-bold text-sm sm:text-base">
-                Field Study System
+                Sistem Informasi KKN
               </span>
             </Link>
           </div>
 
           {/* User Info & Logout */}
           <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle />
             {user && (
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">
@@ -251,13 +257,14 @@ export function Layout() {
           <div className="flex-1 md:flex-initial">
             <Link to="/" className="flex items-center space-x-2">
               <span className="font-bold text-sm sm:text-base">
-                Field Study System
+                Sistem Informasi KKN
               </span>
             </Link>
           </div>
 
           {/* User Info & Logout */}
           <div className="flex items-center gap-2 ml-auto">
+            <ThemeToggle />
             {user && (
               <div className="flex items-center gap-2">
                 <Avatar className="h-8 w-8">

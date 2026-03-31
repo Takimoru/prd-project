@@ -126,6 +126,13 @@ export const GET_TEAM_TASKS = gql(`
       startTime
       endTime
       createdAt
+      workProgramId
+      completedAt
+      completionFiles {
+        id
+        url
+        name
+      }
       assignedMembers {
         id
         name

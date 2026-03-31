@@ -33,6 +33,7 @@ import { AdminResolver } from "./graphql/resolvers/admin.resolver";
 import { ActivityResolver } from "./graphql/resolvers/activity.resolver";
 import { LogsheetResolver } from "./graphql/resolvers/logsheet.resolver";
 import { WorkProgramChatResolver } from "./graphql/resolvers/workProgramChat.resolver";
+import { FinalReportResolver } from "./graphql/resolvers/finalReport.resolver";
 import uploadRouter from "./routes/upload";
 
 dotenv.config();
@@ -65,9 +66,10 @@ async function startServer() {
       ActivityResolver,
       LogsheetResolver,
       WorkProgramChatResolver,
+      FinalReportResolver,
     ],
     validate: false, // Set to true to enable class-validator
-    emitSchemaFile: path.resolve(__dirname, "../schema.graphql"),
+    pubSub: pubSub as any,
   });
 
   // Create WebSocket server for subscriptions
@@ -173,7 +175,7 @@ async function startServer() {
 
   const PORT = process.env.PORT || 4000;
   await new Promise<void>((resolve) =>
-    httpServer.listen({ port: PORT }, resolve)
+    httpServer.listen({ port: Number(PORT), host: "0.0.0.0" }, resolve)
   );
   console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
 }

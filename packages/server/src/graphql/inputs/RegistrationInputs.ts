@@ -17,6 +17,9 @@ export class SubmitRegistrationInput {
   @Field()
   email: string;
 
+  @Field()
+  major: string;
+
   @Field({ nullable: true })
   paymentProofUrl?: string;
 }

@@ -147,5 +147,34 @@ router.get("/uploads/:filename", (req, res) => {
   res.sendFile(filePath);
 });
 
+// Stream file download
+router.get("/download", (req, res) => {
+  const { file, name } = req.query;
+
+  if (!file || typeof file !== "string") {
+    return res.status(400).json({ error: "File parameter required" });
+  }
+
+  // Prevent directory traversal
+  const safeFilename = path.basename(file);
+  const filePath = path.join(uploadsDir, safeFilename);
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  // Set filename for download (use provided name or fallback to stored filename)
+  const downloadName = typeof name === "string" ? name : safeFilename;
+
+  res.download(filePath, downloadName, (err) => {
+    if (err) {
+      console.error("Error downloading file:", err);
+      if (!res.headersSent) {
+        res.status(500).json({ error: "Error downloading file" });
+      }
+    }
+  });
+});
+
 export default router;
 

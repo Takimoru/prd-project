@@ -18,7 +18,7 @@ export function checkIsAdmin(
   // Check if email is in admin list
   const hardcodedAdmins = [
     'nicolastzakis@students.universitasmulia.ac.id',
-    'nicolastzakis@students.universitasmulia.ac.id',
+    'nicolastz127@gmail.com',
   ].map((e) => e.toLowerCase());
 
   const envAdmins =

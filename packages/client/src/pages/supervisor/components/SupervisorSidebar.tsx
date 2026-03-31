@@ -25,8 +25,6 @@ export function SupervisorSidebar() {
     { icon: Users, label: "Tim Saya", path: "/supervisor/teams" },
     { icon: CheckSquare, label: "Tugas", path: "/supervisor/tasks" },
     { icon: CalendarCheck, label: "Penyetujuan Absensi", path: "/supervisor/attendance-approval" },
-    { icon: CheckSquare, label: "Tinjauan Tertunda", path: "/supervisor/pending" },
-    { icon: FileText, label: "Semua Laporan", path: "/supervisor/reports" },
   ];
 
   const SidebarContent = () => (
