@@ -20,8 +20,11 @@ import { FinalReport } from "./entities/FinalReport";
 import { TeamGenerationRun } from "./entities/TeamGenerationRun";
 
 export const AppDataSource = new DataSource({
-  type: "sqlite",
-  database: process.env.DB_PATH || "./database.sqlite",
+  type: "postgres",
+  url: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
   synchronize: true, // Auto-create tables (dev only)
   logging: false,
   entities: [
@@ -44,6 +47,6 @@ export const AppDataSource = new DataSource({
     FinalReport,
     TeamGenerationRun,
   ],
-  migrations: [],
+  migrations: [__dirname + "/migrations/*.ts"],
   subscribers: [],
 });
