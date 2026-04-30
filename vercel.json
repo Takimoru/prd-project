@@ -1,6 +1,0 @@
-{
-  "packageManager": "pnpm",
-  "buildCommand": "pnpm install && pnpm run build",
-  "installCommand": "pnpm install",
-  "outputDirectory": "packages/client/dist"
-}
