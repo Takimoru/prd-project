@@ -22,9 +22,10 @@ import { TeamGenerationRun } from "./entities/TeamGenerationRun";
 export const AppDataSource = new DataSource({
   type: "postgres",
   url: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ssl:
+    process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: false }
+      : false,
   synchronize: true, // Auto-create tables (dev only)
   logging: false,
   entities: [

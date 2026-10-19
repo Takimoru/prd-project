@@ -1,9 +1,10 @@
-### Building and running your application
+### Start the API and PostgreSQL
 
-When you're ready, start your application by running:
-`docker compose up --build`.
+From the repository root, run `docker compose up --build -d`.
 
-Your application will be available at http://localhost:4000.
+The API is available at `http://localhost:4000`; GraphQL is served at `/graphql` and health checks at `/health`.
+
+Compose starts PostgreSQL as `db`, waits for its health check, and passes the API a `DATABASE_URL` using that service name. The local server uses PostgreSQL; `DB_PATH` and SQLite files do not configure this data source.
 
 ### Deploying your application to the cloud
 

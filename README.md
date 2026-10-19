@@ -1,6 +1,6 @@
 # Field Study Project Information System
 
-A comprehensive system for managing university field study programs, built with React, TypeScript, Vite, Tailwind CSS, and Convex.
+A comprehensive system for managing university field study programs. The client uses React, TypeScript, Vite, and Tailwind CSS; the API uses Express, Apollo GraphQL, TypeORM, and PostgreSQL. Some older pages still use Convex.
 
 ## Features
 
@@ -19,14 +19,16 @@ A comprehensive system for managing university field study programs, built with 
 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS
-- **Backend**: Convex (serverless backend)
+- **Backend API**: Express + Apollo GraphQL, backed by PostgreSQL and TypeORM
+- **Legacy functions**: Convex (still used by some older pages)
 - **Authentication**: Google OAuth 2.0
 - **Routing**: React Router v6
 - **Package Manager**: pnpm
 
 ## Prerequisites
 
-- Node.js 18+ and pnpm installed
+- Node.js 20+ and pnpm installed
+- Docker Engine and Docker Compose
 - A Convex account (sign up at [convex.dev](https://convex.dev))
 - A Google OAuth 2.0 Client ID
 
@@ -38,29 +40,15 @@ A comprehensive system for managing university field study programs, built with 
 pnpm install
 ```
 
-### 2. Set Up Convex
+### 2. Start PostgreSQL and the API
 
-1. Install Convex CLI globally (if not already installed):
+Start the API and PostgreSQL together:
+
 ```bash
-npm install -g convex
+docker compose up --build -d
 ```
 
-2. Login to Convex:
-```bash
-npx convex login
-```
-
-3. Initialize Convex in your project:
-```bash
-npx convex dev
-```
-
-This will:
-- Create a new Convex project (or link to an existing one)
-- Generate the `CONVEX_URL` for your deployment
-- Start the Convex development server
-
-4. Copy the `CONVEX_URL` from the terminal output.
+The API listens on `http://localhost:4000/graphql`; its health endpoint is `http://localhost:4000/health`.
 
 ### 3. Set Up Google OAuth
 
@@ -79,31 +67,35 @@ This will:
 
 ### 4. Configure Environment Variables
 
-Create a `.env` file in the root directory:
+Set the client variables in `packages/client/.env.local`:
 
 ```env
+VITE_API_URL=http://localhost:4000
 VITE_CONVEX_URL=your_convex_url_here
 VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
 VITE_ALLOWED_EMAIL_DOMAINS=university.edu,student.university.edu
 ```
 
 Replace:
+- `VITE_API_URL` with the public API origin when deploying the client
 - `your_convex_url_here` with your Convex deployment URL
 - `your_google_client_id_here` with your Google OAuth Client ID
 - `university.edu,student.university.edu` with your allowed email domains (comma-separated)
 
-### 5. Run the Development Server
+The local Docker Compose file supplies `DATABASE_URL` to the API and persists PostgreSQL data in a named volume. Set `CLERK_SECRET_KEY` in the root `.env` file if authenticated API requests need Clerk.
+
+### 5. Run the Web Client
 
 ```bash
-pnpm dev
+pnpm --filter @mentoring/client dev
 ```
 
 The app will be available at `http://localhost:5173`
 
-### 6. Run Convex Development Server (in a separate terminal)
+### 6. Run Convex for Older Pages (if needed)
 
 ```bash
-pnpm convex:dev
+pnpm --filter @mentoring/client convex:dev
 ```
 
 This will watch for changes in your Convex functions and update them automatically.
@@ -111,35 +103,12 @@ This will watch for changes in your Convex functions and update them automatical
 ## Project Structure
 
 ```
-├── convex/                 # Convex backend functions
-│   ├── schema.ts          # Database schema
-│   ├── auth.ts            # Authentication functions
-│   ├── programs.ts        # Program management
-│   ├── teams.ts           # Team management
-│   ├── attendance.ts      # Attendance tracking
-│   ├── tasks.ts           # Task management
-│   ├── reports.ts         # Weekly reports
-│   └── registrations.ts   # Student registrations
-├── src/
-│   ├── components/        # Reusable components
-│   │   ├── Layout.tsx
-│   │   └── ProtectedRoute.tsx
-│   ├── contexts/          # React contexts
-│   │   └── AuthContext.tsx
-│   ├── pages/            # Page components
-│   │   ├── LoginPage.tsx
-│   │   ├── StudentDashboard.tsx
-│   │   ├── TeamWorkspace.tsx
-│   │   ├── SupervisorDashboard.tsx
-│   │   ├── AdminPanel.tsx
-│   │   └── NotFound.tsx
-│   ├── App.tsx           # Main app component
-│   ├── main.tsx          # Entry point
-│   └── index.css         # Global styles
+├── packages/
+│   ├── client/            # React/Vite client and remaining Convex functions
+│   └── server/            # Express/Apollo API, TypeORM entities, and PostgreSQL setup
 ├── package.json
-├── vite.config.ts
-├── tailwind.config.js
-└── tsconfig.json
+├── docker-compose.yml     # Local PostgreSQL and API services
+└── pnpm-workspace.yaml
 ```
 
 ## User Roles
@@ -187,10 +156,10 @@ The built files will be in the `dist` directory.
 
 ## Deployment
 
-### Deploy Convex Backend
+### Deploy Convex Functions (for older pages)
 
 ```bash
-pnpm convex:deploy
+pnpm --filter @mentoring/client convex:deploy
 ```
 
 ### Deploy Frontend
@@ -205,10 +174,11 @@ Make sure to set the environment variables in your hosting platform.
 
 ## Notes
 
-- The Convex backend automatically handles authentication tokens
+- The GraphQL API is served by the Express/Apollo backend
+- Some older pages still call Convex functions
 - Google OAuth tokens are validated on the client side
 - Email domain validation is performed both client-side and server-side
-- All data is stored in Convex's serverless database
+- The API stores its data in PostgreSQL
 
 ## License
 

@@ -1,19 +1,51 @@
-version: '3.8'
-
+# Local development stack. Run the web client on the host with pnpm --filter @mentoring/client dev.
 services:
+  db:
+    image: postgres:16-alpine
+    container_name: field-study-postgres-dev
+    environment:
+      POSTGRES_DB: field_study
+      POSTGRES_USER: field_study
+      POSTGRES_PASSWORD: field_study_dev_password
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U field_study -d field_study"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    networks:
+      - app-network
+
   server:
     build:
-      context: .
-      dockerfile: packages/server/Dockerfile
+      context: ./packages/server
+      dockerfile: Dockerfile.dev
+    container_name: field-study-server-dev
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "4000:4000"
-    env_file:
-      - packages/server/.env
-    restart: always
+    volumes:
+      - ./packages/server/src:/app/src
+      - ./packages/server/uploads:/app/uploads
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      DATABASE_URL: postgresql://field_study:field_study_dev_password@db:5432/field_study
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      POSTHOG_API_KEY: ${POSTHOG_API_KEY:-}
+      POSTHOG_HOST: ${POSTHOG_HOST:-https://app.posthog.com}
+      ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+    networks:
+      - app-network
+    restart: unless-stopped
 
-#  client:
-#    build:
-#      context: .
-#      dockerfile: packages/client/Dockerfile
-#    ports:
-#      - "5173:5173"
+volumes:
+  postgres-data:
+
+networks:
+  app-network:

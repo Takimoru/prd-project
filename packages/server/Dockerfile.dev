@@ -1,10 +1,13 @@
-# Development Dockerfile for Express + TypeORM + SQLite
+# Development Dockerfile for the Express + Apollo API
 # Per PRD: Container + CI setup with pnpm
 
-FROM node:18-alpine
+FROM node:20-alpine
 
-# Install pnpm
-RUN npm install -g pnpm
+# Match the pnpm version declared by the workspace.
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+
+# sqlite3 is retained for data migration/debug scripts and may need a native build.
+RUN apk add --no-cache python3 make g++
 
 # Set working directory
 WORKDIR /app
